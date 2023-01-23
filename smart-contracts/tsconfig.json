@@ -1,0 +1,19 @@
+{
+    "compilerOptions": {
+        "esModuleInterop": true,
+        "module": "es2022",
+        "preserveConstEnums": true,
+        "moduleResolution": "Node",
+        "strict": true,
+        "sourceMap": true,
+        "target": "es2022",
+        "types": ["node"]
+    },
+    "include": ["./*.ts"],
+    "exclude": ["node_modules"],
+    "experimentalDecorators": true,
+    "ts-node": {
+        "esm": true,
+        "experimentalSpecifierResolution": "node"
+    }
+}
