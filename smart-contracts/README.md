@@ -1,6 +1,6 @@
 # Massa Smart-contract Standards
 
-- [fungible token](assembly/contracts/FT): implementation of ERC20 token.
+- [fungible token](assembly/contracts/FT): implementation of the ERC20 token.
 - [non-fungible token](assembly/contracts/NFT)
 
 ## Documentation
@@ -31,8 +31,8 @@ export * from '@massalabs/sc-standards/assembly/contracts/FT/token';
  * @param _ - not used
  */
 export function constructor(_: StaticArray<u8>): StaticArray<u8> {
-  // This line is important. It ensure that this function can't be called in the future.
-  // If you remove this check someone could call your constructor function and reset your SC.
+// This line is important. It ensures that this function can't be called in the future.
+// If you remove this check, someone could call your constructor function and reset your smart contract.
   if (!callerHasWriteAccess) {
     return [];
   }
