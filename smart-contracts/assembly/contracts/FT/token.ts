@@ -47,8 +47,8 @@ export const DECIMALS_KEY = stringToBytes('DECIMALS');
  * - first owner (address)e
  */
 export function constructor(stringifyArgs: StaticArray<u8>): void {
-  // This line is important. It ensure that this function can't be called in the future.
-  // If you remove this check someone could call your constructor function and reset your SC.
+  // This line is important. It ensures that this function can't be called in the future.
+  // If you remove this check, someone could call your constructor function and reset your smart contract.
   assert(callerHasWriteAccess());
 
   const args = new Args(stringifyArgs);
