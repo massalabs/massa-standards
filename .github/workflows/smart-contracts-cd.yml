@@ -1,0 +1,52 @@
+name: smart-contracts CD
+
+on:
+  release:
+    types: [ published ]
+
+defaults:
+  run:
+    working-directory: smart-contracts
+
+jobs:
+  test:
+      uses: ./.github/workflows/smart-contracts-ci.yml
+
+  publish-latest:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: publish
+        run: |
+          npm ci
+          npm run build
+          npm publish --access public
+
+  deploy-typedoc:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 16
+    - name: Generate doc
+      run: |
+        npm ci
+        npm run doc
+        mv docs/documentation/html ../sc-standards
+    - name: Deploy files
+      uses: appleboy/scp-action@master
+      env:
+        HOST: ${{ secrets.MASSANET_HOST }}
+        USERNAME: ${{ secrets.MASSANET_USERNAME }}
+        KEY: ${{ secrets.MASSANET_SSHKEY }}
+      with:
+        source: "./sc-standards"
+        target: "/var/www/type-doc"
