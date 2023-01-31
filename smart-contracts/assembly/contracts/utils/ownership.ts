@@ -69,5 +69,5 @@ export function isOwner(address: Address): StaticArray<u8> {
  * @param address -
  */
 export function ownerKey(address: Address): StaticArray<u8> {
-  return new Args().add('owned' + address.toByteString()).serialize();
+  return new Args().add('owned' + address.toString()).serialize();
 }

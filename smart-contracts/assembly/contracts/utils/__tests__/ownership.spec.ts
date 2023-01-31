@@ -16,7 +16,7 @@ describe('Ownership', () => {
       'A12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT',
     );
     changeCallStack(
-      notOwnerAddr + ' , ' + contractAddressERC20Basic.toByteString(),
+      notOwnerAddr + ' , ' + contractAddressERC20Basic.toString(),
     );
 
     setOwner(new Args().add(notOwnerAddr).serialize());

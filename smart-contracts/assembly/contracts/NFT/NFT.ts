@@ -69,7 +69,7 @@ export function constructor(binaryArgs: StaticArray<u8>): void {
   Storage.set(symbolKey, symbol);
   Storage.set(totalSupplyKey, u64ToBytes(totalSupply));
   Storage.set(baseURIKey, baseURI);
-  Storage.set(ownerKey, Context.caller().toByteString());
+  Storage.set(ownerKey, Context.caller().toString());
   Storage.set(counterKey, u64ToBytes(initCounter));
 
   generateEvent(
@@ -218,7 +218,7 @@ function _increment(): void {
  * @returns true if the caller is the creator of the SC
  */
 function _onlyOwner(): bool {
-  return Context.caller().toByteString() == Storage.get(ownerKey);
+  return Context.caller().toString() == Storage.get(ownerKey);
 }
 
 /**
@@ -232,7 +232,7 @@ function _onlyTokenOwner(tokenId: u64): bool {
   return (
     memory.compare(
       changetype<usize>(left),
-      changetype<usize>(stringToBytes(Context.caller().toByteString())),
+      changetype<usize>(stringToBytes(Context.caller().toString())),
       left.length,
     ) == 0
   );
@@ -278,6 +278,6 @@ export function transfer(binaryArgs: StaticArray<u8>): void {
   Storage.set(ownerTokenKey + tokenId.toString(), toAddress);
 
   generateEvent(
-    `token ${tokenId.toString()} sent from ${Context.caller().toByteString()} to ${toAddress}`,
+    `token ${tokenId.toString()} sent from ${Context.caller().toString()} to ${toAddress}`,
   );
 }

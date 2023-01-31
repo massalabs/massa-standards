@@ -33,7 +33,7 @@ const user1Address = new Address(
 
 resetStorage();
 changeCallStack(
-  user1Address.toByteString() + ' , ' + contractAddressERC20Burn.toByteString(),
+  user1Address.toString() + ' , ' + contractAddressERC20Burn.toString(),
 );
 
 const TOKEN_NAME = 'BURNABLE_TOKEN';
@@ -73,7 +73,7 @@ describe('ERC20 BURN - Initialization', () => {
 
   test('owner is properly initialized', () => {
     expect(bytesToString(ownerAddress([]))).toStrictEqual(
-      user1Address.toByteString(),
+      user1Address.toString(),
     );
   });
 });
@@ -86,7 +86,7 @@ describe('Burn ERC20 to U1', () => {
     // check balance of U1
     expect(
       bytesToU64(
-        balanceOf(new Args().add(user1Address.toByteString()).serialize()),
+        balanceOf(new Args().add(user1Address.toString()).serialize()),
       ),
     ).toBe(TOTAL_SUPPLY - burnAmount);
 

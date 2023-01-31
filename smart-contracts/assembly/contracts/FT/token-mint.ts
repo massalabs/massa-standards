@@ -38,7 +38,7 @@ export function mint(binaryArgs: StaticArray<u8>): void {
   assert(isSuccessMint, 'Requested burn amount causes an overflow');
 
   generateEvent(
-    createEvent(MINT_EVENT_NAME, [recipient.toByteString(), amount.toString()]),
+    createEvent(MINT_EVENT_NAME, [recipient.toString(), amount.toString()]),
   );
 }
 

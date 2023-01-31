@@ -36,7 +36,7 @@ const user2Address = new Address(
 
 resetStorage();
 changeCallStack(
-  user1Address.toByteString() + ' , ' + contractAddressERC20Mint.toByteString(),
+  user1Address.toString() + ' , ' + contractAddressERC20Mint.toString(),
 );
 
 const TOKEN_NAME = 'MINTABLE_TOKEN';
@@ -76,7 +76,7 @@ describe('ERC20 MINT - Initialization', () => {
 
   test('owner is properly initialized', () => {
     expect(bytesToString(ownerAddress([]))).toStrictEqual(
-      user1Address.toByteString(),
+      user1Address.toString(),
     );
   });
 });
@@ -86,11 +86,11 @@ const mintAmount: u64 = 5000;
 describe('Mint ERC20 to U2', () => {
   test('Should mint ERC20', () => {
     mint(
-      new Args().add(user2Address.toByteString()).add(mintAmount).serialize(),
+      new Args().add(user2Address.toString()).add(mintAmount).serialize(),
     );
     // check balance of U2
     expect(
-      balanceOf(new Args().add(user2Address.toByteString()).serialize()),
+      balanceOf(new Args().add(user2Address.toString()).serialize()),
     ).toStrictEqual(u64ToBytes(mintAmount));
 
     // check totalSupply update
@@ -104,21 +104,21 @@ describe('Fails mint ERC20', () => {
   throws('Should overflow ERC20', () =>
     mint(
       new Args()
-        .add(user2Address.toByteString())
+        .add(user2Address.toString())
         .add(U64.MAX_VALUE)
         .serialize(),
     ),
   );
 
   changeCallStack(
-    user2Address.toByteString() +
+    user2Address.toString() +
       ' , ' +
-      contractAddressERC20Mint.toByteString(),
+      contractAddressERC20Mint.toString(),
   );
 
   throws('Should fail because the owner is not the tx emitter', () =>
     mint(
-      new Args().add(user1Address.toByteString()).add(u64(5000)).serialize(),
+      new Args().add(user1Address.toString()).add(u64(5000)).serialize(),
     ),
   );
 

@@ -38,5 +38,5 @@ export function _setBalance(address: Address, balance: u64): void {
  * @returns the key of the balance in the storage for the given address
  */
 function getBalanceKey(address: Address): StaticArray<u8> {
-  return stringToBytes(BALANCE_KEY + address.toByteString());
+  return stringToBytes(BALANCE_KEY + address.toString());
 }

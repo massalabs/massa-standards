@@ -51,15 +51,15 @@ describe('NFT contract TEST', () => {
     NFT.totalSupply();
     for (let i = 0; i < 3; i++) {
       mockScCall(stringToBytes('toto'));
-      NFT.mint(myAddress.toByteString());
+      NFT.mint(myAddress.toString());
     }
     mockScCall(u64ToBytes(3));
     NFT.currentSupply();
-    mockScCall(stringToBytes(myAddress.toByteString()));
+    mockScCall(stringToBytes(myAddress.toString()));
     NFT.ownerOf(1);
     mockScCall([]); // mocked calls need a mocked value, this may change is the future
     NFT.transfer('1x', 1);
-    mockScCall(stringToBytes(myAddress.toByteString()));
+    mockScCall(stringToBytes(myAddress.toString()));
     NFT.ownerOf(1);
   });
 
