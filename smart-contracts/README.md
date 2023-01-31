@@ -33,7 +33,7 @@ export * from '@massalabs/sc-standards/assembly/contracts/FT/token';
 export function constructor(_: StaticArray<u8>): StaticArray<u8> {
 // This line is important. It ensures that this function can't be called in the future.
 // If you remove this check, someone could call your constructor function and reset your smart contract.
-  if (!callerHasWriteAccess) {
+  if (!callerHasWriteAccess()) {
     return [];
   }
 

@@ -75,7 +75,7 @@ export function constructor(stringifyArgs: StaticArray<u8>): void {
     .expect('Error while initializing totalSupply');
   Storage.set(TOTAL_SUPPLY_KEY, u64ToBytes(totalSupply));
 
-  setOwner(new Args().add(Context.caller().toByteString()).serialize());
+  setOwner(new Args().add(Context.caller().toString()).serialize());
   _setBalance(Context.caller(), totalSupply);
 }
 
@@ -182,8 +182,8 @@ export function transfer(binaryArgs: StaticArray<u8>): void {
 
   generateEvent(
     createEvent(TRANSFER_EVENT_NAME, [
-      owner.toByteString(),
-      toAddress.toByteString(),
+      owner.toString(),
+      toAddress.toString(),
       amount.toString(),
     ]),
   );
@@ -249,9 +249,7 @@ export function allowance(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  * @returns the allowance
  */
 function _allowance(owner: Address, spenderAddress: Address): u64 {
-  const key = stringToBytes(
-    owner.toByteString().concat(spenderAddress.toByteString()),
-  );
+  const key = stringToBytes(owner.toString().concat(spenderAddress.toString()));
   return Storage.has(key) ? bytesToU64(Storage.get(key)) : 0;
 }
 
@@ -283,8 +281,8 @@ export function increaseAllowance(binaryArgs: StaticArray<u8>): void {
 
   generateEvent(
     createEvent(APPROVAL_EVENT_NAME, [
-      owner.toByteString(),
-      spenderAddress.toByteString(),
+      owner.toString(),
+      spenderAddress.toString(),
       newAllowance.toString(),
     ]),
   );
@@ -321,8 +319,8 @@ export function decreaseAllowance(binaryArgs: StaticArray<u8>): void {
 
   generateEvent(
     createEvent(APPROVAL_EVENT_NAME, [
-      owner.toByteString(),
-      spenderAddress.toByteString(),
+      owner.toString(),
+      spenderAddress.toString(),
       newAllowance.toString(),
     ]),
   );
@@ -336,9 +334,7 @@ export function decreaseAllowance(binaryArgs: StaticArray<u8>): void {
  * @param amount - amount to set an allowance for
  */
 function _approve(owner: Address, spenderAddress: Address, amount: u64): void {
-  const key = stringToBytes(
-    owner.toByteString().concat(spenderAddress.toByteString()),
-  );
+  const key = stringToBytes(owner.toString().concat(spenderAddress.toString()));
   Storage.set(key, u64ToBytes(amount));
 }
 
@@ -384,8 +380,8 @@ export function transferFrom(binaryArgs: StaticArray<u8>): void {
 
   generateEvent(
     createEvent(TRANSFER_EVENT_NAME, [
-      owner.toByteString(),
-      recipient.toByteString(),
+      owner.toString(),
+      recipient.toString(),
       amount.toString(),
     ]),
   );

@@ -32,7 +32,7 @@ export function burn(binaryArgs: StaticArray<u8>): void {
 
   generateEvent(
     createEvent(BURN_EVENT_NAME, [
-      Context.caller().toByteString(),
+      Context.caller().toString(),
       amount.toString(),
     ]),
   );
