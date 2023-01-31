@@ -44,9 +44,7 @@ const user3Address = new Address('A12NewAddress3');
 resetStorage();
 
 changeCallStack(
-  user1Address.toString() +
-    ' , ' +
-    contractAddressERC20Basic.toString(),
+  user1Address.toString() + ' , ' + contractAddressERC20Basic.toString(),
 );
 
 const TOKEN_NAME = 'TOKEN_NAME';
@@ -107,10 +105,7 @@ describe('Transfer nominal case', () => {
   const transferAmount: u64 = 1200;
   test('Transfer from U1 => U2', () => {
     transfer(
-      new Args()
-        .add(user2Address.toString())
-        .add(transferAmount)
-        .serialize(),
+      new Args().add(user2Address.toString()).add(transferAmount).serialize(),
     );
 
     // Check user1 balance
@@ -129,19 +124,14 @@ describe('Transfer underflow', () => {
   const invalidAmount: u64 = TOTAL_SUPPLY + 1;
   throws('Underflow of balanceTo transfer from U1 => U2', () =>
     transfer(
-      new Args()
-        .add(user2Address.toString())
-        .add(invalidAmount)
-        .serialize(),
+      new Args().add(user2Address.toString()).add(invalidAmount).serialize(),
     ),
   );
 
   _setBalance(user2Address, U64.MAX_VALUE);
 
   throws('Overflow of balanceTo transfer from U1 => U2', () =>
-    transfer(
-      new Args().add(user2Address.toString()).add(u64(1)).serialize(),
-    ),
+    transfer(new Args().add(user2Address.toString()).add(u64(1)).serialize()),
   );
 });
 
@@ -150,10 +140,7 @@ let u1u2AllowAmount: u64 = 1000;
 describe('Allowance', () => {
   test('Increase user1 allowance for user2 to spend', () => {
     increaseAllowance(
-      new Args()
-        .add(user2Address.toString())
-        .add(u1u2AllowAmount)
-        .serialize(),
+      new Args().add(user2Address.toString()).add(u1u2AllowAmount).serialize(),
     );
 
     // check new allowance
@@ -169,10 +156,7 @@ describe('Allowance', () => {
 
   throws('Fails increase allowance => overflow', () =>
     increaseAllowance(
-      new Args()
-        .add(user2Address.toString())
-        .add(u64.MAX_VALUE)
-        .serialize(),
+      new Args().add(user2Address.toString()).add(u64.MAX_VALUE).serialize(),
     ),
   );
 
@@ -190,10 +174,7 @@ describe('Allowance', () => {
     const decreaseAmount: u64 = 666;
     u1u2AllowAmount -= decreaseAmount;
     decreaseAllowance(
-      new Args()
-        .add(user2Address.toString())
-        .add(decreaseAmount)
-        .serialize(),
+      new Args().add(user2Address.toString()).add(decreaseAmount).serialize(),
     );
 
     // check new allowance
@@ -209,10 +190,7 @@ describe('Allowance', () => {
 
   throws('Fail to decreases allowance: underflow', () =>
     increaseAllowance(
-      new Args()
-        .add(user2Address.toString())
-        .add(u64.MAX_VALUE)
-        .serialize(),
+      new Args().add(user2Address.toString()).add(u64.MAX_VALUE).serialize(),
     ),
   );
 
@@ -232,22 +210,15 @@ let u2u1AllowAmount: u64 = 6000;
 describe('transferFrom', () => {
   // Actual user switched to U2
   changeCallStack(
-    user2Address.toString() +
-      ' , ' +
-      contractAddressERC20Basic.toString(),
+    user2Address.toString() + ' , ' + contractAddressERC20Basic.toString(),
   );
   // Increase allowance to 1 for 2
   increaseAllowance(
-    new Args()
-      .add(user1Address.toString())
-      .add(u2u1AllowAmount)
-      .serialize(),
+    new Args().add(user1Address.toString()).add(u2u1AllowAmount).serialize(),
   );
   // Actual user switched to U3
   changeCallStack(
-    user3Address.toString() +
-      ' , ' +
-      contractAddressERC20Basic.toString(),
+    user3Address.toString() + ' , ' + contractAddressERC20Basic.toString(),
   );
   // Increase allowance to 1 for 3
   increaseAllowance(
@@ -256,9 +227,7 @@ describe('transferFrom', () => {
 
   // Actual user switched back to U1
   changeCallStack(
-    user1Address.toString() +
-      ' , ' +
-      contractAddressERC20Basic.toString(),
+    user1Address.toString() + ' , ' + contractAddressERC20Basic.toString(),
   );
 
   throws('Fails because not enough allowance U2 => U1 6000 < 10000', () =>

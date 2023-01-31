@@ -249,9 +249,7 @@ export function allowance(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  * @returns the allowance
  */
 function _allowance(owner: Address, spenderAddress: Address): u64 {
-  const key = stringToBytes(
-    owner.toString().concat(spenderAddress.toString()),
-  );
+  const key = stringToBytes(owner.toString().concat(spenderAddress.toString()));
   return Storage.has(key) ? bytesToU64(Storage.get(key)) : 0;
 }
 
@@ -336,9 +334,7 @@ export function decreaseAllowance(binaryArgs: StaticArray<u8>): void {
  * @param amount - amount to set an allowance for
  */
 function _approve(owner: Address, spenderAddress: Address, amount: u64): void {
-  const key = stringToBytes(
-    owner.toString().concat(spenderAddress.toString()),
-  );
+  const key = stringToBytes(owner.toString().concat(spenderAddress.toString()));
   Storage.set(key, u64ToBytes(amount));
 }
 

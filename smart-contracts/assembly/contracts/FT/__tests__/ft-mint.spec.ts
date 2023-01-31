@@ -85,9 +85,7 @@ const mintAmount: u64 = 5000;
 
 describe('Mint ERC20 to U2', () => {
   test('Should mint ERC20', () => {
-    mint(
-      new Args().add(user2Address.toString()).add(mintAmount).serialize(),
-    );
+    mint(new Args().add(user2Address.toString()).add(mintAmount).serialize());
     // check balance of U2
     expect(
       balanceOf(new Args().add(user2Address.toString()).serialize()),
@@ -103,23 +101,16 @@ describe('Mint ERC20 to U2', () => {
 describe('Fails mint ERC20', () => {
   throws('Should overflow ERC20', () =>
     mint(
-      new Args()
-        .add(user2Address.toString())
-        .add(U64.MAX_VALUE)
-        .serialize(),
+      new Args().add(user2Address.toString()).add(U64.MAX_VALUE).serialize(),
     ),
   );
 
   changeCallStack(
-    user2Address.toString() +
-      ' , ' +
-      contractAddressERC20Mint.toString(),
+    user2Address.toString() + ' , ' + contractAddressERC20Mint.toString(),
   );
 
   throws('Should fail because the owner is not the tx emitter', () =>
-    mint(
-      new Args().add(user1Address.toString()).add(u64(5000)).serialize(),
-    ),
+    mint(new Args().add(user1Address.toString()).add(u64(5000)).serialize()),
   );
 
   test("Should check totalSupply didn't change", () => {
