@@ -405,8 +405,7 @@ function _removeApprovals(tokenId: u64): void {
  * @param binaryArgs - arguments serialized with `Args` containing the following data in this order :
  * - the address (string)
  * - the tokenID (u64)
- * @returns true if the address is approved to transfer the tokenId
- * @returns false if the address is not approved to transfer the tokenId
+ * @returns true if the address is approved to transfer the tokenId, false otherwise
  */
 export function isApproved(binaryArgs: StaticArray<u8>): bool {
   const args = new Args(binaryArgs);
