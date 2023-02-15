@@ -320,7 +320,7 @@ export function transferFrom(binaryArgs: StaticArray<u8>): void {
 
 /**
  * Approves another address to transfer the given token ID.
- * @param binaryArgs - arguments serialized with `Args` containing the following data in this order :
+ * @param binaryArgs - arguments serialized with `Args` containing the following data in this order:
  * - the owner's - owner address
  * - the spenderAddress - spender address
  * - the tokenID (u64)
