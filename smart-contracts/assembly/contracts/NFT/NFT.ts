@@ -3,6 +3,7 @@ import {
   Context,
   generateEvent,
   callerHasWriteAccess,
+  Address,
 } from '@massalabs/massa-as-sdk';
 import {
   Args,
@@ -18,6 +19,7 @@ export const baseURIKey = 'baseURI';
 export const ownerKey = 'Owner';
 export const counterKey = stringToBytes('Counter');
 export const ownerTokenKey = 'ownerOf_';
+export const approvedTokenKey = 'approved_';
 export const initCounter = 0;
 
 /**
@@ -176,7 +178,7 @@ export function ownerOf(_args: StaticArray<u8>): StaticArray<u8> {
 
   const key = ownerTokenKey + tokenId.toString();
 
-  assert(Storage.has(key), `token ${tokenId.toString()} not yet minted`);
+  assertIsMinted(tokenId);
 
   return stringToBytes(Storage.get(key));
 }
@@ -195,6 +197,7 @@ export function mint(_args: StaticArray<u8>): void {
     bytesToU64(Storage.get(totalSupplyKey)) > _currentSupply(),
     'Max supply reached',
   );
+
   const args = new Args(_args);
   const mintAddress = args
     .nextString()
@@ -239,6 +242,14 @@ function _onlyTokenOwner(tokenId: u64): bool {
 }
 
 /**
+ * @param tokenId - the tokenID
+ * @returns true if the token is minted
+ */
+function _onlyMinted(tokenId: u64): bool {
+  return Storage.has(ownerTokenKey + tokenId.toString());
+}
+
+/**
  * Internal function returning the currentSupply
  * @returns u64
  */
@@ -266,18 +277,172 @@ export function transfer(binaryArgs: StaticArray<u8>): void {
     .nextU64()
     .expect('tokenId argument is missing or invalid');
 
-  assert(
-    Storage.has(ownerTokenKey + tokenId.toString()),
-    `Token ${tokenId.toString()} not yet minted`,
-  );
-  assert(
-    _onlyTokenOwner(tokenId),
-    `You are not the owner of ${tokenId.toString()}`,
-  );
+  assertIsMinted(tokenId);
+  assertOnlyOwner(tokenId);
+
+  _removeApprovals(tokenId);
 
   Storage.set(ownerTokenKey + tokenId.toString(), toAddress);
 
   generateEvent(
     `token ${tokenId.toString()} sent from ${Context.caller().toString()} to ${toAddress}`,
+  );
+}
+
+/**
+ * Transfer a chosen token from the from Address to the to Address.
+ * First check that the token is minted and that the caller is allowed to transfer the token.
+ * @param binaryArgs - arguments serialized with `Args` containing the following data in this order :
+ * - the sender's account (address)
+ * - the recipient's account (address)
+ * - the tokenID (u64).
+ * @throws if the token is not minted or if the caller is not allowed to transfer the token
+ */
+export function transferFrom(binaryArgs: StaticArray<u8>): void {
+  const args = new Args(binaryArgs);
+  const from = args
+    .nextString()
+    .expect('fromAddress argument is missing or invalid');
+  const to = args
+    .nextString()
+    .expect('toAddress argument is missing or invalid');
+  const tokenId = args
+    .nextU64()
+    .expect('tokenId argument is missing or invalid');
+
+  assertIsMinted(tokenId);
+  assertOnlyApproved(from, tokenId);
+
+  _removeApprovals(tokenId);
+
+  Storage.set(ownerTokenKey + tokenId.toString(), to);
+}
+
+/**
+ * Approves another address to transfer the given token ID.
+ * @param binaryArgs - arguments serialized with `Args` containing the following data in this order:
+ * - the owner's - owner address
+ * - the spenderAddress - spender address
+ * - the tokenID (u64)
+ */
+export function approve(binaryArgs: StaticArray<u8>): void {
+  const args = new Args(binaryArgs);
+
+  const callerAddress = Context.caller();
+
+  const tokenId = args
+    .nextU64()
+    .expect('tokenId argument is missing or invalid');
+
+  assertIsMinted(tokenId);
+  assertOnlyOwner(tokenId);
+
+  const toAddress = new Address(
+    args.nextString().expect('toAddress argument is missing or invalid'),
+  );
+
+  assert(
+    callerAddress.toString() != toAddress.toString(),
+    `You are already the owner of ${tokenId.toString()}`,
+  );
+
+  assert(
+    !isApproved(new Args().add(callerAddress).add(tokenId).serialize()),
+    `You are already allowed to transfer ${tokenId.toString()}`,
+  );
+
+  _approve(tokenId, toAddress);
+
+  generateEvent(
+    `token ${tokenId.toString()} approved by ${Context.caller().toString()} for ${toAddress}`,
+  );
+}
+
+/**
+ * Store the approved address for a token
+ *
+ * @param owner - owner address
+ * @param spenderAddress - spender address
+ * @param tokenId - The token ID to approve
+ */
+function _approve(tokenId: u64, spenderAddress: Address): void {
+  let value: string = spenderAddress.toString();
+
+  const key = approvedTokenKey + tokenId.toString();
+
+  if (Storage.has(key)) value = Storage.get(key) + ',' + value;
+
+  Storage.set(key, value);
+}
+
+/**
+ * @param binaryArgs - arguments serialized with `Args` containing the following data in this order :
+ * - the tokenID (u64)
+ * @returns string containing the authorized addresses separated by a comma
+ */
+export function getApproved(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+  const args = new Args(binaryArgs);
+  const tokenId = args
+    .nextU64()
+    .expect('tokenId argument is missing or invalid');
+
+  const key = approvedTokenKey + tokenId.toString();
+
+  return stringToBytes(Storage.get(key));
+}
+
+/**
+ * Removes all the approvals of the token
+ * @param tokenId - the tokenID
+ */
+function _removeApprovals(tokenId: u64): void {
+  const key = approvedTokenKey + tokenId.toString();
+  Storage.del(key);
+}
+
+/**
+ * Return if the address is approved to transfer the tokenId
+ * @param binaryArgs - arguments serialized with `Args` containing the following data in this order :
+ * - the address (string)
+ * - the tokenID (u64)
+ * @returns true if the address is approved to transfer the tokenId, false otherwise
+ */
+export function isApproved(binaryArgs: StaticArray<u8>): bool {
+  const args = new Args(binaryArgs);
+  const address = args
+    .nextString()
+    .expect('address argument is missing or invalid');
+  const tokenId = args
+    .nextU64()
+    .expect('tokenId argument is missing or invalid');
+
+  const key = approvedTokenKey + tokenId.toString();
+
+  const value = Storage.get(key);
+
+  const addresses: string[] = value.split(',');
+
+  return addresses.includes(address);
+}
+
+// ==================================================== //
+// ====             General Assertions             ==== //
+// ==================================================== //
+
+function assertIsMinted(tokenId: u64): void {
+  assert(_onlyMinted(tokenId), `Token ${tokenId.toString()} not yet minted`);
+}
+
+function assertOnlyOwner(tokenId: u64): void {
+  assert(
+    _onlyTokenOwner(tokenId),
+    `You are not the owner of ${tokenId.toString()}`,
+  );
+}
+
+function assertOnlyApproved(from: string, tokenId: u64): void {
+  assert(
+    isApproved(new Args().add(from).add(tokenId).serialize()),
+    'You are not allowed to transfer this token',
   );
 }

@@ -20,6 +20,9 @@ import {
   ownerOf,
   counterKey,
   initCounter,
+  getApproved,
+  approve,
+  transferFrom,
 } from '../NFT';
 import { NFTWrapper } from '../NFTWrapper';
 
@@ -138,5 +141,43 @@ describe('NFT contract TEST', () => {
     expect(ownerOf(u64ToBytes(tokenToSend))).toStrictEqual(
       stringToBytes(receiver),
     );
+  });
+
+  test('approval', () => {
+    const tokenId: u64 = 1;
+    const addresses = ['2x', '3x'];
+
+    addresses.forEach((address) => {
+      const args = new Args().add(tokenId).add(address).serialize();
+
+      approve(args);
+    });
+
+    const allowedAddress = bytesToString(
+      getApproved(new Args().add(tokenId).serialize()),
+    );
+
+    const approvedAddressArray = allowedAddress.split(',');
+
+    expect(approvedAddressArray[0]).toStrictEqual(addresses[0]);
+    expect(approvedAddressArray[1]).toStrictEqual(addresses[1]);
+  });
+
+  test('transferFrom', () => {
+    const tokenId: u64 = 1;
+    const addresses = ['2x', '3x'];
+
+    transferFrom(
+      new Args().add(addresses[0]).add(addresses[1]).add(tokenId).serialize(),
+    );
+    expect(ownerOf(u64ToBytes(tokenId))).toStrictEqual(
+      stringToBytes(addresses[1]),
+    );
+
+    const allowedAddress = bytesToString(
+      getApproved(new Args().add(tokenId).serialize()),
+    );
+
+    expect(allowedAddress).toStrictEqual('');
   });
 });
