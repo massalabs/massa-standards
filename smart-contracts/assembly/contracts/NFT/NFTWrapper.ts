@@ -101,4 +101,47 @@ export class NFTWrapper {
   transfer(toAddress: string, tokenId: u64): void {
     call(this._origin, 'transfer', new Args().add(toAddress).add(tokenId), 0);
   }
+
+  /**
+   * Approve an address to transfer a token
+   *
+   * @param tokenId - Token ID
+   * @param address - address to approve
+   *
+   */
+  approve(tokenId: u64, address: string): void {
+    call(this._origin, 'approve', new Args().add(tokenId).add(address), 0);
+  }
+
+  /**
+   * Transfer a chosen token from the caller to the toAddress.
+   *
+   * @param tokenId - Token ID
+   * @param addressFrom - address of the owner
+   * @param addressTo - address of the recipient
+   * @param tokenId - Token ID
+   *
+   */
+  transferFrom(tokenId: u64, addressFrom: string, addressTo: string): void {
+    call(
+      this._origin,
+      'approve',
+      new Args().add(addressFrom).add(addressTo).add(tokenId),
+      0,
+    );
+  }
+
+  /**
+   * Get the approved address for a token
+   *
+   * @param tokenId - Token ID
+   *
+   * @returns the approved address
+   *
+   */
+  getApproved(tokenId: u64): string {
+    return bytesToString(
+      call(this._origin, 'getApproved', new Args().add(tokenId), 0),
+    );
+  }
 }
