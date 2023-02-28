@@ -122,10 +122,10 @@ export class NFTWrapper {
    * @param tokenId - Token ID
    *
    */
-  transferFrom(tokenId: u64, addressFrom: string, addressTo: string): void {
+  transferFrom(addressFrom: string, addressTo: string, tokenId: u64): void {
     call(
       this._origin,
-      'approve',
+      'transferFrom',
       new Args().add(addressFrom).add(addressTo).add(tokenId),
       0,
     );
