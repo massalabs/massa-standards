@@ -1,6 +1,6 @@
 {
     "name": "@massalabs/sc-standards",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "scripts": {
         "test": "asp --summary",
         "build": "npx massa-as-compile -r",
