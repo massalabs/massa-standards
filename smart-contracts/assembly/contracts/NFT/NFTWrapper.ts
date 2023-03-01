@@ -114,19 +114,19 @@ export class NFTWrapper {
   }
 
   /**
-   * Transfer a chosen token from the caller to the toAddress.
+   * Transfer a chosen token from the fromAddress to the toAddress.
    *
    * @param tokenId - Token ID
-   * @param addressFrom - address of the owner
-   * @param addressTo - address of the recipient
+   * @param fromAddress - address of the owner
+   * @param toAddress - address of the recipient
    * @param tokenId - Token ID
    *
    */
-  transferFrom(addressFrom: string, addressTo: string, tokenId: u64): void {
+  transferFrom(fromAddress: string, toAddress: string, tokenId: u64): void {
     call(
       this._origin,
       'transferFrom',
-      new Args().add(addressFrom).add(addressTo).add(tokenId),
+      new Args().add(fromAddress).add(toAddress).add(tokenId),
       0,
     );
   }
