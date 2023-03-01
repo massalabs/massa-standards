@@ -149,7 +149,6 @@ describe('NFT contract TEST', () => {
 
     addresses.forEach((address) => {
       const args = new Args().add(tokenId).add(address).serialize();
-
       approve(args);
     });
 
@@ -170,6 +169,7 @@ describe('NFT contract TEST', () => {
     transferFrom(
       new Args().add(addresses[0]).add(addresses[1]).add(tokenId).serialize(),
     );
+
     expect(ownerOf(u64ToBytes(tokenId))).toStrictEqual(
       stringToBytes(addresses[1]),
     );
