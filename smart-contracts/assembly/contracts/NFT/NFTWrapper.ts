@@ -116,10 +116,11 @@ export class NFTWrapper {
   /**
    * Transfer a chosen token from the fromAddress to the toAddress.
    *
-   * @param tokenId - Token ID
    * @param fromAddress - address of the owner
    * @param toAddress - address of the recipient
    * @param tokenId - Token ID
+   *
+   * @remarks caller must be an approved address
    *
    */
   transferFrom(fromAddress: string, toAddress: string, tokenId: u64): void {
@@ -132,16 +133,18 @@ export class NFTWrapper {
   }
 
   /**
-   * Get the approved address for a token
+   * Get the approved address(es) of a token
    *
    * @param tokenId - Token ID
    *
-   * @returns the approved address
+   * @returns an array of the approved address(es)
    *
    */
-  getApproved(tokenId: u64): string {
-    return bytesToString(
+  getApproved(tokenId: u64): string[] {
+    const addresses = bytesToString(
       call(this._origin, 'getApproved', new Args().add(tokenId), 0),
     );
+    if (addresses == '') return [];
+    return addresses.split(',');
   }
 }
