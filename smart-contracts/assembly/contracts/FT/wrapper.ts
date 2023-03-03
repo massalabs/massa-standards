@@ -2,7 +2,6 @@ import { Address, call } from '@massalabs/massa-as-sdk';
 import {
   Args,
   NoArg,
-  byteToU8,
   bytesToU64,
   bytesToString,
 } from '@massalabs/as-types';
