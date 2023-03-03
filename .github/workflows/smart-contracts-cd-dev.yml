@@ -1,30 +1,33 @@
 name: smart-contracts CD dev
 
 on:
-  push:
-    branches:
-    - main
+    push:
+        branches:
+            - main
 
 defaults:
-  run:
-    working-directory: smart-contracts
+    run:
+        working-directory: smart-contracts
 
 jobs:
-  test:
-    uses: ./.github/workflows/smart-contracts-ci.yml
+    test:
+        uses: ./.github/workflows/smart-contracts-ci.yml
 
-  publish-dev:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
+    publish-dev:
+        needs: test
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
 
-      - uses: actions/setup-node@v3
-        with:
-          node-version: 18
-          registry-url: https://registry.npmjs.org
+            - uses: actions/setup-node@v3
+              with:
+                  node-version: 18
+                  registry-url: https://registry.npmjs.org
 
-      - name: publish
-        run: ./scripts/publish-dev.sh
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
+            - name: publish
+              run: |
+                  npm ci
+                  npm run build
+                  ./scripts/publish-dev.sh
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.npm_token }}
