@@ -37,5 +37,8 @@
         "typescript": "^4.8.4"
     },
     "type": "module",
-    "prettier": "@massalabs/prettier-config-as"
+    "prettier": "@massalabs/prettier-config-as",
+    "files": [       
+        "build"
+      ]
 }
