@@ -1,10 +1,5 @@
 import { Address, call } from '@massalabs/massa-as-sdk';
-import {
-  Args,
-  NoArg,
-  bytesToU64,
-  bytesToString,
-} from '@massalabs/as-types';
+import { Args, NoArg, bytesToU64, bytesToString } from '@massalabs/as-types';
 
 /**
  * The Massa's standard token implementation wrapper.
