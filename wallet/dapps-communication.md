@@ -5,7 +5,7 @@ Initial meta issue: <https://github.com/massalabs/massa-standards/issues/13>
 ## Abstract
 
 The idea of this RFC is to propose a general standard for communication between wallets (Thyra, Bearby, any external wallet) and massa-web3 such that both:
-- Dapp creators could have a unified interface they could make use of in their dapps which would allow them to easily switch to another compatible to the stnadard wallet client if they need to without breaking a single line of code in their Dapps.
+- Dapp creators could have a unified interface they could make use of in their dapps which would allow them to easily switch to another compatible to the standard wallet client if they need to without breaking a single line of code in their Dapps.
 - Wallets (light or heavy) could implement the corresponding wallet standard and expose themselves for direct use this way ensuring that any massa dapp could make use of them or easily switch to them if needed.
 
 ## Motivation
@@ -31,9 +31,7 @@ The Ethereum API provider specification: https://eips.ethereum.org/EIPS/eip-1193
 
 For the realization of this RFC we will need Wallet Side and Dapp Side interfaces to be defined and a communication channel to be outlined, representing the mechanics of wallet registry and discovery by web3.
 
-As already tested, the window.massa object https://github.com/massalabs/massa-wallet/blob/main/inject.js#L240 could be injected by a plugin by means of creating a dom element script https://github.com/massalabs/massa-wallet/blob/main/inject.js#L63 and placing an eventListener for messages. The plugin e.g. itself could be registered via `window.postMessage(...)` in every pagegh auth login
-
-The following diagrams reveal the communication patterns that wallet injector and dapp builder could employ to work as specified.
+As already tested, the window.massa object https://github.com/massalabs/massa-wallet/blob/main/inject.js#L240 could be injected by a plugin by means of creating a dom element script https://github.com/massalabs/massa-wallet/blob/main/inject.js#L63 and placing an eventListener for messages. The plugin itself could be registered if not already via `window.postMessage(...)` in every page of the dapp.
 
 ## Implementation
 
@@ -65,6 +63,35 @@ class BearbyWallet implements IWalletProvider {...}
 class ThyraWallet implements IWalletProvider {...}
 ```
 
+The wallet registration / discovery could be done in the following manner inside the browser. Each provider will inject into a dom element a script with the following self-executable js code which will inject its provider whenever its ready. The Provider itself will communicate with the extension over message dispatching using a controller inside the MassaXProvider as shown in here: https://github.com/massalabs/massa-wallet
+
+Wallet registration/discovery mechanics:
+
+```typescript
+() {
+    // the given extension code
+    class MassaXProvider implements IWalletProvider { .... };
+
+    // Listen to registration requests from all web extensions/wallets
+    window.addEventListener('message', function(event) {
+
+        if (event.type === 'wallet_register') {
+            // check the event.data or payload
+            // construct the wallet here and append it into the window.massa. MassaXProvider must implement `IWalletProvider`
+            window.massa._providers = window.massa._providers ? [...window.massa._providers, new MassaXProvider()] : [new MassaXProvider()];
+        }
+    });
+
+    //Register extension (could have more params here if needed)
+    window.postMessage({ type: 'wallet_register' , meta: {ProviderName: "massa_x_wallet", htmlObject: "window.massa_x_wallet" }}, '*');
+
+    // add initial _providers array and listWalletProviders to window.massa to return the latter
+    window.massa._providers = window.massa.providers ? window.massa.providers : [];
+    window.massa.listWalletProviders = function(silent: bool = false, timeout: number = 30000) {
+        return self._providers;
+    }
+}()
+```
 
 2. On the **Dapp Builder** side, there will be a massa object injected into the global space as shown below exposing one async method called `listWalletProviders` as shown below. Beware that it has arguments indicating if we want it in silent mode and what is the **timeout** we allocate for wallet discovery
 
