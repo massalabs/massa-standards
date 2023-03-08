@@ -1,6 +1,6 @@
 import { TokenWrapper } from '../wrapper';
 import { Address, mockScCall } from '@massalabs/massa-as-sdk';
-import { Args, stringToBytes } from '@massalabs/as-types';
+import { stringToBytes } from '@massalabs/as-types';
 
 const tokenName = 'myToken';
 
@@ -10,15 +10,16 @@ function initToken(): TokenWrapper {
     'A12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT',
   );
 
-  mockScCall(stringToBytes(tokenName));
-  const decimalsArgs = new Args().add<u8>(123).serialize();
-  mockScCall(decimalsArgs);
   return new TokenWrapper(tokenAddr);
 }
 
 describe('Wrapper tests', () => {
   test('token name', () => {
     const token = initToken();
+    const name = tokenName;
+    const nameBytes = stringToBytes(name);
+    mockScCall(nameBytes);
+
     expect(token.name()).toBe(tokenName);
   });
 
