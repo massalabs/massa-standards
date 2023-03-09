@@ -48,8 +48,8 @@ Roll is expressed as an unsigned 64-bit integer.
 
 To simplify usage, the following standard units are recommended:
 
-kiloRoll (kROLL): 1 kiloRoll represents 1,000 rolls.
-megaRoll (MROLL): 1 megaRoll represents 1,000 kiloRolls or 1,000,000 rolls.
+- kiloRoll (kROLL): 1 kiloRoll represents 1,000 rolls.
+- megaRoll (MROLL): 1 megaRoll represents 1,000 kiloRolls or 1,000,000 rolls.
 
 ### Transaction Fee
 
