@@ -67,7 +67,6 @@ export class Wallet {
 
 export class Provider {
   listWallets() {...}
-  sayHello() {...}
 }
 ```
 
