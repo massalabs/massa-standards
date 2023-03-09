@@ -20,7 +20,8 @@ Each step is described below and also indicated on the diagram.
 
 
 1. the dapp on the right would make use of the `massa-web3` library which on start would do 2 things:
-* inject into the browser a script which would bind to the window a `window.massaWalletProvider` object and emit an event `LOADED` to signal to all wallets that the web3 is awaiting wallet plugins to register with it. `Massa-web3` on the other hand would have an internal storage for all the providers that it will register from the outside. The code below depicts the idea:
+* inject into the browser a script which would bind to the window a `window.massaWalletProvider` object and emit an event `LOADED` to signal to all wallets that the web3 is awaiting wallet plugins to register with it.
+* `Massa-web3` on the other hand would have an internal storage for all the providers that it will register from the outside. The code below depicts the idea:
 
 **Code snippet of massa javascript (or typescript) library:**
 
