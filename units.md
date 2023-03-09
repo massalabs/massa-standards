@@ -43,7 +43,7 @@ To simplify usage, the following standard units implemenation are recommended:
 
 ### Roll
 
-Roll is a specific token used for staking on the Massa blockchain. A Roll token is required to create and endorse a block on the blockchain. The probability of being drawn to create or endorse a block is correlated to the number of rolls possed.
+Roll is a specific token used for staking on the Massa blockchain. A Roll token is required to create and endorse a block on the blockchain. The probability of being drawn to create or endorse a block is correlated to the number of rolls possessed.
 Roll is expressed as an unsigned 64-bit integer.
 
 To simplify usage, the following standard units are recommended:
