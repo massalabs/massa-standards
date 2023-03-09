@@ -27,20 +27,20 @@ To simplify usage, the following standard units implemenation are recommended:
 
 - milliMassa (mMASSA): 1 milliMassa represents 1,000,000 nanoMassa and also 1/1000th of a Massa.
 - microMassa (µMASSA): 1 microMassa represents 1,000 nanoMassa and also 1/1,000,000th of a Massa.
-- nanoMassa (nMASS): 1 nanoMassa represents the smallest unit of Massa coin and also 1/1,000,000,000th of a Massa.
+- nanoMassa (nMASSA): 1 nanoMassa represents the smallest unit of Massa coin and also 1/1,000,000,000th of a Massa.
 
 ### Gaz
 
-Gaz is a virtual unit used to measure the computational complexity of executing transactions on the Massa blockchain. Each operation requires a certain amount of Gaz, and the amount of Gaz consumed is proportional to the computational complexity of the operation.
+Gaz is a virtual unit used to measure the computational complexity of executing transactions on the Massa blockchain. Each operation requires a certain amount of Gaz, and the amount of Gaz consumed is proportional to the computational complexity of the operation. In order to make this unit more tangible for the end user, gaz is measured in liters (L).
 Gaz is expressed as an unsigned 64-bit integer.
 
-1 Amphora is equivalent to 1,000,000,000 nanoAmphora, the smallest unit of gaz.
+1 Liter (L) is equivalent to 1,000,000,000 nanoliter, the smallest unit of gaz.
 
 To simplify usage, the following standard units implemenation are recommended:
 
-- milliAmphora (mAMPHORA): 1 milliAmphora represents 1,000,000 nanoAmphora or 1/1000th of an Amphora.
-- microAmphora (µAMPHORA): 1 microAmphora represents 1,000 nanoAmphora or 1/1,000,000th of an Amphora.
-- nanoAmphora (nAMPHORA): 1 nanoAmphora represents the smallest unit of gaz or 1/1,000,000,000th of an Amphora.
+- milliliter (mL): 1 milliliter represents 1,000,000 nanoliter or 1/1000th of a liter.
+- microliter (µL): 1 microliter represents 1,000 nanoliter or 1/1,000,000th of a liter.
+- nanoliter (nL): 1 nanoliter represents the smallest unit of gaz or 1/1,000,000,000th of a liter.
 
 ### Roll
 
@@ -60,7 +60,7 @@ Transaction fees are denominated in Massa coin and are paid by the sender in add
 
 Note: Developers should use the same units implementation as for Massa coin values when handling transaction fee values.
 
-## Implementation
+## Usage
 
 When interacting with the Massa blockchain and its objects, it is recommended to use the native types provided by the programming language when available. For instance, when working with the Massa coin, an unsigned 64-bit integer can be used to represent the coin's value.
 
