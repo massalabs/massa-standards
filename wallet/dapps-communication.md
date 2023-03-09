@@ -31,12 +31,16 @@ window.massaWalletProvider.addEventListener('loaded', () => {
   }))
 })
 
-window.bearbyWalletProvider.addEventListener('sign', () => {
+window.bearbyWalletProvider.addEventListener('sign', ({messageToBeSigned, correlationId}) => {
   // validate the inputs
   ...
 
   // ask the background script to sign
-  browser.runtime.sendMessage({...})
+  browser.runtime.sendMessage({
+    messageToBeSigned,
+    commandName: 'sign'
+    }
+  })
   .then((pkey, signature) => {
     // send back the signature to the page script (massa js library)
     window.bearbyWalletProvider.dispatchEvent(new CustomEvent('signed', {
@@ -52,7 +56,7 @@ browser extension code, [background script](https://developer.mozilla.org/en-US/
 
 ```text
 browser.runtime.onMessage.addListener((message, sender, response) => {
-  switch massage.command.name:
+  switch massage.commandName:
     case 'sign':
       return new Promise() // aks user authorization and password, sign message payload, return pkey and signature
       break
@@ -89,6 +93,7 @@ export class Wallet {
 
     // listen for the response
     window[eventTargetName].addEventListener('signed', ({ pkey, signature, correlationId }) => {
+      // fill the response attribute of the action corresponding to the correlationId
       actions.find(a => a.correlationId == correlationId).response = { pkey, signature }
     })
 
@@ -103,6 +108,10 @@ export class Wallet {
 
       setInterval(() => {
         if (action.response != null) {
+          // remove this particular action from the action list
+          actions.remove(action)
+
+          // resolve the promise with the event response
           resolve(action.response) // here we define what Wallet.sign will return when doing await on it
         } 
       }, 500)
