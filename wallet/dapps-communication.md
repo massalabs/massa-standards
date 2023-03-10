@@ -12,7 +12,8 @@ Initial meta issue: <https://github.com/massalabs/massa-standards/issues/13>
 
 ## Code sample
 
-This section provides examples of how to use the Massa wallet-provider JS library from different perspectives. We'll consider two potential users: Alice and Bob.
+This section provides examples of how to use the Massa wallet-provider JS library from different perspectives.
+We'll consider two potential users: Alice and Bob.
 
 ### Bob, the dApp developer
 
@@ -30,7 +31,7 @@ Bob needs the ability to perform the following tasks:
 To do this, he can use the Massa wallet-provider JS library:
 
 ```typescript
-import { providers, Provider, Wallet } from 'massa-wallet-provider';
+import { providers, Provider, Wallet, SignResult } from 'massa-wallet-provider';
 
 async function interactWithMassaWallet() {
   // Get the available wallet providers
@@ -45,7 +46,7 @@ async function interactWithMassaWallet() {
 
   // Display the wallets registered with the selected provider on the website
   const wallets: Wallet[] = await selectedProvider.wallets();
-  const walletAddresses: string[] = await Promise.all(wallets.map(async wallet => wallet.address()));
+  const walletAddresses: string[] = await Promise.all(wallets.map(async wallet => await wallet.address()));
   document.getElementById('wallet-addresses').innerText = walletAddresses.join(', ');
 
   // Allow the user to select a wallet
@@ -57,7 +58,7 @@ async function interactWithMassaWallet() {
 
   // Allow the user to sign a transaction
   const payload: Uint8Array = new Uint8Array([1, 2, 3]);
-  const [pubKey, signature]: [string, Uint8Array] = await selectedWallet.sign(payload);
+  const {pubKey, signature}: SignResult = await selectedWallet.sign(payload);
 }
 ```
 
@@ -66,12 +67,17 @@ Bob can utilize our wallet-provider JS library, which provides the following fun
 ```typescript
 export async function providers(): Promise<Provider[]> { }
 
+export interface SignResult {
+  pubKey: string;
+  signature: Uint8Array;
+}
+
 export class Wallet {
   async address(): Promise<string> { }
 
   async balance(): Promise<BigInt> { }
 
-  async sign(payload: Uint8Array): Promise<[string, Uint8Array]> { }
+  async sign(payload: Uint8Array): Promise<SignResult> { }
 }
 
 export class Provider {
@@ -88,7 +94,9 @@ export class Provider {
 ### Alice, the browser extension developer
 
 Alice wants to create a browser extension that can interact with the Massa ecosystem using the wallet-provider JS library.
-However, Alice needs to interact with the library from the [content script](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts), which is separate from the webpage script.
+However, Alice needs to interact with the library from the
+[content script](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts),
+which is separate from the webpage script.
 
 Alice needs the ability to perform the following tasks:
 
@@ -107,14 +115,6 @@ import {
   sign,
 } from 'wallet-provider-content-script';
 
-// Register Alice's wallet extension as a provider with the web page
-registerAsMassaWalletProvider('Alice Wallet').then((success) => {
-  if (success) {
-    console.log('Registered as a provider with the web page');
-  } else {
-    console.log('Failed to register as a provider with the web page');
-  }
-});
 
 // Receive commands from the web page and respond to them accordingly
 listWallet(() => {
@@ -144,6 +144,15 @@ sign((address, payload) => {
   const signature = '0x123456...';
   return [signature, payload];
 });
+
+// Register Alice's wallet extension as a provider with the web page
+registerAsMassaWalletProvider('Alice Wallet').then((success) => {
+  if (success) {
+    console.log('Registered as a provider with the web page');
+  } else {
+    console.log('Failed to register as a provider with the web page');
+  }
+});
 ```
 
 Alice can utilize our wallet-provider-content-script JS library, which provides the following functions:
@@ -166,26 +175,34 @@ export function sign(callback: (address: string, payload: Uint8Array) => [string
 
 ### Constraints to solve by the provided lib
 
-The library needs to provide a secure and efficient way to communicate between the page script and the content script, which allows for multiple requests to be processed in parallel.
+The library needs to provide a secure and efficient way to communicate between the page script and the content script,
+which allows for multiple requests to be processed in parallel.
 
 To achieve this, we will use:
 
 - An EventTarget attached to different window keys:
   - A generic massaWalletProvider for messages from the extension to the web page.
   - One per extension for messages from the web page to the content script.
-- To allow multiple commands to be executed in parallel, we can set a correlation ID to each outgoing request that is propagated in the response.
+- To allow multiple commands to be executed in parallel, we can set a correlation ID to each outgoing request that is
+propagated in the response.
 
-Here's some example code that implements this approach:
+Here's some example code of massa-wallet-provider library that implements this approach:
 
 ```typescript
 const extensionEventTarget = new EventTarget();
 window[`massaWalletProvider-${walletProviderName}`] = extensionEventTarget;
 
-const pendingRequests = new Map();
+interface Message {
+  command: string;
+  params: object;
+  requestId: string;
+}
+
+const pendingRequests = new Map<string, ?>();
 
 function sendMessageToContentScript(command, params, responseCallback) {
   const requestId = uuidv4();
-  const message = { command, params, requestId };
+  const message: Message = { command, params, requestId };
   pendingRequests.set(requestId, responseCallback);
   extensionEventTarget.dispatchEvent(new CustomEvent('message', { detail: message }));
 }
@@ -216,7 +233,7 @@ Here is pseudo code for the two points of view:
 
 browser extension code, [content script](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts):
 
-```text
+```typescript
 // the extension register itself
 if (window.massaWalletProvider == undefined) { /* wait */ }
 
@@ -253,7 +270,7 @@ window.bearbyWalletProvider.addEventListener('sign', ({messageToBeSigned, correl
 
 browser extension code, [background script](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Background_scripts):
 
-```text
+```typescript
 browser.runtime.onMessage.addListener((message, sender, response) => {
   switch massage.commandName:
     case 'sign':
@@ -264,7 +281,7 @@ browser.runtime.onMessage.addListener((message, sender, response) => {
 
 **Code snippet of massa javascript (or typescript) library:**
 
-```text
+```typescript
 registeredProviders = []
 actions = [] // all the ongoing actions (sign, getBalance...)
 
@@ -280,7 +297,7 @@ window.massaWalletProvider.addEventListener('register', (payload) => {
 window.massaWalletProvider.dispatchEvent('loaded') // all wallet will catch this event and emit register event
 
 export class Wallet {
-  construct(private eventTargetName) {}
+  construct(eventTargetName: string) {}
 
   function sign(payload) {
     const action = {
@@ -291,13 +308,13 @@ export class Wallet {
     actions.push(action)
 
     // listen for the response
-    window[eventTargetName].addEventListener('signed', ({ pkey, signature, correlationId }) => {
+    window[this.eventTargetName].addEventListener('signed', ({ pkey, signature, correlationId }) => {
       // fill the response attribute of the action corresponding to the correlationId
       actions.find(a => a.correlationId == correlationId).response = { pkey, signature }
     })
 
     // trigger the signature
-    window[eventTargetName].dispatchEvent(new CustomEvent('sign', action))
+    window[this.eventTargetName].dispatchEvent(new CustomEvent('sign', action))
 
     return new Promise((resole, reject) => {
       // reject in 60 seconds to not let the user wait for hours
@@ -322,7 +339,7 @@ export class Wallet {
 
 **As a dapp builder, I would write...**
 
-```text
+```typescript
 providers: [] = await massa-js-library.listWalletProviders()
 
 for each providers as p
@@ -332,17 +349,12 @@ for each providers as p
 
 wallet = providers.listWallets()[0]
 pkey, signature = await wallet.sign([0, ...])
-.then(response => {
-  { pkey, signature } = response
-  console.log(pkey)
-  console.log(signature)
-})
 
 ```
 
 **Code snippet of massa javascript (or typescript) library:**
 
-```text
+```typescript
 export function listWalletProviders() {
   return registeredProviders // defined above as an array
 }
