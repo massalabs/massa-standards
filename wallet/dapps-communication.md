@@ -178,6 +178,12 @@ export function sign(callback: (address: string, payload: Uint8Array) => [string
 The library needs to provide a secure and efficient way to communicate between the page script and the content script,
 which allows for multiple requests to be processed in parallel.
 
+> _NOTE:_ 
+> - The communication between the web page script and the content script is contained by the security model retained by browsers. More information [here](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts#communicating_with_the_web_page).
+> - this is also true for the communication between the content script and the background script. More information [here](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts#communicating_with_background_scripts) or [here](https://developer.chrome.com/docs/extensions/mv3/messaging/).
+
+
+
 To achieve this, we will use:
 
 - An EventTarget attached to different window keys:
@@ -186,11 +192,20 @@ To achieve this, we will use:
 - To allow multiple commands to be executed in parallel, we can set a correlation ID to each outgoing request that is
 propagated in the response.
 
-Here's some example code of massa-wallet-provider library that implements this approach:
+Here's some example code of massa-wallet-provider library that implements this approach in the webpage script:
 
 ```typescript
-const extensionEventTarget = new EventTarget();
-window[`massaWalletProvider-${walletProviderName}`] = extensionEventTarget;
+
+// global event target to use for all wallet provider
+window.massaWalletProvider = new EventTarget()
+registeredProviders = {}
+
+// Register
+window.massaWalletProvider.addEventListener('register', (payload) => {
+  const extensionEventTarget = new EventTarget();
+  window[`massaWalletProvider-${payload.eventTarget}`] = extensionEventTarget;
+  registeredProviders[payload.providerName] = payload.eventTarget;
+})
 
 interface Message {
   command: string;
@@ -200,13 +215,16 @@ interface Message {
 
 const pendingRequests = new Map<string, ?>();
 
-function sendMessageToContentScript(command, params, responseCallback) {
+//send a message from the webpage script to the content script
+function sendMessageToContentScript(provider, command, params, responseCallback) {
   const requestId = uuidv4();
   const message: Message = { command, params, requestId };
   pendingRequests.set(requestId, responseCallback);
-  extensionEventTarget.dispatchEvent(new CustomEvent('message', { detail: message }));
+
+  window[`massaWalletProvider-${registeredProviders[provider]}`].dispatchEvent(new CustomEvent('message', { detail: message }));
 }
 
+//receive a response from the content script
 function handleResponseFromContentScript(event) {
   const { result, error, requestId } = event.detail;
   const responseCallback = pendingRequests.get(requestId);
@@ -220,154 +238,27 @@ function handleResponseFromContentScript(event) {
     pendingRequests.delete(requestId);
   }
 }
+
+window.massaWalletProvider.addEventListener('message', handleResponseFromContentScript);
 ```
 
-History kept below:
+Because it was requested, here a potential implementation of the `registerAsMassaWalletProvider` in the content script:
 
-Here is pseudo code for the two points of view:
+```javascript
+function registerAsMassaWalletProvider(providerName: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const registerProvider = () => {
+      window.massaWalletProvider.dispatchEvent(
+        new CustomEvent('register', { providerName: providerName, eventTarget: providerName })
+      );
+      resolve(true);
+    };
 
-- browser extension developer
-- dapp builder
-
-**As a browser extension developer, I would write...**
-
-browser extension code, [content script](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts):
-
-```typescript
-// the extension register itself
-if (window.massaWalletProvider == undefined) { /* wait */ }
-
-window.bearbyWalletProvider = new EventTarget()
-
-window.massaWalletProvider.addEventListener('loaded', () => {
-  window.massaWalletProvider.dispatchEvent(new CustomEvent('register', {
-    ProviderName: "bearby",
-    eventTarget: "bearbyWalletProvider",
-    extensionID: "" // maybe not needed
-  }))
-})
-
-window.bearbyWalletProvider.addEventListener('sign', ({messageToBeSigned, correlationId}) => {
-  // validate the inputs
-  ...
-
-  // ask the background script to sign
-  browser.runtime.sendMessage({
-    messageToBeSigned,
-    commandName: 'sign'
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      registerProvider();
+    } else {
+      document.addEventListener('DOMContentLoaded', registerProvider);
     }
-  })
-  .then((pkey, signature) => {
-    // send back the signature to the page script (massa js library)
-    window.bearbyWalletProvider.dispatchEvent(new CustomEvent('signed', {
-      pkey,
-      signature,
-      correlationId
-    }))
   });
-})
-```
-
-browser extension code, [background script](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Background_scripts):
-
-```typescript
-browser.runtime.onMessage.addListener((message, sender, response) => {
-  switch massage.commandName:
-    case 'sign':
-      return new Promise() // aks user authorization and password, sign message payload, return pkey and signature
-      break
-});
-```
-
-**Code snippet of massa javascript (or typescript) library:**
-
-```typescript
-registeredProviders = []
-actions = [] // all the ongoing actions (sign, getBalance...)
-
-// we start by listening register event
-window.massaWalletProvider = new EventTarget()
-window.massaWalletProvider.addEventListener('register', (payload) => {
-  // add the new provider to the list
-  // add the attribute wallets: list of wallets of this new provider
-  // the first wallet is a newly created wallet, we give as constructor argument the event target name created by the extension
-  registeredProviders.push({...payload, wallets: [new Wallet(payload.eventTarget)])
-})
-
-window.massaWalletProvider.dispatchEvent('loaded') // all wallet will catch this event and emit register event
-
-export class Wallet {
-  construct(eventTargetName: string) {}
-
-  function sign(payload) {
-    const action = {
-      correlationId: uuid() // pick a correlation id to track the sign message request, it can simply be a int incremented
-      payload,
-      response: null
-    }
-    actions.push(action)
-
-    // listen for the response
-    window[this.eventTargetName].addEventListener('signed', ({ pkey, signature, correlationId }) => {
-      // fill the response attribute of the action corresponding to the correlationId
-      actions.find(a => a.correlationId == correlationId).response = { pkey, signature }
-    })
-
-    // trigger the signature
-    window[this.eventTargetName].dispatchEvent(new CustomEvent('sign', action))
-
-    return new Promise((resole, reject) => {
-      // reject in 60 seconds to not let the user wait for hours
-      setTimeOut(() => {
-        reject('event timeout')
-      }, 60000)
-
-      setInterval(() => {
-        if (action.response != null) {
-          // remove this particular action from the action list
-          actions.remove(action)
-
-          // resolve the promise with the event response
-          resolve(action.response) // here we define what Wallet.sign will return when doing await on it
-        } 
-      }, 500)
-    })
-  }
-}
-
-```
-
-**As a dapp builder, I would write...**
-
-```typescript
-providers: [] = await massa-js-library.listWalletProviders()
-
-for each providers as p
-  for each p.wallets as wallet
-    print wallet.getAddress()
-    print wallet.getBalance()
-
-wallet = providers.listWallets()[0]
-pkey, signature = await wallet.sign([0, ...])
-
-```
-
-**Code snippet of massa javascript (or typescript) library:**
-
-```typescript
-export function listWalletProviders() {
-  return registeredProviders // defined above as an array
-}
-
-export class Wallet {
-  getAddress() {...}
-  getBalance() {...}
-  sign(payload: bytes): (string, bytes) {...} // defined above
-}
-
-export class Provider {
-  listWallets() {...}
-  importWallet() {...}
-  deleteWallet() {...}
 }
 ```
