@@ -15,7 +15,8 @@ Initial meta issue: <https://github.com/massalabs/massa-standards/issues/13>
 This section provides examples of how to use the Massa wallet-provider JS library from different perspectives. We'll consider two potential users: Alice and Bob.
 
 ### Bob, the dApp developer
-Bob wants to create a web page that can interact with any wallet provider within the Massa ecosystem. 
+
+Bob wants to create a web page that can interact with any wallet provider within the Massa ecosystem.
 
 Bob needs the ability to perform the following tasks:
 
@@ -26,7 +27,7 @@ Bob needs the ability to perform the following tasks:
 - Perform actions on a wallet, such as signing a transaction or exporting a wallet.
 - Remove a wallet from a provider.
 
-To do this, he can use the Massa wallet-provider JS library: 
+To do this, he can use the Massa wallet-provider JS library:
 
 ```typescript
 import { providers, Provider, Wallet } from 'massa-wallet-provider';
@@ -85,6 +86,7 @@ export class Provider {
 ```
 
 ### Alice, the browser extension developer
+
 Alice wants to create a browser extension that can interact with the Massa ecosystem using the wallet-provider JS library.
 However, Alice needs to interact with the library from the [content script](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts), which is separate from the webpage script.
 
@@ -93,7 +95,7 @@ Alice needs the ability to perform the following tasks:
 - Register her wallet extension as a provider with the web page.
 - Receive commands from the web page and respond to them accordingly.
 
-To do this, she can use the Massa wallet-provider-content-script JS library: 
+To do this, she can use the Massa wallet-provider-content-script JS library:
 
 ```typescript
 import {
@@ -163,6 +165,7 @@ export function sign(callback: (address: string, payload: Uint8Array) => [string
 ```
 
 ### Constraints to solve by the provided lib
+
 The library needs to provide a secure and efficient way to communicate between the page script and the content script, which allows for multiple requests to be processed in parallel.
 
 To achieve this, we will use:
@@ -171,7 +174,6 @@ To achieve this, we will use:
   - A generic massaWalletProvider for messages from the extension to the web page.
   - One per extension for messages from the web page to the content script.
 - To allow multiple commands to be executed in parallel, we can set a correlation ID to each outgoing request that is propagated in the response.
-
 
 Here's some example code that implements this approach:
 
@@ -203,9 +205,7 @@ function handleResponseFromContentScript(event) {
 }
 ```
 
-
 History kept below:
-
 
 Here is pseudo code for the two points of view:
 
@@ -359,5 +359,3 @@ export class Provider {
   deleteWallet() {...}
 }
 ```
-
-## Implementation
