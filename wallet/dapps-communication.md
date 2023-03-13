@@ -178,11 +178,14 @@ export function sign(callback: (address: string, payload: Uint8Array) => [string
 The library needs to provide a secure and efficient way to communicate between the page script and the content script,
 which allows for multiple requests to be processed in parallel.
 
-> _NOTE:_ 
-> - The communication between the web page script and the content script is contained by the security model retained by browsers. More information [here](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts#communicating_with_the_web_page).
-> - this is also true for the communication between the content script and the background script. More information [here](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts#communicating_with_background_scripts) or [here](https://developer.chrome.com/docs/extensions/mv3/messaging/).
-
-
+> _NOTE:_
+>
+> - The communication between the web page script and the content script is contained by the security model retained by
+browsers. More information
+[here](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts#communicating_with_the_web_page).
+> - this is also true for the communication between the content script and the background script. More information
+[here](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts#communicating_with_background_scripts)
+or [here](https://developer.chrome.com/docs/extensions/mv3/messaging/).
 
 To achieve this, we will use:
 
@@ -244,7 +247,7 @@ window.massaWalletProvider.addEventListener('message', handleResponseFromContent
 
 Because it was requested, here a potential implementation of the `registerAsMassaWalletProvider` in the content script:
 
-```javascript
+```typescript
 function registerAsMassaWalletProvider(providerName: string): Promise<boolean> {
   return new Promise((resolve) => {
     const registerProvider = () => {
