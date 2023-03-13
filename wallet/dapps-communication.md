@@ -31,7 +31,7 @@ Bob needs the ability to perform the following tasks:
 To do this, he can use the Massa wallet-provider JS library:
 
 ```typescript
-import { providers, Provider, Wallet, SignResult } from 'massa-wallet-provider';
+import { providers, Provider, Account, SignResult } from 'massa-wallet-provider';
 
 async function interactWithMassaWallet() {
   // Get the available wallet providers
@@ -44,21 +44,21 @@ async function interactWithMassaWallet() {
   // Allow the user to select a wallet provider
   const selectedProvider: Provider = availableProviders[0];
 
-  // Display the wallets registered with the selected provider on the website
-  const wallets: Wallet[] = await selectedProvider.wallets();
-  const walletAddresses: string[] = await Promise.all(wallets.map(async wallet => await wallet.address()));
-  document.getElementById('wallet-addresses').innerText = walletAddresses.join(', ');
+  // Display the accounts registered with the selected provider on the website
+  const accounts: Account[] = await selectedProvider.accounts();
+  const walletAddresses: string[] = await Promise.all(accounts.map(async account => await account.address()));
+  document.getElementById('account-addresses').innerText = walletAddresses.join(', ');
 
-  // Allow the user to select a wallet
-  const selectedWallet: Wallet = wallets[0];
+  // Allow the user to select an account
+  const selectedAccount: Account = accounts[0];
 
-  // Display the balance of the selected wallet on the website
-  const walletBalance: BigInt = await selectedWallet.balance();
-  document.getElementById('wallet-balance').innerText = walletBalance.toString();
+  // Display the balance of the selected account on the website
+  const accountBalance: BigInt = await selectedAccount.balance();
+  document.getElementById('account-balance').innerText = accountBalance.toString();
 
   // Allow the user to sign a transaction
   const payload: Uint8Array = new Uint8Array([1, 2, 3]);
-  const {pubKey, signature}: SignResult = await selectedWallet.sign(payload);
+  const {pubKey, signature}: SignResult = await selectedAccount.sign(payload);
 }
 ```
 
@@ -72,7 +72,7 @@ export interface SignResult {
   signature: Uint8Array;
 }
 
-export class Wallet {
+export class Account {
   async address(): Promise<string> { }
 
   async balance(): Promise<BigInt> { }
@@ -83,11 +83,11 @@ export class Wallet {
 export class Provider {
   name(): string { }
 
-  async wallets(): Promise<Wallet[]> { }
+  async accounts(): Promise<Account[]> { }
 
-  async importWallet(): Promise<Wallet> { }
+  async importAccount(): Promise<Account> { }
 
-  async deleteWallet(wallet: Wallet): Promise<void> { }
+  async deleteAccount(account: Account): Promise<void> { }
 }
 ```
 
@@ -108,29 +108,29 @@ To do this, she can use the Massa wallet-provider-content-script JS library:
 ```typescript
 import {
   registerAsMassaWalletProvider,
-  listWallet,
-  deleteWallet,
-  importWallet,
+  listAccounts,
+  deleteAccount,
+  importAccount,
   balance,
   sign,
 } from 'wallet-provider-content-script';
 
 
 // Receive commands from the web page and respond to them accordingly
-listWallet(() => {
-  // Handle listWallet command from the web page
-  const wallets = ['0x123456...', '0x789ABC...'];
-  return wallets;
+listAccounts(() => {
+  // Handle listAccounts command from the web page
+  const accounts = ['0x123456...', '0x789ABC...'];
+  return accounts;
 });
 
-deleteWallet((address) => {
-  // Handle deleteWallet command from the web page
-  console.log(`Deleting wallet with address ${address}`);
+deleteAccount((address) => {
+  // Handle deleteAccount command from the web page
+  console.log(`Deleting account with address ${address}`);
 });
 
-importWallet((pubKey, privKey) => {
-  // Handle importWallet command from the web page
-  console.log(`Importing wallet with public key ${pubKey} and private key ${privKey}`);
+importAccount((pubKey, privKey) => {
+  // Handle importAccount command from the web page
+  console.log(`Importing account with public key ${pubKey} and private key ${privKey}`);
 });
 
 balance((address) => {
@@ -161,11 +161,11 @@ Alice can utilize our wallet-provider-content-script JS library, which provides 
 
 export async function registerAsMassaWalletProvider(providerName: string): Promise<boolean> {}
 
-export function listWallet(callback: () => string[]): void {}
+export function listAccounts(callback: () => string[]): void {}
 
-export function deleteWallet(callback: (address: string) => void): void {}
+export function deleteAccount(callback: (address: string) => void): void {}
 
-export function importWallet(callback: (pubKey: string, privKey: string) => void): void {}
+export function importAccount(callback: (pubKey: string, privKey: string) => void): void {}
 
 export function balance(callback: (address: string) => BigInt): void {}
 
@@ -215,7 +215,7 @@ interface Message {
   requestId: string;
 }
 
-const availableCommands = ['ListWallet', 'DeleteWallet', 'ImportWallet', 'Balance', 'Sign']
+const availableCommands = ['ListAccounts', 'DeleteAccount', 'ImportAccount', 'Balance', 'Sign']
 
 const pendingRequests = new Map<string, Function>();
 
