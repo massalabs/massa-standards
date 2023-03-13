@@ -250,7 +250,8 @@ function handleResponseFromContentScript(event) {
 window.massaWalletProvider.addEventListener('message', handleResponseFromContentScript);
 ```
 
-Because it was requested, here a potential implementation of the `registerAsMassaWalletProvider` in the content script:
+Because it was requested, here a potential implementation of the `registerAsMassaWalletProvider` and `sign` in the
+content script:
 
 ```typescript
 function registerAsMassaWalletProvider(providerName: string): Promise<boolean> {
@@ -269,4 +270,15 @@ function registerAsMassaWalletProvider(providerName: string): Promise<boolean> {
     }
   });
 }
+
+const actionToCallback = new Map<string, Function>()
+
+function sign(callback: Function): void {
+  actionToCallback.set('sign', callback);
+}
+
+// and how the content script listen for commands
+window[`massaWalletProvider-${providerName}`].addEventListener('sign', payload => {
+  actionToCallback.get('sign')(...payload.params);
+})
 ```
