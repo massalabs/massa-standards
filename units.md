@@ -1,7 +1,9 @@
 # Massa Units
 
 **Authors:**
+
 **Status:** Draft
+
 **Version:** 0.1
 
 ## Abstract
@@ -29,18 +31,19 @@ To simplify usage, the following standard units implemenation are recommended:
 - microMassa (µMASSA): 1 microMassa represents 1,000 nanoMassa and also 1/1,000,000th of a Massa.
 - nanoMassa (nMASSA): 1 nanoMassa represents the smallest unit of Massa coin and also 1/1,000,000,000th of a Massa.
 
-### Gaz
+### Gas
 
-Gaz is a virtual unit used to measure the computational complexity of executing transactions on the Massa blockchain. Each operation requires a certain amount of Gaz, and the amount of Gaz consumed is proportional to the computational complexity of the operation. In order to make this unit more tangible for the end user, gaz is measured in liters (L).
+Gas is a virtual unit used to measure the computational complexity of executing transactions on the Massa blockchain. Each operation requires a certain amount of Gaz, and the amount of Gaz consumed is proportional to the computational complexity of the operation. The unit of gas is calibrated to be equivalent to 300 milliseconds of execution time on the target hardware of the sum of MAX_ASYNC_GAS and MAX_BLOCK_GAS.
 Gaz is expressed as an unsigned 64-bit integer.
 
-1 Liter (L) is equivalent to 1,000,000,000 nanoliter, the smallest unit of gaz.
+1 gas unit (GAS) is equivalent to 1,000,000,000,000 picoGas, the smallest unit of gaz.
 
 To simplify usage, the following standard units implemenation are recommended:
 
-- milliliter (mL): 1 milliliter represents 1,000,000 nanoliter or 1/1000th of a liter.
-- microliter (µL): 1 microliter represents 1,000 nanoliter or 1/1,000,000th of a liter.
-- nanoliter (nL): 1 nanoliter represents the smallest unit of gaz or 1/1,000,000,000th of a liter.
+- milliGas (mGAS): 1 milliGas represents 1,000,000,000 picoGas or 1/1000th of a gas unit.
+- microGas (µGAS): 1 microGas represents 1,000,000 picoGas or 1/1,000,000th of a gas unit.
+- nanoGas (nGAS): 1 nanoGas represents 1,000 picoGas or 1/1,000,000,000th of a gas unit.
+- picoGas (pGAS): 1 picoGas represents the smallest unit of gaz or 1/1,000,000,000,000th of a gas unit.
 
 ### Roll
 
