@@ -8,6 +8,57 @@ Initial meta issue: <https://github.com/massalabs/massa-standards/issues/13>
 
 ## Specification
 
+Definitions:
+
+- Wallet Provider: software that provides a way for the user to manage the wallet.
+- Wallet: same as the one in the pocket but as a digital device.
+- Account: contained in a wallet, represents massa blockchain key pair & address.
+
+### How the browser extension communicate with the webpage?
+
+*Security model of browser extension:*
+
+**Content Script**: Content scripts are JavaScript files that run in the context of web pages. They are used to modify
+the content and appearance of web pages. Content scripts can access the DOM of the page they are injected into and can
+communicate with their parent extension. Content scripts can also send messages to other scripts, such as background
+scripts and web page scripts.
+
+**Background Script**: Background scripts are JavaScript files that are loaded in the background and are used to control
+the overall behavior of the extension. They can access APIs that let them interact with the browser and the web pages it
+visits.
+
+**Web Page Script**: Web page scripts are JavaScript files that run in the context of web pages. They are used to modify
+the behavior of web pages, such as adding custom functionality or integrating with existing web services.
+
+The browser extension needs to have a **provider name** that will by passed to the web page during registration as a
+wallet provider.
+
+To perform this registration, the browser extension will dispatch a
+[custom event](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent) named `register` to
+`window.massaWalletProvider`. The [detail](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/detail) property
+of the event is an object with two attributes:
+
+- providerName: the name of the wallet provider, for example 'Simple and versatile wallet'
+- eventTarget: technical name used for the event target, for example 'simple-versatile-wallet'.
+
+An [`EventTarge`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget) will be created and dedicated to the
+registered wallet provider and saved as an attribute of the `window` global variable. The attribute name starts with
+'massaWalletProvider-' and is followed buy the given `eventTarget`, for example
+'massaWalletProvider-simple-versatile-wallet'.
+
+The browser extension can perform actions by listening for events on its event target. Here are the event names it needs
+to listen for and the corresponding `CustomEvent.detail` object interface:
+
+| Event name    | CustomEvent.detail                    |
+|---------------|---------------------------------------|
+| listAccounts  |                                       |
+| deleteAccount | address :  string                     |
+| importAccount | pubKey :  string ,  privKey :  string |
+| balance       | address :  string                     |
+| sign          | address :  string                     |
+
+
+
 ## Implementation
 
 ## Code sample
@@ -62,7 +113,7 @@ async function interactWithMassaWallet() {
 }
 ```
 
-Bob can utilize our wallet-provider JS library, which provides the following functions:
+Bob can utilize our wallet-provider JS library, which provides the following classes:
 
 ```typescript
 export async function providers(): Promise<Provider[]> { }
@@ -114,7 +165,6 @@ import {
   balance,
   sign,
 } from 'wallet-provider-content-script';
-
 
 // Receive commands from the web page and respond to them accordingly
 listAccounts(() => {
@@ -254,11 +304,18 @@ Because it was requested, here a potential implementation of the `registerAsMass
 content script:
 
 ```typescript
+interface RegistrationPayload {
+  providerName: string;
+  eventTarget: string;
+}
+
 function registerAsMassaWalletProvider(providerName: string): Promise<boolean> {
   return new Promise((resolve) => {
     const registerProvider = () => {
       window.massaWalletProvider.dispatchEvent(
-        new CustomEvent('register', { providerName: providerName, eventTarget: providerName })
+        new CustomEvent('register', {
+          detail: { providerName: providerName, eventTarget: providerName } as RegistrationPayload
+        })
       );
       resolve(true);
     };
@@ -278,7 +335,7 @@ function sign(callback: Function): void {
 }
 
 // and how the content script listen for commands
-window[`massaWalletProvider-${providerName}`].addEventListener('sign', payload => {
-  actionToCallback.get('sign')(...payload.params);
+window[`massaWalletProvider-${eventTarget}`].addEventListener('sign', payload => {
+  actionToCallback.get('sign')(...payload.detail.params);
 })
 ```
