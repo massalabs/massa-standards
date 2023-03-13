@@ -190,7 +190,7 @@ or [here](https://developer.chrome.com/docs/extensions/mv3/messaging/).
 To achieve this, we will use:
 
 - An EventTarget attached to different window keys:
-  - A generic massaWalletProvider for messages from the extension to the web page.
+  - A generic massaWalletProvider for messages from the extension content script to the web page.
   - One per extension for messages from the web page to the content script.
 - To allow multiple commands to be executed in parallel, we can set a correlation ID to each outgoing request that is
 propagated in the response.
@@ -211,20 +211,25 @@ window.massaWalletProvider.addEventListener('register', (payload) => {
 })
 
 interface Message {
-  command: string;
   params: object;
   requestId: string;
 }
 
-const pendingRequests = new Map<string, ?>();
+const availableCommands = ['ListWallet', 'DeleteWallet', 'ImportWallet', 'Balance', 'Sign']
+
+const pendingRequests = new Map<string, Function>();
 
 //send a message from the webpage script to the content script
 function sendMessageToContentScript(provider, command, params, responseCallback) {
   const requestId = uuidv4();
-  const message: Message = { command, params, requestId };
+  const message: Message = { params, requestId };
   pendingRequests.set(requestId, responseCallback);
 
-  window[`massaWalletProvider-${registeredProviders[provider]}`].dispatchEvent(new CustomEvent('message', { detail: message }));
+  if (!availableCommands.includes(command)) throw new Error('Unhandled command)
+
+  window[`massaWalletProvider-${registeredProviders[provider]}`].dispatchEvent(
+    new CustomEvent(command, { detail: message })
+    );
 }
 
 //receive a response from the content script
