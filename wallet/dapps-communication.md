@@ -23,10 +23,10 @@ Bob needs the ability to perform the following tasks:
 
 - Determine if a wallet provider is available.
 - Access the names of available wallet providers to personalize website messaging.
-- Retrieve a list of all the wallets registered with each provider.
-- Retrieve wallet information, such as address and balance.
-- Perform actions on a wallet, such as signing a transaction or exporting a wallet.
-- Remove a wallet from a provider.
+- Retrieve a list of all the accounts registered with each provider.
+- Retrieve account information, such as address and balance.
+- Perform actions on an account, such as signing a transaction or exporting an account.
+- Remove a account from a provider.
 
 To do this, he can use the Massa wallet-provider JS library:
 
@@ -46,8 +46,8 @@ async function interactWithMassaWallet() {
 
   // Display the accounts registered with the selected provider on the website
   const accounts: Account[] = await selectedProvider.accounts();
-  const walletAddresses: string[] = await Promise.all(accounts.map(async account => await account.address()));
-  document.getElementById('account-addresses').innerText = walletAddresses.join(', ');
+  const accountAddresses: string[] = await Promise.all(accounts.map(async account => await account.address()));
+  document.getElementById('account-addresses').innerText = accountAddresses.join(', ');
 
   // Allow the user to select an account
   const selectedAccount: Account = accounts[0];
