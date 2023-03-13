@@ -69,7 +69,7 @@ When interacting with the Massa blockchain and its objects, it is recommended to
 
 To make code more readable and avoid errors, it is recommended to use useful constants such as mMASSA or kROLL to express values. For instance, to represent 1 milliMassa, one can write:
 
-```
+```text
 const amount = 1 * mMASSA;
 ```
 
