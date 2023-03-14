@@ -1,63 +1,88 @@
-# Wallet-DApp communication standard
+# Wallet <> DApp communication
 
 Initial meta issue: <https://github.com/massalabs/massa-standards/issues/13>
 
+**Authors:**
+
+**Status:** Draft
+
+**Version:** 0.1
+
 ## Abstract
 
-## Motivation
+This standard defines a protocol for communication between a cryptocurrency wallet and a decentralized application (DApp) running in a web browser. The protocol provides a standard interface for DApps to request user authorization for blockchain transactions, as well as a standard mechanism for wallets to sign and broadcast those transactions. By following this standard, DApp developers can provide a seamless user experience for users of any wallet that implements the protocol, while wallet developers can ensure that their products are compatible with a wide range of DApps.
+
+## Targeted Audience
+This standard is targeted towards developers who are building decentralized applications (DApps) and cryptocurrency wallets that need to interact with each other in a browser environment. 
+
+The standard assumes a working knowledge of web development and blockchain technology. It is also assumed that the reader has experience with browser extensions and understands the basic principles of secure communication between web pages and extensions.
+
+> _NOTE:_ For more information on [content scripts](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts) and [background scripts](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Background_scripts), see [MDN's browser extensions pages](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions).
 
 ## Specification
 
-Definitions:
+### Event-Based Communication
+Communication between the DApp and the wallet will use event-based messaging. There are two types of events: 
+- those used by the extension to communicate with the web page. Those events are triggered on a static target: `window.massaWalletProvider`;
+- those used by the web page to communicate with the extension. Those events are triggered on a extension specific target: `massaWalletProvider-<wallet provider name>`.
 
-- Wallet Provider: software that provides a way for the user to manage the wallet.
-- Wallet: same as the one in the pocket but as a digital device.
-- Account: contained in a wallet, represents massa blockchain key pair & address.
+> _NOTE:_ If the wallet provider is named AwesomeWallet, the target for this extension would be: `massaWalletProvider-AwesomeWallet`.
 
-### How the browser extension communicate with the webpage?
+### Commands
 
-*Security model of browser extension:*
+#### Register
 
-**Content Script**: Content scripts are JavaScript files that run in the context of web pages. They are used to modify
-the content and appearance of web pages. Content scripts can access the DOM of the page they are injected into and can
-communicate with their parent extension. Content scripts can also send messages to other scripts, such as background
-scripts and web page scripts.
+This event is used by the extension to register itself to the webpage as a wallet provider.
 
-**Background Script**: Background scripts are JavaScript files that are loaded in the background and are used to control
-the overall behavior of the extension. They can access APIs that let them interact with the browser and the web pages it
-visits.
+| Direction            | Type       | Format                                      | Example                                                         |
+| -------------------- | ---------- | -------------------------------------------- | --------------------------------------------------------------- |
+| Extension to webpage | `register` | <pre><code class="highlight-source-yaml">type: object<br>properties:<br>  id:<br>    type: string<br>  name:<br>    type: string<br>required:<br>  - id<br>  - name</code></pre>  | <pre><code class="highlight-source-json">{<br>  "id": "awesomeWalletprovider",<br>  "name": "Your Awesome Wallet Provider"<br>}</code></pre> |
 
-**Web Page Script**: Web page scripts are JavaScript files that run in the context of web pages. They are used to modify
-the behavior of web pages, such as adding custom functionality or integrating with existing web services.
+#### Account
 
-The browser extension needs to have a **provider name** that will by passed to the web page during registration as a
-wallet provider.
+##### List
 
-To perform this registration, the browser extension will dispatch a
-[custom event](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent) named `register` to
-`window.massaWalletProvider`. The [detail](https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent/detail) property
-of the event is an object with two attributes:
+This event is used by the webpage to list known accounts by the extension.
 
-- providerName: the name of the wallet provider, for example 'Simple and versatile wallet'
-- eventTarget: technical name used for the event target, for example 'simple-versatile-wallet'.
+| Direction            | Type       | Format                                      | Example                                                         |
+| -------------------- | ---------- | -------------------------------------------- | --------------------------------------------------------------- |
+| Webpage to extension | `account.list` | None  | <pre><code class="highlight-source-json">null</code></pre> |
+| Extension to webpage | `account.list.response` | <pre><code class="highlight-source-yaml">type:  array<br>items:<br>  type: object<br>  properties:<br>    address:<br>      type: string<br>    name:<br>      type: string<br>  required:<br>    - address</code></pre> | <pre><code class="highlight-source-json">[<br>  {<br>    "address": "A12...",<br>    "name": "Account 1"<br>  },<br>  {<br>    "id": "A12..."<br>  }<br>]</code></pre> |
 
-An [`EventTarge`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget) will be created and dedicated to the
-registered wallet provider and saved as an attribute of the `window` global variable. The attribute name starts with
-'massaWalletProvider-' and is followed buy the given `eventTarget`, for example
-'massaWalletProvider-simple-versatile-wallet'.
+##### Balance
 
-The browser extension can perform actions by listening for events on its event target. Here are the event names it needs
-to listen for and the corresponding `CustomEvent.detail` object interface:
+| Direction            | Type       | Format                                      | Example                                                         |
+| -------------------- | ---------- | -------------------------------------------- | --------------------------------------------------------------- |
+| Webpage to extension | `account.balance` | <pre><code class="highlight-source-yaml">type: object<br>properties:<br>  address:<br>  type: string<br>required:<br>  - address</code></pre>  | <pre><code class="highlight-source-json">{<br>  "address": "A12..."<br>}</code></pre> |
+| Extension to webpage | `account.balance.response` | <pre><code class="highlight-source-yaml">type: object<br>properties:<br>  balance:<br>    type: string<br>    format: bigInt<br>required:<br>  - balance</code></pre> | <pre><code class="highlight-source-json">{<br>  "balance": 1000n<br>}</code></pre> |
 
-| Event name    | CustomEvent.detail                    |
-|---------------|---------------------------------------|
-| listAccounts  |                                       |
-| deleteAccount | address :  string                     |
-| importAccount | pubKey :  string ,  privKey :  string |
-| balance       | address :  string                     |
-| sign          | address :  string                     |
+##### Delete
 
+| Direction            | Type       | Format                                      | Example                                                         |
+| -------------------- | ---------- | -------------------------------------------- | --------------------------------------------------------------- |
+| Webpage to extension | `account.delete` | <pre><code class="highlight-source-yaml">type: object<br>properties:<br>  address:<br>    type: string<br>required:<br>  - address</code></pre>  | <pre><code class="highlight-source-json">{<br>  "address": "A12..."<br>}</code></pre> |
+| Extension to webpage | `account.delete.response` | <pre><code class="highlight-source-yaml">type: object<br>properties:<br>  response:<br>    type: string<br>    enum: ["OK", "REFUSED", "ERROR"]<br>  error:<br>    type: string<br>required:<br>  - response</code></pre> | <pre><code class="highlight-source-json">{<br>  "response": "REFUSED"<br>}</code></pre> |
 
+##### Import
+
+| Direction            | Type       | Format                                      | Example                                                         |
+| -------------------- | ---------- | -------------------------------------------- | --------------------------------------------------------------- |
+| Webpage to extension | `account.import` | <pre><code class="highlight-source-yaml">type: object<br>properties:<br>  privateKey:<br>    type: string<br>  publicKey:<br>    type: string<br>required:<br>  - privateKey<br>  - publicKey</code></pre>  | <pre><code class="highlight-source-json">{<br>  "privateKey": "S12...",<br>  "publicKey": "P12...",<br>}</code></pre> |
+| Extension to webpage | `account.import.response` | <pre><code class="highlight-source-yaml">type: object<br>properties:<br>  response:<br>    type: string<br>    enum: ["OK", "REFUSED", "ERROR"]<br>  error:<br>    type: string<br>required:<br>  - response</code></pre> | <pre><code class="highlight-source-json">{<br>  "response": "ERROR",<br>  "error": "No connexion with blockchain"<br>}</code></pre> |
+
+#### Sign
+
+| Direction            | Type       | Format                                      | Example                                                         |
+| -------------------- | ---------- | -------------------------------------------- | --------------------------------------------------------------- |
+| Webpage to extension | `account.sign` | <pre><code class="highlight-source-yaml">type: object<br>properties:<br>  address:<br>    type: string<br>  data:<br>    type: Byte[]<br>required:<br>  - address<br>  - data</code></pre>  | <pre><code class="highlight-source-json">{<br> "address": "A12...",<br> "data": [0x01,0xFF,0xAF]<br>}</code></pre> |
+| Extension to webpage | `account.sign.response` | <pre><code class="highlight-source-yaml">type: object<br>properties:<br>  signature:<br>    type: byte[]<br>  publicKey:<br>    type: string<br>required:<br>  - signature<br>  - publicKey</code></pre> | <pre><code class="highlight-source-json">{<br> "signature": [0x01,0xFF,0xAF],<br> "publicKey": "P12..."<br>}</code></pre>|
+
+### Security Considerations
+
+- The wallet provider must validate all inputs before performing any action.
+- The webpage must validate all input before processing any action.
+- The extension should ensure that communication is restricted to the intended parties and prevent any third-party intervention.
+- The wallet provider should be built with security as a primary concern, including measures such as encryption, authentication, and authorization to prevent unauthorized access or data breaches.
 
 ## Implementation
 
