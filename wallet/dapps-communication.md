@@ -10,23 +10,40 @@ Initial meta issue: <https://github.com/massalabs/massa-standards/issues/13>
 
 ## Abstract
 
-This standard defines a protocol for communication between a cryptocurrency wallet and a decentralized application (DApp) running in a web browser. The protocol provides a standard interface for DApps to request user authorization for blockchain transactions, as well as a standard mechanism for wallets to sign and broadcast those transactions. By following this standard, DApp developers can provide a seamless user experience for users of any wallet that implements the protocol, while wallet developers can ensure that their products are compatible with a wide range of DApps.
+This standard defines a protocol for communication between a cryptocurrency wallet and a decentralized application
+(DApp) running in a web browser. The protocol provides a standard interface for DApps to request user authorization for
+blockchain transactions, as well as a standard mechanism for wallets to sign and broadcast those transactions.
+By following this standard, DApp developers can provide a seamless user experience for users of any wallet that
+implements the protocol, while wallet developers can ensure that their products are compatible with a wide range of
+DApps.
 
 ## Targeted Audience
-This standard is targeted towards developers who are building decentralized applications (DApps) and cryptocurrency wallets that need to interact with each other in a browser environment. 
 
-The standard assumes a working knowledge of web development and blockchain technology. It is also assumed that the reader has experience with browser extensions and understands the basic principles of secure communication between web pages and extensions.
+This standard is targeted towards developers who are building decentralized applications (DApps) and cryptocurrency
+wallets that need to interact with each other in a browser environment.
 
-> _NOTE:_ For more information on [content scripts](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts) and [background scripts](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Background_scripts), see [MDN's browser extensions pages](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions).
+The standard assumes a working knowledge of web development and blockchain technology. It is also assumed that the
+reader has experience with browser extensions and understands the basic principles of secure communication between web
+pages and extensions.
+
+> _NOTE:_ For more information on
+[content scripts](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts) and
+[background scripts](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Background_scripts), see
+[MDN's browser extensions pages](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions).
 
 ## Specification
 
 ### Event-Based Communication
-Communication between the DApp and the wallet will use event-based messaging. There are two types of events: 
-- those used by the extension to communicate with the web page. Those events are triggered on a static target: `window.massaWalletProvider`;
-- those used by the web page to communicate with the extension. Those events are triggered on a extension specific target: `massaWalletProvider-<wallet provider name>`.
 
-> _NOTE:_ If the wallet provider is named AwesomeWallet, the target for this extension would be: `massaWalletProvider-AwesomeWallet`.
+Communication between the DApp and the wallet will use event-based messaging. There are two types of events:
+
+- those used by the extension to communicate with the web page. Those events are triggered on a static target:
+`window.massaWalletProvider`;
+- those used by the web page to communicate with the extension. Those events are triggered on a extension specific
+target: `massaWalletProvider-<wallet provider name>`.
+
+> _NOTE:_ If the wallet provider is named AwesomeWallet, the target for this extension would be:
+`massaWalletProvider-AwesomeWallet`.
 
 ### Commands
 
@@ -34,9 +51,35 @@ Communication between the DApp and the wallet will use event-based messaging. Th
 
 This event is used by the extension to register itself to the webpage as a wallet provider.
 
-| Direction            | Type       | Format                                      | Example                                                         |
-| -------------------- | ---------- | -------------------------------------------- | --------------------------------------------------------------- |
-| Extension to webpage | `register` | <pre><code class="highlight-source-yaml">type: object<br>properties:<br>  id:<br>    type: string<br>  name:<br>    type: string<br>required:<br>  - id<br>  - name</code></pre>  | <pre><code class="highlight-source-json">{<br>  "id": "awesomeWalletprovider",<br>  "name": "Your Awesome Wallet Provider"<br>}</code></pre> |
+<table><thead><tr>
+<th>Direction</th>
+<th>Type</th>
+<th>Format</th>
+<th>Example</th>
+</tr></thead><tbody><tr>
+<td>Extension to webpage</td>
+<td><code>register</code></td><td>
+
+```yaml
+type: 
+  object
+properties:  
+  address:
+    type: string
+required:
+  - address
+```
+
+</td><td>
+
+```json
+{
+  "id": "awesomeWalletprovider",
+  "name": "Your Awesome Wallet Provider"
+}
+```
+
+</td></tr></tbody></table>
 
 #### Account
 
@@ -44,45 +87,331 @@ This event is used by the extension to register itself to the webpage as a walle
 
 This event is used by the webpage to list known accounts by the extension.
 
-| Direction            | Type       | Format                                      | Example                                                         |
-| -------------------- | ---------- | -------------------------------------------- | --------------------------------------------------------------- |
-| Webpage to extension | `account.list` | None  | <pre><code class="highlight-source-json">null</code></pre> |
-| Extension to webpage | `account.list.response` | <pre><code class="highlight-source-yaml">type:  array<br>items:<br>  type: object<br>  properties:<br>    address:<br>      type: string<br>    name:<br>      type: string<br>  required:<br>    - address</code></pre> | <pre><code class="highlight-source-json">[<br>  {<br>    "address": "A12...",<br>    "name": "Account 1"<br>  },<br>  {<br>    "id": "A12..."<br>  }<br>]</code></pre> |
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>Type</th>
+<th>Format</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Webpage to extension</td>
+<td><code>account.list</code></td>
+<td>none</td>
+<td><code>null</code></td>
+</tr>
+<tr>
+<td>Extension to webpage</td>
+<td><code>account.list.response</code></td>
+<td>
+
+```yaml
+type: array
+items:
+  type: object
+  properties:
+    address:
+      type: string
+    name:
+      type: string
+  required:
+    - address
+```
+
+</td><td>
+  
+```json
+[
+  {
+    "address": "A12...",
+    "name": "Account 1"
+  },
+  {
+    "address": "A13...",
+    "name": "Account 2"
+  },
+]
+```
+
+</td></tr></tbody></table>
 
 ##### Balance
 
-| Direction            | Type       | Format                                      | Example                                                         |
-| -------------------- | ---------- | -------------------------------------------- | --------------------------------------------------------------- |
-| Webpage to extension | `account.balance` | <pre><code class="highlight-source-yaml">type: object<br>properties:<br>  address:<br>  type: string<br>required:<br>  - address</code></pre>  | <pre><code class="highlight-source-json">{<br>  "address": "A12..."<br>}</code></pre> |
-| Extension to webpage | `account.balance.response` | <pre><code class="highlight-source-yaml">type: object<br>properties:<br>  balance:<br>    type: string<br>    format: bigInt<br>required:<br>  - balance</code></pre> | <pre><code class="highlight-source-json">{<br>  "balance": 1000n<br>}</code></pre> |
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>Type</th>
+<th>Format</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Webpage to extension</td>
+<td><code>account.balance</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  address:
+  type: string
+required:
+  - address
+```
+
+</td><td>
+
+```json
+{
+  "address": "A12..."
+}
+```
+
+</td></tr><tr>
+<td>Extension to webpage</td>
+<td><code>account.balance.response</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  balance:
+    type: string
+    format: BigInt
+required:
+  - balance
+```
+
+</td><td>
+  
+```json
+{
+  "balance": "1000"
+}
+```
+
+</td></tr></tbody></table>
 
 ##### Delete
 
-| Direction            | Type       | Format                                      | Example                                                         |
-| -------------------- | ---------- | -------------------------------------------- | --------------------------------------------------------------- |
-| Webpage to extension | `account.delete` | <pre><code class="highlight-source-yaml">type: object<br>properties:<br>  address:<br>    type: string<br>required:<br>  - address</code></pre>  | <pre><code class="highlight-source-json">{<br>  "address": "A12..."<br>}</code></pre> |
-| Extension to webpage | `account.delete.response` | <pre><code class="highlight-source-yaml">type: object<br>properties:<br>  response:<br>    type: string<br>    enum: ["OK", "REFUSED", "ERROR"]<br>  error:<br>    type: string<br>required:<br>  - response</code></pre> | <pre><code class="highlight-source-json">{<br>  "response": "REFUSED"<br>}</code></pre> |
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>Type</th>
+<th>Format</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Webpage to extension</td>
+<td><code>account.delete</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  address:
+  type: string
+required:
+  - address
+```
+
+</td>
+<td>
+
+```json
+{
+  "address": "A12..."
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>Extension to webpage</td>
+<td><code>account.delete.response</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  response:
+    type: string
+    enum: ["OK", "REFUSED", "ERROR"]
+  error:
+    type: string
+required:
+  - response
+```
+
+</td><td>
+  
+```json
+{
+  "response": "REFUSED"
+}
+```
+
+</td></tr></tbody></table>
 
 ##### Import
 
-| Direction            | Type       | Format                                      | Example                                                         |
-| -------------------- | ---------- | -------------------------------------------- | --------------------------------------------------------------- |
-| Webpage to extension | `account.import` | <pre><code class="highlight-source-yaml">type: object<br>properties:<br>  privateKey:<br>    type: string<br>  publicKey:<br>    type: string<br>required:<br>  - privateKey<br>  - publicKey</code></pre>  | <pre><code class="highlight-source-json">{<br>  "privateKey": "S12...",<br>  "publicKey": "P12...",<br>}</code></pre> |
-| Extension to webpage | `account.import.response` | <pre><code class="highlight-source-yaml">type: object<br>properties:<br>  response:<br>    type: string<br>    enum: ["OK", "REFUSED", "ERROR"]<br>  error:<br>    type: string<br>required:<br>  - response</code></pre> | <pre><code class="highlight-source-json">{<br>  "response": "ERROR",<br>  "error": "No connexion with blockchain"<br>}</code></pre> |
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>Type</th>
+<th>Format</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Webpage to extension</td>
+<td><code>account.import</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  privateKey:
+    type: string
+  publicKey:
+    type: string
+required:
+  - privateKey
+  - publicKey
+```
+
+</td><td>
+
+```json
+{
+  "privateKey": "S12...",
+  "publicKey": "P12...",
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>Extension to webpage</td>
+<td><code>account.import.response</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  response:
+    type: string
+    enum: ["OK", "REFUSED", "ERROR"]
+  error:
+    type: string
+required:
+  - response
+```
+
+</td><td>
+  
+```json
+{
+  "response": "ERROR",
+  "error": "No connection with blockchain"
+}
+```
+
+</td>
+</tr>
+</tbody>
+</table>
 
 #### Sign
 
-| Direction            | Type       | Format                                      | Example                                                         |
-| -------------------- | ---------- | -------------------------------------------- | --------------------------------------------------------------- |
-| Webpage to extension | `account.sign` | <pre><code class="highlight-source-yaml">type: object<br>properties:<br>  address:<br>    type: string<br>  data:<br>    type: Byte[]<br>required:<br>  - address<br>  - data</code></pre>  | <pre><code class="highlight-source-json">{<br> "address": "A12...",<br> "data": [0x01,0xFF,0xAF]<br>}</code></pre> |
-| Extension to webpage | `account.sign.response` | <pre><code class="highlight-source-yaml">type: object<br>properties:<br>  signature:<br>    type: byte[]<br>  publicKey:<br>    type: string<br>required:<br>  - signature<br>  - publicKey</code></pre> | <pre><code class="highlight-source-json">{<br> "signature": [0x01,0xFF,0xAF],<br> "publicKey": "P12..."<br>}</code></pre>|
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>Type</th>
+<th>Format</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Webpage to extension</td>
+<td><code>account.sign</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  address:
+    type: string
+  data:
+    type: Byte[]
+required:
+  - address
+  - data
+```
+
+</td>
+<td>
+
+```json
+{
+ "address": "A12...",
+ "data": [0x01,0xFF,0xAF]
+}
+```
+
+</td>
+</tr>
+<tr>
+<td>Extension to webpage</td>
+<td><code>account.sign.response</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  signature:
+    type: byte[]
+  publicKey:
+    type: string
+required:
+  - signature
+  - publicKey
+```
+
+</td><td>
+  
+```json
+{
+ "signature": [0x01,0xFF,0xAF],
+ "publicKey": "P12..."
+}
+```
+
+</td>
+</tr>
+</tbody>
+</table>
 
 ### Security Considerations
 
 - The wallet provider must validate all inputs before performing any action.
 - The webpage must validate all input before processing any action.
-- The extension should ensure that communication is restricted to the intended parties and prevent any third-party intervention.
-- The wallet provider should be built with security as a primary concern, including measures such as encryption, authentication, and authorization to prevent unauthorized access or data breaches.
+- The extension should ensure that communication is restricted to the intended parties and prevent any third-party
+intervention.
+- The wallet provider should be built with security as a primary concern, including measures such as encryption,
+authentication, and authorization to prevent unauthorized access or data breaches.
 
 ## Implementation
 
@@ -169,7 +498,8 @@ export class Provider {
 
 ### Alice, the browser extension developer
 
-Alice wants to create a browser extension that can interact with the Massa ecosystem using the wallet-provider JS library.
+Alice wants to create a browser extension that can interact with the Massa ecosystem using the wallet-provider JS
+library.
 However, Alice needs to interact with the library from the
 [content script](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_scripts),
 which is separate from the webpage script.
