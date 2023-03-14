@@ -40,10 +40,10 @@ Communication between the DApp and the wallet will use event-based messaging. Th
 - those used by the extension to communicate with the web page. Those events are triggered on a static target:
 `window.massaWalletProvider`;
 - those used by the web page to communicate with the extension. Those events are triggered on a extension specific
-target: `massaWalletProvider-<wallet provider name>`.
+target: `window.massaWalletProvider-<wallet provider name>`.
 
 > _NOTE:_ If the wallet provider is named AwesomeWallet, the target for this extension would be:
-`massaWalletProvider-AwesomeWallet`.
+`window.massaWalletProvider-AwesomeWallet`; so in javascript: `window['massaWalletProvider-AwesomeWallet']`
 
 ### Commands
 
