@@ -2,9 +2,15 @@
 
 **Authors:** G. Libert
 
-**Status:** Draft
+**Status:** Effective
 
-**Version:** 0.1
+**Version:** 1.0
+
+**History:**
+
+| Date | Comment |
+| ---- | ------- |
+| 03/2023 | The standard is effective |
 
 ## Abstract
 
