@@ -245,7 +245,7 @@ properties:
   response:
     type: string
     enum: ["OK", "REFUSED", "ERROR"]
-  error:
+  message:
     type: string
 required:
   - response
@@ -312,7 +312,7 @@ properties:
   response:
     type: string
     enum: ["OK", "REFUSED", "ERROR"]
-  error:
+  message:
     type: string
 required:
   - response
@@ -323,7 +323,7 @@ required:
 ```json
 {
   "response": "ERROR",
-  "error": "No connection with blockchain"
+  "message": "No connection with blockchain"
 }
 ```
 
