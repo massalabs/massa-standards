@@ -33,17 +33,16 @@ To simplify usage, the following standard units implemenation are recommended:
 
 ### Gas
 
-Gas is a virtual unit used to measure the computational complexity of executing transactions on the Massa blockchain. Each operation requires a certain amount of Gas, and the amount of Gas consumed is proportional to the computational complexity of the operation. The unit of gas is calibrated to be equivalent to 300 milliseconds of execution time on the target hardware of the sum of MAX_ASYNC_GAS and MAX_BLOCK_GAS.
+Gas is a virtual unit used to measure the computational complexity of executing transactions on the Massa blockchain. Each operation requires a certain amount of Gas, and the amount of Gas consumed is proportional to the computational complexity of the operation.
 Gas is expressed as an unsigned 64-bit integer.
 
-1 gas unit (GAS) is equivalent to 1,000,000,000,000 picoGas, the smallest unit of gas.
+1 gas unit (GAS) is the smallest unit of gas.
 
 To simplify usage, the following standard units implemenation are recommended:
 
-- milliGas (mGAS): 1 milliGas represents 1,000,000,000 picoGas or 1/1000th of a gas unit.
-- microGas (µGAS): 1 microGas represents 1,000,000 picoGas or 1/1,000,000th of a gas unit.
-- nanoGas (nGAS): 1 nanoGas represents 1,000 picoGas or 1/1,000,000,000th of a gas unit.
-- picoGas (pGAS): 1 picoGas represents the smallest unit of gas or 1/1,000,000,000,000th of a gas unit.
+- kiloGas (kGAS): 1 kiloGas represents 1,000 gas units.
+- megaGas (MGAS): 1 megaGas represents 1,000 kGAS or 1,000,000 gas units.
+- gigaGas (GGAS): 1 gigaGas represents 1,000 MGAS or 1,000,000 kGAS or 1,000,000,000 gas units.
 
 ### Roll
 
