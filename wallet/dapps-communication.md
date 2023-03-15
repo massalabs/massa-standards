@@ -2,7 +2,7 @@
 
 Initial meta issue: <https://github.com/massalabs/massa-standards/issues/13>
 
-**Authors:**
+**Authors:** G.Libert, N.Seva
 
 **Status:** Draft
 
@@ -115,6 +115,7 @@ items:
   properties:
     address:
       type: string
+      format: base58check
     name:
       type: string
   required:
@@ -130,8 +131,7 @@ items:
     "name": "Account 1"
   },
   {
-    "address": "A13...",
-    "name": "Account 2"
+    "address": "A12..."
   },
 ]
 ```
@@ -159,7 +159,8 @@ items:
 type: object
 properties:
   address:
-  type: string
+    type: string
+    format: base58check
 required:
   - address
 ```
@@ -218,7 +219,8 @@ required:
 type: object
 properties:
   address:
-  type: string
+    type: string
+    format: base58check
 required:
   - address
 ```
@@ -283,8 +285,10 @@ type: object
 properties:
   privateKey:
     type: string
+    format: base58check
   publicKey:
     type: string
+    format: base58check
 required:
   - privateKey
   - publicKey
@@ -354,9 +358,12 @@ type: object
 properties:
   address:
     type: string
+    format: base58check
   data:
-    type: number[]
-    format: Byte[]
+    type: array
+    items:
+      type: integer
+      format: uint8
 required:
   - address
   - data
@@ -383,10 +390,13 @@ required:
 type: object
 properties:
   signature:
-    type: number[]
-    format: Byte[]
+    type: array
+    items:
+      type: integer
+      format: uint8
   publicKey:
     type: string
+    format: base58check
 required:
   - signature
   - publicKey
@@ -416,6 +426,8 @@ intervention.
 authentication, and authorization to prevent unauthorized access or data breaches.
 
 ## Implementation
+
+This section will be filled with links to reference implementations developed by MassaLabs.
 
 ## Code sample
 
