@@ -355,7 +355,8 @@ properties:
   address:
     type: string
   data:
-    type: Byte[]
+    type: number[]
+    format: Byte[]
 required:
   - address
   - data
@@ -367,7 +368,7 @@ required:
 ```json
 {
  "address": "A12...",
- "data": [0x01,0xFF,0xAF]
+ "data": [49, 3, 255]
 }
 ```
 
@@ -382,7 +383,8 @@ required:
 type: object
 properties:
   signature:
-    type: byte[]
+    type: number[]
+    format: Byte[]
   publicKey:
     type: string
 required:
@@ -394,7 +396,7 @@ required:
   
 ```json
 {
- "signature": [0x01,0xFF,0xAF],
+ "signature": [49, 3, 255],
  "publicKey": "P12..."
 }
 ```
