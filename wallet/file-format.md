@@ -14,10 +14,99 @@ Initial meta issue: <https://github.com/massalabs/massa-standards/issues/15>
 
 ## Specification
 
-What needs to be specified:
+A wallet contains multiple accounts.
 
-- vocabulary: define Account, Wallet...
-- algorithms used to hash, cipher privatekey
+The specification define how an account is generated, protected and serialized.
+
+**How keys are generated?**
+
+Asymmetrical algorithm: Ed25519
+
+This algorithm will create a private key and a public key.
+
+**How the address is generated?**
+
+1. compute the BLAKE3 hash of the public key
+2. truncate to 256 bits
+3. encode with Base58Check, provide the version (0)
+4. add prefix "AU"
+
+**What makes up an account?**
+
+- nickname
+- private key
+- public key
+- address
+- salt
+- nonce
+- version
+
+**How the private key is protected?**
+
+The private key is encrypted with a symmetrical algorithm.
+
+1. get a secret key from the user password and salt with PBKDF2
+2. Galois Counter Mode (GCM) with nonce as initialization vector
+
+**What is the purpose of the salt?**
+
+The salt is used to protect the private key.
+
+It's 16 bytes random array.
+
+**What is nonce?**
+
+It's 12 bytes random array.
+
+**How the account is serialized?**
+
+It is serialized in YAML:
+
+```yaml
+---
+Version: 0
+Nickname: wallet-nickname
+Address: AU...
+KeyPair:
+  PrivateKey: ...
+  PublicKey: ...
+  Salt:
+  - 57
+  - 125
+  - 102
+  - 235
+  - 118
+  - 62
+  - 21
+  - 145
+  - 126
+  - 197
+  - 242
+  - 54
+  - 145
+  - 50
+  - 178
+  - 98
+  Nonce:
+  - 119
+  - 196
+  - 31
+  - 33
+  - 211
+  - 243
+  - 26
+  - 58
+  - 102
+  - 180
+  - 47
+  - 57
+```
+
+with:
+
+- Address: plain text address
+- KeyPair.PrivateKey: cipher text of the private key
+- KeyPair.PublicKey: plain text public key
 
 ## Implementation
 
@@ -25,41 +114,21 @@ This section will be filled with links to reference implementations developed by
 
 ## Code sample
 
-### Reader point of view
+Here is a golang implementation:
 
-The reader wants:
+**Generate key pair**:
 
-- to read the content of a file
-- to get the key pair from that content
-- ...
-
-Here is how an application that wants to read a file would do:
-
-```text
-import unprotect from massa-wallet-file-utils
-
-content = openFile('filename')
-
-privateKey = unprotect('password', content)
-...
-
+```go
+publicKey, privateKey, err := ed25519.GenerateKey(nil)
 ```
 
-### Writter point of view
+**Generate address:**
 
-The writter wants:
-
-- to protect the private key (by encrypting it)
-- to create a file
-- ...
-
-Here is how an application that wants to write a file would do:
-
-```text
-import protect from massa-wallet-file-utils
-
-content = protect('password', privateKey)
-content += ...
-
-writeFileOnFileSystem(content)
+```go
+publicKeyHash := blake3.Sum256(pubKeyBytes)
+address := "AU" + base58.CheckEncode(publicKeyHash[:], Base58Version)
 ```
+
+**Protect the secret key:**
+
+TBD
