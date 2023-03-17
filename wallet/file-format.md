@@ -2,133 +2,91 @@
 
 Initial meta issue: <https://github.com/massalabs/massa-standards/issues/15>
 
-**Authors:**
+**Authors:** N.Seva, G. Libert
 
 **Status:** Draft
 
 **Version:** 0.1
 
-## Abstract
+## Introduction
+The Wallet file format standard provides a specification for protection and serialization of accounts within a wallet. This standard doesn't specify the address object nor the cryptography used by the massa blockain to sign operation.
 
-## Motivation
+### Targeted Audience
+This specification is intended for software developers, security professionals, and organizations who are developing or implementing wallet software.
+
+### Vocabulary
+
+**Account:** A collection of information that represents a user's identity.
+
+**Wallet:** An application handling multiple accounts and offering multiple services such as signing transactions or access to the blockchain. 
+
+**Private key:** A private key used to sign transactions and authenticate the account holder.
+
+**Public key:** A public key used to identify the account holder and verify digital signatures generated using a private key.
+
+**Address:** A unique identifier that represents the account.
+
+**Salt:** A random sequence of bytes used as an additional input to a hash function.
+
+**Nonce:** A random sequence of bytes used as an initialization vector.
+
+**YAML:** A human-readable data serialization format.
 
 ## Specification
 
-A wallet contains multiple accounts.
+### Cryptography
 
-The specification define how an account is generated, protected and serialized.
+#### PBKDF2
+To protect the private key, a symmetric key is derived from the user password using the PBKDF2 algorithm, as defined in IETF [RFC 2898](https://www.ietf.org/rfc/rfc2898.txt).
 
-**How keys are generated?**
+Specifically, the PBKDF2 arguments defined in section 5.2 of the aforementioned standard must follow the followings:
+- 16-byte salt, 
+- 10,000 iterations, and a
+- derived key length of 32 bytes.
 
-Asymmetrical algorithm: Ed25519
+The hash function utilized in this process is SHA-256, as specified in the NIST [FIPS 180-4](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf) document.
 
-This algorithm will create a private key and a public key.
+These values align with the recommendations set forth in the NIST [Special Publication 800-132](https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf).
 
-**How the address is generated?**
+#### AES-GCM
+After deriving the symmetric key, the account's private key is encrypted using AES-256 with Galois/Counter Mode (GCM), as defined by the NIST in the [Special Publication 800-38D](https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf). The AES-256 algorithm is specified in the NIST [FIPS 197](https://nvlpubs.nist.gov/nistpubs/fips/nist.fips.197.pdf) document.
 
-1. compute the BLAKE3 hash of the public key
-2. truncate to 256 bits
-3. encode with Base58Check, provide the version (0)
-4. add prefix "AU"
+> _NOTE:_ The nonce, used as initialization vector, must have a size of 96 bits (12 bytes) as recommended in Special Publication 800-38D.
 
-**What makes up an account?**
+### Serialization
+An account, in a serialized form, consists of various components, including the account's private and public keys, a salt, a nonce, a version, and optionally, an address and nickname to aid in wallet recognition.
+The account should be serialized using YAML to enable human readability of the file's contents, particularly the address and nickname.
 
-- nickname
-- private key
-- public key
-- address
-- salt
-- nonce
-- version
+The following table summarize the format:
 
-**How the private key is protected?**
+| Field |	Presence |	Format | Example |
+| ----- | -------- | ------- | ------- |
+| Version |	Mandatory	| Integer	| 0 |
+| Nickname |	Optional |	String	| "Savings" |
+| Address |	Optional |	String	| "AU12..." |
+| PrivateKey |	Mandatory | Byte array | [17, 42 ...] |
+| PublicKey |	Mandatory | Byte array | [21, 126 ...] |
+| Salt | Mandatory | Byte array | [57, 125, 102, 235, 118, 62, 21, 145, 126, 197, 242, 54, 145, 50, 178, 98] |
+| Nonce |	Mandatory | Byte array | [119, 196, 31, 33, 211, 243, 26, 58, 102, 180, 47, 57] |
 
-The private key is encrypted with a symmetrical algorithm.
+It is worth noting that the value of the Version field corresponds to the entire part of this specification version. Currently, the value should be set to 0.
 
-1. get a secret key from the user password and salt with PBKDF2
-2. Galois Counter Mode (GCM) with nonce as initialization vector
+## Security Concerns
+The wallet file format specification aims to ensure the security and integrity of user accounts. Then, several security concerns must be taken into account:
 
-**What is the purpose of the salt?**
+### Encryption and Decryption
+The encryption and decryption of the private key must be performed correctly to ensure the confidentiality and integrity of the account. If the encryption algorithm or key derivation function is weak, the private key may be vulnerable to attacks. It is therefore crucial to use strong and proven encryption algorithms and key derivation functions.
 
-The salt is used to protect the private key.
+### Salt Generation
+The generation of random and unpredictable values for the salt is critical in protecting the private key. If the values are not truly random or can be easily guessed, the encryption of the private key may be compromised. It is therefore essential to use a robust and reliable method.
 
-It's 16 bytes random array.
+### Password Strength
+The strength of the user's password is crucial to the security of the wallet. If the password is weak or easily guessable, the private key's confidentiality may be compromised. Therefore, it is essential to educate users on creating strong passwords and implementing password policies that enforce minimum complexity requirements.
 
-**What is nonce?**
-
-It's 12 bytes random array.
-
-**How the account is serialized?**
-
-It is serialized in YAML:
-
-```yaml
----
-Version: 0
-Nickname: wallet-nickname
-Address: AU...
-KeyPair:
-  PrivateKey: ...
-  PublicKey: ...
-  Salt:
-  - 57
-  - 125
-  - 102
-  - 235
-  - 118
-  - 62
-  - 21
-  - 145
-  - 126
-  - 197
-  - 242
-  - 54
-  - 145
-  - 50
-  - 178
-  - 98
-  Nonce:
-  - 119
-  - 196
-  - 31
-  - 33
-  - 211
-  - 243
-  - 26
-  - 58
-  - 102
-  - 180
-  - 47
-  - 57
-```
-
-with:
-
-- Address: plain text address
-- KeyPair.PrivateKey: cipher text of the private key
-- KeyPair.PublicKey: plain text public key
 
 ## Implementation
 
-This section will be filled with links to reference implementations developed by MassaLabs.
+This section will be updated with links to reference implementations developed by MassaLabs.
+These implementations will follow the wallet file format specification to ensure compatibility across different platforms.
 
-## Code sample
-
-Here is a golang implementation:
-
-**Generate key pair**:
-
-```go
-publicKey, privateKey, err := ed25519.GenerateKey(nil)
-```
-
-**Generate address:**
-
-```go
-publicKeyHash := blake3.Sum256(pubKeyBytes)
-address := "AU" + base58.CheckEncode(publicKeyHash[:], Base58Version)
-```
-
-**Protect the secret key:**
-
-TBD
+By providing these references, we aim to facilitate adoption and promote security and interoperability.
