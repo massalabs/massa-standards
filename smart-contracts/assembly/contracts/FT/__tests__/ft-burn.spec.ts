@@ -95,5 +95,21 @@ describe('Burn ERC20 to U1', () => {
       u64ToBytes(TOTAL_SUPPLY - burnAmount),
     );
   });
+  test('Should burn all ERC20 of U1', () => {
+    const balanceU1 = bytesToU64(balanceOf(new Args().add(user1Address.toString()).serialize()));
+    burn(new Args().add(U64.MAX_VALUE).serialize());
+
+    // check balance of U1
+    expect(
+      bytesToU64(
+        balanceOf(new Args().add(user1Address.toString()).serialize()),
+      ),
+    ).toBe(0);
+
+    // check totalSupply update
+    expect(totalSupply([])).toStrictEqual(
+      u64ToBytes(TOTAL_SUPPLY - balanceU1 - burnAmount),
+    );
+    });
 });
 

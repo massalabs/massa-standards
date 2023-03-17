@@ -154,13 +154,12 @@ describe('Allowance', () => {
     ).toStrictEqual(u64ToBytes(u1u2AllowAmount));
   });
 
-  throws('Fails increase allowance => overflow', () =>
+  test('Increase user1 allowance to max amount for user2 to spend', () => {
     increaseAllowance(
       new Args().add(user2Address.toString()).add(u64.MAX_VALUE).serialize(),
-    ),
-  );
+    );
 
-  test('check allowance is not changed', () =>
+    // check new allowance
     expect(
       allowance(
         new Args()
@@ -168,11 +167,13 @@ describe('Allowance', () => {
           .add(user2Address.toString())
           .serialize(),
       ),
-    ).toStrictEqual(u64ToBytes(u1u2AllowAmount)));
+    ).toStrictEqual(u64ToBytes(u64.MAX_VALUE));
+  });
+
 
   test('Decreases allowance U1 => U2', () => {
     const decreaseAmount: u64 = 666;
-    u1u2AllowAmount -= decreaseAmount;
+    u1u2AllowAmount = u64.MAX_VALUE - decreaseAmount;
     decreaseAllowance(
       new Args().add(user2Address.toString()).add(decreaseAmount).serialize(),
     );
@@ -188,13 +189,14 @@ describe('Allowance', () => {
     ).toStrictEqual(u64ToBytes(u1u2AllowAmount));
   });
 
-  throws('Fail to decreases allowance: underflow', () =>
-    increaseAllowance(
+
+  test('Decrease user1 allowance to 0 for user2', () =>
+    decreaseAllowance(
       new Args().add(user2Address.toString()).add(u64.MAX_VALUE).serialize(),
     ),
   );
 
-  test('check allowance is not changed', () =>
+  test('check allowance is set to 0', () =>
     expect(
       allowance(
         new Args()
@@ -202,7 +204,7 @@ describe('Allowance', () => {
           .add(user2Address.toString())
           .serialize(),
       ),
-    ).toStrictEqual(u64ToBytes(u1u2AllowAmount)));
+    ).toStrictEqual(u64ToBytes(0)));
 });
 
 let u2u1AllowAmount: u64 = 6000;
