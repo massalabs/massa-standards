@@ -19,7 +19,10 @@ const BURN_EVENT_NAME = 'BURN';
  */
 export function burn(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
-  const amount = args.nextU64().expect('amount argument is missing or invalid');
+  let amount = args.nextU64().expect('amount argument is missing or invalid');
+  if (amount == U64.MAX_VALUE){
+    amount = _balance(Context.caller());
+  }
 
   _decreaseTotalSupply(amount);
 
