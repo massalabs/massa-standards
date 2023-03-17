@@ -272,7 +272,7 @@ export function increaseAllowance(binaryArgs: StaticArray<u8>): void {
   const amount = args.nextU64().expect('amount argument is missing or invalid');
 
   let newAllowance = _allowance(owner, spenderAddress) + amount;
-  if (newAllowance < amount){
+  if (newAllowance < amount) {
     newAllowance = U64.MAX_VALUE;
   }
 
@@ -309,7 +309,7 @@ export function decreaseAllowance(binaryArgs: StaticArray<u8>): void {
 
   let newAllowance: u64 = 0;
 
-  if(current > amount){
+  if (current > amount) {
     newAllowance = current - amount;
   }
 
