@@ -271,11 +271,10 @@ export function increaseAllowance(binaryArgs: StaticArray<u8>): void {
   );
   const amount = args.nextU64().expect('amount argument is missing or invalid');
 
-  const newAllowance = _allowance(owner, spenderAddress) + amount;
-  assert(
-    newAllowance >= amount,
-    'Increasing allowance with requested amount causes an overflow',
-  );
+  let newAllowance = _allowance(owner, spenderAddress) + amount;
+  if (newAllowance < amount){
+    newAllowance = U64.MAX_VALUE;
+  }
 
   _approve(owner, spenderAddress, newAllowance);
 
@@ -308,12 +307,11 @@ export function decreaseAllowance(binaryArgs: StaticArray<u8>): void {
 
   const current = _allowance(owner, spenderAddress);
 
-  assert(
-    current >= amount,
-    'Decreasing allowance with requested amount causes an underflow',
-  );
+  let newAllowance: u64 = 0;
 
-  const newAllowance = current - amount;
+  if(current > amount){
+    newAllowance = current - amount;
+  }
 
   _approve(owner, spenderAddress, newAllowance);
 
