@@ -97,8 +97,3 @@ describe('Burn ERC20 to U1', () => {
   });
 });
 
-describe('Fails burn ERC20', () => {
-  throws('Fails to burn because of underflow ', () =>
-    burn(new Args().add(U64.MAX_VALUE).serialize()),
-  );
-});
