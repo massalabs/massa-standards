@@ -70,7 +70,7 @@ The following table summarize the format:
 | Version | Mandatory | Integer | 0 |
 | Nickname | Optional | String | "Savings" |
 | Address | Optional | String | "AU12..." |
-| PrivateKey | Mandatory | Byte array | [17, 42 ...] |
+| PrivateKey | Mandatory | Byte array (ciphered) | [17, 42 ...] |
 | PublicKey | Mandatory | Byte array | [21, 126 ...] |
 | Salt | Mandatory | Byte array | [57, 125, 102, 235, 118, 62, 21, 145, 126, 197, 242, 54, 145, 50, 178, 98] |
 | Nonce | Mandatory | Byte array | [119, 196, 31, 33, 211, 243, 26, 58, 102, 180, 47, 57] |
@@ -86,38 +86,10 @@ Here is an example of YAML serialization:
 Version: 0
 Nickname: Savings
 Address: AU12...
-PrivateKey: ...
-PublicKey: ...
-Salt:
-- 57
-- 125
-- 102
-- 235
-- 118
-- 62
-- 21
-- 145
-- 126
-- 197
-- 242
-- 54
-- 145
-- 50
-- 178
-- 98
-Nonce:
-- 119
-- 196
-- 31
-- 33
-- 211
-- 243
-- 26
-- 58
-- 102
-- 180
-- 47
-- 57
+PrivateKey: [17, 42 ...]
+PublicKey: [21, 126 ...]
+Salt: [57, 125, 102, 235, 118, 62, 21, 145, 126, 197, 242, 54, 145, 50, 178, 98]
+Nonce: [119, 196, 31, 33, 211, 243, 26, 58, 102, 180, 47, 57]
 ```
 
 ## Security Concerns
