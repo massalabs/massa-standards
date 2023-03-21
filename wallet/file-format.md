@@ -50,7 +50,8 @@ Specifically, the PBKDF2 arguments defined in section 5.2 of the aforementioned 
 
 The hash function utilized in this process is SHA-256, as specified in the NIST [FIPS 180-4](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf) document.
 
-These values align with the recommendations set forth in the NIST [Special Publication 800-132](https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf).
+These values align with the recommendations set forth in the NIST [Special Publication 800-132](https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf)
+and [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#pbkdf2). 
 
 #### AES-GCM
 
