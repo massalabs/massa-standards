@@ -45,7 +45,7 @@ To protect the private key, a symmetric key is derived from the user password us
 Specifically, the PBKDF2 arguments defined in section 5.2 of the aforementioned standard must follow the followings:
 
 - 16-byte salt,
-- 10,000 iterations, and a
+- 600,000 iterations, and a
 - derived key length of 32 bytes.
 
 The hash function utilized in this process is SHA-256, as specified in the NIST [FIPS 180-4](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf) document.
@@ -82,6 +82,7 @@ The following table summarize the format:
 | Nonce | Mandatory | Byte array | [119, 196, 31, 33, 211, 243, 26, 58, 102, 180, 47, 57] |
 
 It is worth noting that:
+
 - The value of the Version field corresponds to the entire part of this specification version. Currently, the value should be set to 0.
 - The EncryptedPrivateKey contains the ciphered private key and the tag.
 
