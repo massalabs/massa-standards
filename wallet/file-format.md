@@ -58,7 +58,11 @@ After deriving the symmetric key, the account's private key is encrypted using A
 
 > _NOTE:_ The nonce, used as initialization vector, must have a size of 96 bits (12 bytes) as recommended in Special Publication 800-38D.
 
-> _NOTE:_ The authentication tag is appended to the end of the ciphertext.
+##### Authentication tag
+
+The authentication tag is appended to the end of the ciphertext.
+
+The size of the authentication tag is 16 bytes (128 bits).
 
 ### Serialization
 
