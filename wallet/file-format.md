@@ -61,7 +61,7 @@ After deriving the symmetric key, the account's private key is encrypted using A
 
 ##### Authentication tag
 
-The authentication tag is appended to the end of the ciphertext.
+The authentication tag is appended to the end of the ciphered private key.
 
 The size of the authentication tag is 16 bytes (128 bits).
 
@@ -72,12 +72,12 @@ The account should be serialized using YAML to enable human readability of the f
 
 The following table summarize the format:
 
-| Field | Presence | Format | Example |
+| Field | Presence | Format | Comment | Example |
 | ----- | -------- | ------- | ------- |
 | Version | Mandatory | Integer | 0 |
 | Nickname | Optional | String | "Savings" |
 | Address | Optional | String | "AU12..." |
-| EncryptedPrivateKey | Mandatory | Byte array | [17, 42 ...] |
+| CipheredData | Mandatory | Byte array | Ciphered private key bytes followed by Tag bytes. | [17, 42 ...] |
 | PublicKey | Mandatory | Byte array | [21, 126 ...] |
 | Salt | Mandatory | Byte array | [57, 125, 102, 235, 118, 62, 21, 145, 126, 197, 242, 54, 145, 50, 178, 98] |
 | Nonce | Mandatory | Byte array | [119, 196, 31, 33, 211, 243, 26, 58, 102, 180, 47, 57] |
