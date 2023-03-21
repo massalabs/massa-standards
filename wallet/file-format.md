@@ -58,6 +58,8 @@ After deriving the symmetric key, the account's private key is encrypted using A
 
 > _NOTE:_ The nonce, used as initialization vector, must have a size of 96 bits (12 bytes) as recommended in Special Publication 800-38D.
 
+> _NOTE:_ The authentication tag is appended to the end of the ciphertext.
+
 ### Serialization
 
 An account, in a serialized form, consists of various components, including the account's private and public keys, a salt, a nonce, a version, and optionally, an address and nickname to aid in wallet recognition.
