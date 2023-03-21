@@ -81,7 +81,9 @@ The following table summarize the format:
 | Salt | Mandatory | Byte array | [57, 125, 102, 235, 118, 62, 21, 145, 126, 197, 242, 54, 145, 50, 178, 98] |
 | Nonce | Mandatory | Byte array | [119, 196, 31, 33, 211, 243, 26, 58, 102, 180, 47, 57] |
 
-It is worth noting that the value of the Version field corresponds to the entire part of this specification version. Currently, the value should be set to 0.
+It is worth noting that:
+- The value of the Version field corresponds to the entire part of this specification version. Currently, the value should be set to 0.
+- The EncryptedPrivateKey contains the ciphered private key and the tag.
 
 #### Example
 
@@ -92,8 +94,8 @@ Here is an example of YAML serialization:
 Version: 0
 Nickname: Savings
 Address: AU12...
-EncryptedPrivateKey: [17, 42 ...]
-PublicKey: [21, 126 ...]
+EncryptedPrivateKey: [17, 42, ...]
+PublicKey: [21, 126, ...]
 Salt: [57, 125, 102, 235, 118, 62, 21, 145, 126, 197, 242, 54, 145, 50, 178, 98]
 Nonce: [119, 196, 31, 33, 211, 243, 26, 58, 102, 180, 47, 57]
 ```
