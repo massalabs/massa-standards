@@ -1,32 +1,39 @@
-# massa-standards
+# Massa Standard Definition
 
-This repository lists all massa standard specifications and reference implementations.
+Welcome to the Massa Standard Definition project! This project aims to establish a common set of standards for the Massa blockchain ecosystem.
+The standards defined here will help to promote interoperability and ease of use for Massa-based applications and services.
 
-Massa standards
+> _To learn more about Massa and its capabilities, visit the [Massa website](https://massa.net)._
 
-- [smart contracts](smart-contracts/README.md)
+## Fungible Token
 
-## How to write a standard?
+The [Fungible Token standard implementation](smart-contracts/assembly/contracts/NFT) defines a common set of rules for creating and managing Massa-based tokens that are fungible (i.e. interchangeable).
+This is MassaLabs implementation of [the ERC20](https://ethereum.org/en/developers/docs/standards/tokens/erc-20/).
 
-Create a `.md` file that follow this structure:
+## Non-Fungible Token
 
-```markdown
-# Standard name
+The [Non-Fungible Token standard implementation](smart-contracts/assembly/contracts/NFT) defines a common set of rules for creating and managing Massa-based tokens that are non-fungible (i.e. unique).
+This is MassaLabs implementation of [the ERC721](https://ethereum.org/en/developers/docs/standards/tokens/erc-721/).
 
-Initial issue: <https://github.com/massalabs/massa-standards/issues/{issue number}>
+## Massa Units
 
-## Abstract
+The [Massa Units standard](units.md) defines a set of common units of measurement for use on the Massa blockchain.
 
-## Motivation
+These units include:
 
-## Specification
+- Massa coin
+- Gas
+- Rolls
 
-## Implementation
+## DApps <> Wallet Provider Communication
 
-```
+The [DApps <> Wallet Provider Communication standard](wallet/dapps-communication.md) defines a common interface for communication between Massa-based decentralized applications (DApps) and wallet providers.
+This standard aims to simplify the process of integrating Massa-based DApps with various wallet providers, making it easier for end-users to access and use these applications.
 
-Fill the issue number. The issue would probably be a meta issue. Sub-issues would be issue to implement
-the standard in proper repositories.
+## Getting Started
 
-> _NOTE:_ this [VSCode extension](https://marketplace.visualstudio.com/items?itemName=DavidAnson.vscode-markdownlint)
-can help you to format markdown files.
+To get started with the Massa Standard Definition project, please refer to the documentation in the `docs` directory. This documentation includes instructions for contributing to the project and implementing the various standards defined here.
+
+## License
+
+This project is licensed under the Apache 2.0 license. For more information, please refer to the `LICENSE` file.
