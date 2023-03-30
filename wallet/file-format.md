@@ -22,15 +22,15 @@ This specification is intended for software developers, security professionals, 
 
 **Wallet:** An application handling multiple accounts and offering multiple services such as signing transactions or access to the blockchain.
 
+**Salt:** A random sequence of bytes used as an additional input to a key derivation function.
+
+**Nonce:** A random sequence of bytes used as an initialization vector for symmetric encryption.
+
 **Private key:** A private key used to sign transactions and authenticate the account holder.
 
 **Public key:** A public key used to identify the account holder and verify digital signatures generated using a private key.
 
 **Address:** A unique identifier that represents the account.
-
-**Salt:** A random sequence of bytes used as an additional input to a hash function.
-
-**Nonce:** A random sequence of bytes used as an initialization vector.
 
 **YAML:** A human-readable data serialization format.
 
@@ -42,7 +42,7 @@ This specification is intended for software developers, security professionals, 
 
 To protect the private key, a symmetric key is derived from the user password using the PBKDF2 algorithm, as defined in IETF [RFC 2898](https://www.ietf.org/rfc/rfc2898.txt).
 
-> _NOTE:_ The user input password is converted to bytes using the utf-8 encoding.
+> _NOTE:_ The user input password is converted to bytes using utf-8 encoding before passing it to PBKDF2.
 
 Specifically, the PBKDF2 arguments defined in section 5.2 of the aforementioned standard must follow the followings:
 
@@ -57,9 +57,10 @@ and [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Chea
 
 #### AES-GCM
 
-After deriving the symmetric key, the account's private key is encrypted using AES-256 with Galois/Counter Mode (GCM), as defined by the NIST in the [Special Publication 800-38D](https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf). The AES-256 algorithm is specified in the NIST [FIPS 197](https://nvlpubs.nist.gov/nistpubs/fips/nist.fips.197.pdf) document.
+After deriving the symmetric key (the derived key from PBKDF2), the account's private key is encrypted using AES-256 with Galois/Counter Mode (GCM), as defined by the NIST in the [Special Publication 800-38D](https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf). The AES-256 algorithm is specified in the NIST [FIPS 197](https://nvlpubs.nist.gov/nistpubs/fips/nist.fips.197.pdf) document.
 
-> _NOTE:_ The nonce, used as initialization vector, must have a size of 96 bits (12 bytes) as recommended in Special Publication 800-38D.
+##### Nonce
+The nonce, used as initialization vector for AES-GCM, must have a size of 96 bits (12 bytes) as recommended in Special Publication 800-38D.
 
 ##### Authentication tag
 
@@ -79,10 +80,10 @@ The following table summarize the format:
 | Version | Mandatory | Integer || 0 |
 | Nickname | Optional | String || "Savings" |
 | Address | Optional | String || "AU12..." |
-| CipheredData | Mandatory | Byte array | Ciphered private key bytes followed by Tag bytes. | [17, 42 ...] |
+| Salt | Mandatory | Byte array | Salt for PBKDF2 (16 Bytes) | [57, 125, 102, 235, 118, 62, 21, 145, 126, 197, 242, 54, 145, 50, 178, 98] |
+| Nonce | Mandatory | Byte array | Initialization Vector (12 Bytes) for AES-GCM | [119, 196, 31, 33, 211, 243, 26, 58, 102, 180, 47, 57] |
+| CipheredData | Mandatory | Byte array | Ciphered Private Key Bytes (using AES-GCM) followed by Authentication Tag (16 Bytes) | [17, 42 ...] |
 | PublicKey | Mandatory | Byte array || [21, 126 ...] |
-| Salt | Mandatory | Byte array || [57, 125, 102, 235, 118, 62, 21, 145, 126, 197, 242, 54, 145, 50, 178, 98] |
-| Nonce | Mandatory | Byte array || [119, 196, 31, 33, 211, 243, 26, 58, 102, 180, 47, 57] |
 
 It is worth noting that:
 
@@ -98,11 +99,19 @@ Here is an example of YAML serialization:
 Version: 0
 Nickname: Savings
 Address: AU12...
-CipheredData: [17, 42, ...]
-PublicKey: [21, 126, ...]
 Salt: [57, 125, 102, 235, 118, 62, 21, 145, 126, 197, 242, 54, 145, 50, 178, 98]
 Nonce: [119, 196, 31, 33, 211, 243, 26, 58, 102, 180, 47, 57]
+CipheredData: [17, 42, ...]
+PublicKey: [21, 126, ...]
 ```
+#### Decryption of the Private Key
+
+In order to decrypt the private key, following steps are followed:
+1. User inputs a password.
+2. Password is converted to bytes (utf-8 encoding).
+3. Symmetric key is derived using PBKDF2 with this password (bytes) and the salt (bytes) as input.
+4. This derived symmetric key is then used as AES-GCM Key along with the nonce (IV) to decrypt the ciphered private key.
+5. The authentication tag at the end of ciphered data checks if the key in point 4. is right.
 
 ## Security Concerns
 
