@@ -47,4 +47,5 @@ Please use the following template when starting a new standard:
 ```
 
 ## License
+
 By contributing to massa standard, you agree that your contributions will be licensed under the MIT License.
