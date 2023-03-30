@@ -26,9 +26,9 @@ This specification is intended for software developers, security professionals, 
 
 **Nonce:** A random sequence of bytes used as an initialization vector for symmetric encryption.
 
-**Private key:** A private key used to sign transactions and authenticate the account holder.
+**Private key:** A key used to sign transactions and authenticate the account holder.
 
-**Public key:** A public key used to identify the account holder and verify digital signatures generated using a private key.
+**Public key:** A key used to identify the account holder and verify digital signatures generated using a private key.
 
 **Address:** A unique identifier that represents the account.
 
@@ -77,18 +77,13 @@ The following table summarize the format:
 
 | Field | Presence | Format | Comment | Example |
 | ----- | -------- | ------ | ------- | ------- |
-| Version | Mandatory | Integer || 0 |
+| Version | Mandatory | Integer | Entire part of this specification version | 0 |
 | Nickname | Optional | String || "Savings" |
 | Address | Optional | String || "AU12..." |
 | Salt | Mandatory | Byte array | Salt for PBKDF2 (16 Bytes) | [57, 125, 102, 235, 118, 62, 21, 145, 126, 197, 242, 54, 145, 50, 178, 98] |
 | Nonce | Mandatory | Byte array | Initialization Vector (12 Bytes) for AES-GCM | [119, 196, 31, 33, 211, 243, 26, 58, 102, 180, 47, 57] |
 | CipheredData | Mandatory | Byte array | Ciphered Private Key Bytes (using AES-GCM) followed by Authentication Tag (16 Bytes) | [17, 42 ...] |
 | PublicKey | Mandatory | Byte array || [21, 126 ...] |
-
-It is worth noting that:
-
-- The value of the Version field corresponds to the entire part of this specification version. Currently, the value should be set to 0.
-- The CipheredData contains the ciphered private key and the tag.
 
 #### Example
 
