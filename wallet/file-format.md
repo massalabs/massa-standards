@@ -42,6 +42,8 @@ This specification is intended for software developers, security professionals, 
 
 To protect the private key, a symmetric key is derived from the user password using the PBKDF2 algorithm, as defined in IETF [RFC 2898](https://www.ietf.org/rfc/rfc2898.txt).
 
+> _NOTE:_ The user input password is converted to bytes using the utf-8 encoding.
+
 Specifically, the PBKDF2 arguments defined in section 5.2 of the aforementioned standard must follow the followings:
 
 - 16-byte salt,
