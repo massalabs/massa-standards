@@ -1,6 +1,7 @@
 # Contributing to Massa Standard Definition
 
 Thank you for your interest in contributing to the Massa Standard Definition project!
+
 This project is open to contributions from anyone in the Massa community, and we welcome your input.
 
 ## Getting Started
@@ -20,8 +21,9 @@ When contributing to the project, please follow these guidelines:
 
 - Use clear and concise language in your code and documentation.
 - Ensure that your code is well-structured and easy to read.
-- Follow the relevant standards and best practices outlined in the project documentation.
 - Be respectful and professional in your interactions with other contributors.
+
+## Template
 
 Please use the following template when starting a new standard:
 
@@ -36,9 +38,7 @@ Please use the following template when starting a new standard:
 
 ## Abstract
 
-
 ## Targeted Audience
-
 
 ## Specification
 
