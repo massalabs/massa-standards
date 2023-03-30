@@ -2,9 +2,9 @@
 
 Initial meta issue: <https://github.com/massalabs/massa-standards/issues/15>
 
-**Authors:** N. Seva, G. Libert
+**Authors:** N. Seva, G. Libert, V. Deshpande
 
-**Status:** Draft
+**Status:** Review
 
 **Version:** 0.1
 
@@ -42,7 +42,7 @@ This specification is intended for software developers, security professionals, 
 
 To protect the private key, a symmetric key is derived from the user password using the PBKDF2 algorithm, as defined in IETF [RFC 2898](https://www.ietf.org/rfc/rfc2898.txt).
 
-> _NOTE:_ The user input password is converted to bytes using utf-8 encoding before passing it to PBKDF2.
+> _NOTE:_ The user input password is first converted to bytes using utf-8 encoding before passing it to PBKDF2.
 
 Specifically, the PBKDF2 arguments defined in section 5.2 of the aforementioned standard must follow the followings:
 
