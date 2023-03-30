@@ -111,7 +111,7 @@ In order to decrypt the private key, following steps are followed:
 2. Password is converted to bytes (utf-8 encoding).
 3. Symmetric key is derived using PBKDF2 with this password (bytes) and the salt (bytes) as input.
 4. This derived symmetric key is then used as AES-GCM Key along with the nonce (IV) to decrypt the ciphered private key.
-5. The authentication tag at the end of ciphered data checks if the key in point 4. is right.
+5. The authentication tag at the end of ciphered data checks if the derived symmetric key used in point 4. is right.
 
 ## Security Concerns
 
