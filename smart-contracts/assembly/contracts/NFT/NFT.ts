@@ -73,10 +73,6 @@ export function constructor(binaryArgs: StaticArray<u8>): void {
   Storage.set(baseURIKey, baseURI);
   Storage.set(ownerKey, Context.caller().toString());
   Storage.set(counterKey, u64ToBytes(initCounter));
-
-  generateEvent(
-    `${name} with symbol ${symbol} and total supply of ${totalSupply.toString()} is well set`,
-  );
 }
 
 /**
@@ -397,7 +393,9 @@ export function getApproved(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  */
 function _removeApprovals(tokenId: u64): void {
   const key = approvedTokenKey + tokenId.toString();
-  Storage.del(key);
+  if (Storage.has(key)) {
+    Storage.del(key);
+  }
 }
 
 /**

@@ -131,7 +131,7 @@ describe('NFT contract TEST', () => {
   });
 
   test('transfer call', () => {
-    const tokenToSend = 2;
+    const tokenToSend: u64 = 2;
     const receiver = '2x';
     const argTransfer = new Args()
       .add(receiver)
@@ -141,43 +141,70 @@ describe('NFT contract TEST', () => {
     expect(ownerOf(u64ToBytes(tokenToSend))).toStrictEqual(
       stringToBytes(receiver),
     );
+
+    expect(isAllowanceCleared(tokenToSend)).toBeTruthy();
   });
 
   test('approval', () => {
     const tokenId: u64 = 1;
     const addresses = ['2x', '3x'];
 
-    addresses.forEach((address) => {
-      const args = new Args().add(tokenId).add(address).serialize();
-      approve(args);
-    });
+    addresses.forEach((address) => approveAddress(tokenId, address));
 
-    const allowedAddress = bytesToString(
-      getApproved(new Args().add(tokenId).serialize()),
-    );
-
-    const approvedAddressArray = allowedAddress.split(',');
+    const approvedAddressArray = getAllowedAddress(tokenId);
 
     expect(approvedAddressArray[0]).toStrictEqual(addresses[0]);
     expect(approvedAddressArray[1]).toStrictEqual(addresses[1]);
   });
 
   test('transferFrom', () => {
-    const tokenId: u64 = 1;
+    const tokenId: u64 = 3;
     const addresses = ['2x', '3x'];
+
+    addresses.forEach((address) => {
+      approveAddress(tokenId, address);
+    });
+
+    expect(getAllowedAddress(tokenId)).toStrictEqual(addresses);
+
+    const approvedAddressArray = getAllowedAddress(tokenId);
+
+    expect(approvedAddressArray[0]).toStrictEqual(addresses[0]);
+    expect(approvedAddressArray[1]).toStrictEqual(addresses[1]);
 
     transferFrom(
       new Args().add(addresses[0]).add(addresses[1]).add(tokenId).serialize(),
     );
 
+    expect(isAllowanceCleared(tokenId)).toBeTruthy();
+  });
+
+  test('transferFrom fail if not allowed', () => {
+    const tokenId: u64 = 4;
+
+    expect(getAllowedAddress(tokenId)).toStrictEqual([]);
     expect(ownerOf(u64ToBytes(tokenId))).toStrictEqual(
-      stringToBytes(addresses[1]),
+      stringToBytes(callerAddress),
     );
 
-    const allowedAddress = bytesToString(
-      getApproved(new Args().add(tokenId).serialize()),
-    );
-
-    expect(allowedAddress).toStrictEqual('');
+    expect(() => {
+      transferFrom(new Args().add('2x').add('3x').add(tokenId).serialize());
+    }).toThrow();
   });
 });
+
+function isAllowanceCleared(tokenId: u64): boolean {
+  return getAllowedAddress(tokenId).length === 0;
+}
+
+function getAllowedAddress(tokenId: u64): string[] {
+  const allowedAddress = bytesToString(
+    getApproved(new Args().add(tokenId).serialize()),
+  );
+  return allowedAddress === '' ? [] : allowedAddress.split(',');
+}
+
+function approveAddress(tokenId: u64, address: string): void {
+  const args = new Args().add(tokenId).add(address).serialize();
+  approve(args);
+}
