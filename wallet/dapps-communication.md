@@ -435,7 +435,7 @@ The Massalabs implementation  of this standard can be found on GitHub at https:/
 Here's an example of how to use it:
 
 ```javascript
-import { providers } from "@massalabs/massa-wallet-provider";
+import { providers } from "@massalabs/wallet-provider";
 
 // Get all available Massa wallet providers.
 const availableProviders = providers();
