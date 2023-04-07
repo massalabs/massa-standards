@@ -430,6 +430,8 @@ authentication, and authorization to prevent unauthorized access or data breache
 
 The Massalabs implementation  of this standard can be found on GitHub at https://github.com/massalabs/wallet-provider.
 
+### Usage from a DApp point of view
+
 Here's an example of how to use it:
 
 ```javascript
