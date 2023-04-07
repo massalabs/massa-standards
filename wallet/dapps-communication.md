@@ -38,12 +38,12 @@ pages and extensions.
 Communication between the DApp and the wallet will use event-based messaging. There are two types of events:
 
 - those used by the extension to communicate with the web page. Those events are triggered on a static target:
-`window.massaWalletProvider`;
+an invisible paragraph with id `massaWalletProvider` attached `document.body`.
 - those used by the web page to communicate with the extension. Those events are triggered on a extension specific
-target: `window.massaWalletProvider-<wallet provider name>`.
+target: an invisible paragraph with id `massaWalletProvider-<wallet provider name>` attached `document.body`.
 
-> _NOTE:_ If the wallet provider is named AwesomeWallet, the target for this extension would be:
-`window.massaWalletProvider-AwesomeWallet`; so in javascript: `window['massaWalletProvider-AwesomeWallet']`
+> _NOTE:_ If the wallet provider is named AwesomeWallet, the target for this extension would obtain an id:
+`window.massaWalletProvider-AwesomeWallet`; so in javascript: `document.getElementById(providerEventTargetName)()'massaWalletProvider-AwesomeWallet')` would point to this target.
 
 ### Commands
 
@@ -617,94 +617,170 @@ propagated in the response.
 Here's some example code of massa-wallet-provider library that implements this approach in the webpage script:
 
 ```typescript
+  const MASSA_WINDOW_OBJECT = 'massaWalletProvider';
 
-// global event target to use for all wallet provider
-window.massaWalletProvider = new EventTarget()
-registeredProviders = {}
+  // global event target mapping to be used for all wallet providers
+  registeredProviders = {}
+  // a callback bench mapping request id to a callback function
+  const pendingRequests = new Map<string, Function>();
 
-// Register
-window.massaWalletProvider.addEventListener('register', (payload) => {
-  const extensionEventTarget = new EventTarget();
-  window[`massaWalletProvider-${payload.eventTarget}`] = extensionEventTarget;
-  registeredProviders[payload.providerName] = payload.eventTarget;
-})
+  // add an invisible HTML element and set a listener to it like the following
+  const inv = document.createElement('p');
+  inv.id = MASSA_WINDOW_OBJECT;
+  inv.setAttribute('style', 'display:none');
+  document.body.appendChild(inv);
 
-interface Message {
-  params: object;
-  requestId: string;
-}
+  // start listening to messages from content script with the MASSA_WINDOW_OBJECT
+  // being the target for receiving these messages
+  document
+  .getElementById(MASSA_WINDOW_OBJECT)
+  .addEventListener(
+    'message',
+    this.handleResponseFromContentScript.bind(this),
+  );
 
-const availableCommands = ['ListAccounts', 'DeleteAccount', 'ImportAccount', 'Balance', 'Sign']
+  // hook up register handler
+  document
+    .getElementById(MASSA_WINDOW_OBJECT)
+    .addEventListener('register', (evt: CustomEvent) => {
+      const payload: IRegisterEvent = evt.detail;
+      const providerEventTargetName = `${MASSA_WINDOW_OBJECT}_${payload.providerName}`;
+      this.registeredProviders[payload.providerName] = providerEventTargetName;
+    });
 
-const pendingRequests = new Map<string, Function>();
-
-//send a message from the webpage script to the content script
-function sendMessageToContentScript(provider, command, params, responseCallback) {
-  const requestId = uuidv4();
-  const message: Message = { params, requestId };
-  pendingRequests.set(requestId, responseCallback);
-
-  if (!availableCommands.includes(command)) throw new Error('Unhandled command)
-
-  window[`massaWalletProvider-${registeredProviders[provider]}`].dispatchEvent(
-    new CustomEvent(command, { detail: message })
-    );
-}
-
-//receive a response from the content script
-function handleResponseFromContentScript(event) {
-  const { result, error, requestId } = event.detail;
-  const responseCallback = pendingRequests.get(requestId);
-
-  if (responseCallback) {
-    if (error) {
-      responseCallback(new Error(error));
-    } else {
-      responseCallback(null, result);
-    }
-    pendingRequests.delete(requestId);
+  export enum AvailableCommands {
+    ProviderListAccounts = 'LIST_ACCOUNTS',
+    ProviderDeleteAccount = 'DELETE_ACCOUNT',
+    ProviderImportAccount = 'IMPORT_ACCOUNT',
+    AccountBalance = 'ACCOUNT_BALANCE',
+    AccountSign = 'ACCOUNT_SIGN',
   }
-}
 
-window.massaWalletProvider.addEventListener('message', handleResponseFromContentScript);
+  // send a message from the webpage script to the content script
+  function sendMessageToContentScript(
+    providerName: string,
+    command: AvailableCommands,
+    params: AllowedRequests,
+    responseCallback: CallbackFunction,
+  ) {
+    if (!Object.values(AvailableCommands).includes(command)) {
+      throw new Error(`Unknown command ${command}`);
+    }
+
+    const requestId = uid();
+    const eventMessageRequest: ICustomEventMessageRequest = {
+      params,
+      requestId,
+    };
+    this.pendingRequests.set(requestId, responseCallback);
+
+    // dispatch an event to the specific provider event target
+    const specificProviderEventTarget = document.getElementById(
+      `${this.registeredProviders[providerName]}`,
+    ) as EventTarget;
+
+    specificProviderEventTarget.dispatchEvent(
+      new CustomEvent(command, { detail: eventMessageRequest }),
+    );
+  }
+
+  //receive a response from the content script
+  function handleResponseFromContentScript(event) {
+  const { result, error, requestId }: ICustomEventMessageResponse = event.detail;
+
+      const responseCallback: CallbackFunction = this.pendingRequests.get(requestId);
+
+      if (responseCallback) {
+        if (error) {
+          responseCallback(null, new Error(error.message));
+        } else {
+          responseCallback(result, null);
+        }
+        const deleted = this.pendingRequests.delete(requestId);
+        if (!deleted) {
+          console.error(`Error deleting a pending request with id ${requestId}`);
+        }
+      } else {
+        console.error(
+          `Request Id ${requestId} not found in response callback map`,
+        );
+      }
+  }
 ```
 
 Because it was requested, here a potential implementation of the `registerAsMassaWalletProvider` and `sign` in the
 content script:
 
 ```typescript
-interface RegistrationPayload {
-  providerName: string;
-  eventTarget: string;
-}
 
-function registerAsMassaWalletProvider(providerName: string): Promise<boolean> {
-  return new Promise((resolve) => {
-    const registerProvider = () => {
-      window.massaWalletProvider.dispatchEvent(
-        new CustomEvent('register', {
-          detail: { providerName: providerName, eventTarget: providerName } as RegistrationPayload
-        })
-      );
-      resolve(true);
-    };
+  const providerName = "PROVIDER_NAME";
+  // a bench with callbacks
+  const actionToCallback = new Map<string, Function>()
 
-    if (document.readyState === 'complete' || document.readyState === 'interactive') {
-      registerProvider();
-    } else {
-      document.addEventListener('DOMContentLoaded', registerProvider);
-    }
+  // the current provider has to create an invisible html element for communication with the web script
+  const providerEventTargetName = `${MASSA_WINDOW_OBJECT}_${providerName}`;
+  if (!document.getElementById(providerEventTargetName)) {
+    const inv = document.createElement('p');
+    inv.id = providerEventTargetName;
+    document.body.appendChild(inv);
+  }
+
+  // an event handler needs to be attached to that element we can listen to dispatched command for signing from the web-script
+  document.getElementById(providerEventTargetName)
+  .addEventListener(AvailableCommands.AccountSign, (evt: CustomEvent) => {
+    const payload: ICustomEventMessageRequest = evt.detail;
+    // execute callback with the received payload
+    this.actionToCallback.get(AvailableCommands.AccountSign)(payload);
   });
-}
 
-const actionToCallback = new Map<string, Function>()
+  // we also need to map the callback handler to the given command so that we can reply back to the webscript over the `message` event
+  actionToCallback.set(AvailableCommands.AccountSign, async (payload: ICustomEventMessageRequest) => {
+      const accountSignPayload = payload.params as IAccountSignRequest;
+      const respMessage = {
+        result: await this.sign(accountSignPayload),
+        error: null,
+        requestId: payload.requestId,
+      } as ICustomEventMessageResponse;
+      // answer to the message target
+      document.getElementById(MASSA_WINDOW_OBJECT).dispatchEvent(
+        new CustomEvent('message', { detail: respMessage }),
+      );
+    }
+  )
 
-function sign(callback: Function): void {
-  actionToCallback.set('sign', callback);
-}
+  // this method is to be called the moment the content script is injected with the give provider name
+  // so the content-script can register itself and be made known to the wallet-providers on the web script side.
+  function async registerAsMassaWalletProvider(
+    providerName: string,
+  ): Promise<boolean> {
+      return new Promise((resolve) => {
+        const registerProvider = () => {
+          if (!document.getElementById(MASSA_WINDOW_OBJECT)) {
+            return resolve(false);
+          }
 
-// and how the content script listen for commands
-window[`massaWalletProvider-${eventTarget}`].addEventListener('sign', payload => {
-  actionToCallback.get('sign')(...payload.detail.params);
-})
+          // answer to the register target
+          const isRegisterEventSent = document
+            .getElementById(MASSA_WINDOW_OBJECT)
+            .dispatchEvent(
+              new CustomEvent('register', {
+                detail: {
+                  providerName: providerName,
+                  eventTarget: providerName,
+                } as IRegisterEvent,
+              }),
+            );
+          return resolve(isRegisterEventSent);
+        };
+
+        if (
+          document.readyState === 'complete' ||
+          document.readyState === 'interactive'
+        ) {
+          registerProvider();
+        } else {
+          document.addEventListener('DOMContentLoaded', registerProvider);
+        }
+      })
+    }
 ```
