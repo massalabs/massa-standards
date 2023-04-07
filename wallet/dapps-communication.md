@@ -608,13 +608,13 @@ or [here](https://developer.chrome.com/docs/extensions/mv3/messaging/).
 
 To achieve this, we will use:
 
-- An EventTarget attached to different window keys:
+- An EventTarget attached to different attached invisible document elements:
   - A generic massaWalletProvider for messages from the extension content script to the web page.
   - One per extension for messages from the web page to the content script.
 - To allow multiple commands to be executed in parallel, we can set a correlation ID to each outgoing request that is
 propagated in the response.
 
-Here's some example code of massa-wallet-provider library that implements this approach in the webpage script:
+Here's some example code of `massa-wallet-provider` library that implements this approach in the webpage script:
 
 ```typescript
   const MASSA_WINDOW_OBJECT = 'massaWalletProvider';
@@ -709,7 +709,7 @@ Here's some example code of massa-wallet-provider library that implements this a
 ```
 
 Because it was requested, here a potential implementation of the `registerAsMassaWalletProvider` and `sign` in the
-content script:
+content script `massa-wallet-provider-content-script`:
 
 ```typescript
 
