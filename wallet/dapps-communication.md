@@ -42,7 +42,7 @@ To facilitate communication between a DApp and a wallet, an event-based messagin
 2. Events used by the web page to communicate with the wallet extension. These events are triggered on an extension-specific target, which is an invisible HTML element with an ID of `massaWalletProvider-<wallet provider name>`, also attached to the document body.
 
 
-For instance, if the wallet provider name is "AwesomeWallet," the second target ID for this extension would be the elemnt returned by `document.getElementById('massaWalletProvider-AwesomeWallet')`.
+For instance, if the wallet provider name is "AwesomeWallet," the second target ID for this extension would be the element returned by `document.getElementById('massaWalletProvider-AwesomeWallet')`.
 
 It's worth noting that this implementation follows the considerations set forth by Mozilla in [this section](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage#using_window.postmessage_in_extensions_non-standard).
 
