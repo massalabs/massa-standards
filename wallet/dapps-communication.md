@@ -439,7 +439,7 @@ This method is used to get the node URLs known by the extension.
 </tr>
 <tr>
 <td>Extension to webpage</td>
-<td><code>Provider.getNodesUrl.response</code></td>
+<td><code>Provider.getNodeUrls.response</code></td>
 <td>
 
 ```yaml
