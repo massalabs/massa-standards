@@ -6,7 +6,7 @@ Initial meta issue: <https://github.com/massalabs/massa-standards/issues/13>
 
 **Status:** Draft
 
-**Version:** 0.1
+**Version:** 0.2
 
 ## Abstract
 
