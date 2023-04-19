@@ -443,14 +443,10 @@ This method is used to get the node URLs known by the extension.
 <td>
 
 ```yaml
-type: object
-properties:
-  response:
-    type: string array
-  message:
+type: array
+items:  
     type: string
-required:
-  - nodesUrl
+    format: URL
 ```
 
 </td><td>
