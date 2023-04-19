@@ -452,12 +452,10 @@ items:
 </td><td>
   
 ```json
-{
-   "nodesUrl":  [
-                  "http://localhost:1234", 
-                  "https://massa-nodes.net"
-                ]
-}
+[
+  "http://localhost:1234", 
+  "https://massa-nodes.net"
+]
 ```
 
 </td>
