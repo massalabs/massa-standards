@@ -102,12 +102,7 @@ This event is used by the webpage to list known accounts by the extension.
 <td>Webpage to extension</td>
 <td><code>account.list</code></td>
 <td>none</td>
-<td>
-
-```json
-null
-```
-</td>
+<td><code>null</code></td>
 </tr>
 <tr>
 <td>Extension to webpage</td>
@@ -437,13 +432,8 @@ required:
 <tr>
 <td>Webpage to extension</td>
 <td><code>Provider.getNodesUrl</code></td>
-<td>none</td><td>
-
-```json
-null
-```
-
-</td>
+<td>none</td>
+<td><code>null</code></td>
 </tr>
 <tr>
 <td>Extension to webpage</td>
