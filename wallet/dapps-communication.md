@@ -102,7 +102,12 @@ This event is used by the webpage to list known accounts by the extension.
 <td>Webpage to extension</td>
 <td><code>account.list</code></td>
 <td>none</td>
-<td><code>null</code></td>
+<td>
+
+```json
+null
+```
+</td>
 </tr>
 <tr>
 <td>Extension to webpage</td>
@@ -417,6 +422,58 @@ required:
 </tbody>
 </table>
 
+##### Get nodes url
+
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>Type</th>
+<th>Format</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Webpage to extension</td>
+<td><code>Provider.getNodesUrl</code></td>
+<td>none</td><td>
+
+```json
+null
+```
+
+</td>
+</tr>
+<tr>
+<td>Extension to webpage</td>
+<td><code>Provider.getNodesUrl.response</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  response:
+    type: string array
+  message:
+    type: string
+required:
+  - nodesUrl
+```
+
+</td><td>
+  
+```json
+{
+   "nodesUrl": ["http://localhost:1234", "https://massa-nodes.net"]
+}
+```
+
+</td>
+</tr>
+</tbody>
+</table>
+
 ### Security Considerations
 
 - The wallet provider must validate all inputs before performing any action.
@@ -465,4 +522,7 @@ const signature = await myAccount.sign([0, 1, 2]);
 
 // Delete an account.
 await myProvider.importAccount(myAccount.address());
+
+// Get nodes url
+await myProvider.getNodesUrl();
 ```
