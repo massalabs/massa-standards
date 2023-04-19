@@ -465,7 +465,10 @@ required:
   
 ```json
 {
-   "nodesUrl": ["http://localhost:1234", "https://massa-nodes.net"]
+   "nodesUrl":  [
+                  "http://localhost:1234", 
+                  "https://massa-nodes.net"
+                ]
 }
 ```
 
