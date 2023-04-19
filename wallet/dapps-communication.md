@@ -419,7 +419,7 @@ required:
 
 #### Node URLs
 
-This method is used to get the nodes url from the extension.
+This method is used to get the node URLs known by the extension.
 
 <table>
 <thead>
