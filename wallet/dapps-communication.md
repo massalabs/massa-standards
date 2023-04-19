@@ -513,5 +513,5 @@ const signature = await myAccount.sign([0, 1, 2]);
 await myProvider.importAccount(myAccount.address());
 
 // Get nodes url
-await myProvider.getNodesUrl();
+const urls = await myProvider.getNodeUrls();
 ```
