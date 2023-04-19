@@ -433,7 +433,7 @@ This method is used to get the node URLs known by the extension.
 <tbody>
 <tr>
 <td>Webpage to extension</td>
-<td><code>Provider.getNodesUrl</code></td>
+<td><code>Provider.getNodeUrls</code></td>
 <td>none</td>
 <td><code>null</code></td>
 </tr>
