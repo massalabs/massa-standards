@@ -6,7 +6,7 @@ Initial meta issue: <https://github.com/massalabs/massa-standards/issues/13>
 
 **Status:** Draft
 
-**Version:** 0.1
+**Version:** 0.2
 
 ## Abstract
 
@@ -417,6 +417,52 @@ required:
 </tbody>
 </table>
 
+#### Node URLs
+
+This method is used to get the node URLs known by the extension.
+
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>Type</th>
+<th>Format</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Webpage to extension</td>
+<td><code>Provider.getNodeUrls</code></td>
+<td>none</td>
+<td><code>null</code></td>
+</tr>
+<tr>
+<td>Extension to webpage</td>
+<td><code>Provider.getNodeUrls.response</code></td>
+<td>
+
+```yaml
+type: array
+items:  
+    type: string
+    format: URL
+```
+
+</td><td>
+  
+```json
+[
+  "http://localhost:1234", 
+  "https://massa-nodes.net"
+]
+```
+
+</td>
+</tr>
+</tbody>
+</table>
+
 ### Security Considerations
 
 - The wallet provider must validate all inputs before performing any action.
@@ -465,4 +511,7 @@ const signature = await myAccount.sign([0, 1, 2]);
 
 // Delete an account.
 await myProvider.importAccount(myAccount.address());
+
+// Get nodes url
+const urls = await myProvider.getNodeUrls();
 ```
