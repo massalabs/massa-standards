@@ -417,7 +417,9 @@ required:
 </tbody>
 </table>
 
-##### Get nodes url
+#### Get nodes url
+
+This method is used to get the nodes url from the extension.
 
 <table>
 <thead>
