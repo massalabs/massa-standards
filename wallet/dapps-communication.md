@@ -182,18 +182,23 @@ required:
 ```yaml
 type: object
 properties:
-  balance:
+  finalBalance:
+    type: string
+    format: BigInt
+  currentBalance:
     type: string
     format: BigInt
 required:
-  - balance
+  - finalBalance
+  - currentBalance
 ```
 
 </td><td>
   
 ```json
 {
-  "balance": "1000"
+  "finalBalance": "1000",
+  "currentBalance": "10"
 }
 ```
 
@@ -740,7 +745,7 @@ const myAccount = myAccounts[0];
 // Get the account's address.
 const accountAddress = myAccount.address();
 
-// Get the account balance.
+// Get the account's balances.
 const accountBalance = await myAccount.balance();
 
 // Sign a message.
