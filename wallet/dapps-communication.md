@@ -185,12 +185,12 @@ properties:
   finalBalance:
     type: string
     format: BigInt
-  currentBalance:
+  candidateBalance:
     type: string
     format: BigInt
 required:
   - finalBalance
-  - currentBalance
+  - candidateBalance
 ```
 
 </td><td>
@@ -479,7 +479,6 @@ type: object
 properties:
   operationId:
     type: string
-    format: base58check
 required:
   - operationId
 ```
@@ -556,7 +555,6 @@ type: object
 properties:
   operationId:
     type: string
-    format: base58check
 required:
   - operationId
 ```
@@ -606,7 +604,6 @@ properties:
     format: BigInt
   recipientAddress:
     type: string
-    format: base58check
 required:
   - fee
   - amount
@@ -618,7 +615,7 @@ required:
 ```json
 {
  "fee": "12000000",
- "amount": "2_000_000_000",
+ "amount": "2000000000",
  "recipientAddress": "AU19tCSKtiE4k9MJLyLH5sWGDZ7Rr2SiBf1ti3XqeCptwsXGvkef"
 }
 ```
@@ -758,7 +755,6 @@ properties:
     type: string
   address:
     type: string
-    format: base58check
 required:
   - name
   - address
@@ -769,7 +765,7 @@ required:
 ```json
 {
  "name": "my-trading-account",
- "address": "A12..."
+ "address": "AU12..."
 }
 ```
 
@@ -839,7 +835,7 @@ const buyOperationId = await myAccount.buyRolls("10", "12000000");
 const sellOperationId = await myAccount.sellRolls("3", "12000000");
 
 // send transaction
-const sendTransactionId = await myAccount.sendTransaction("2_000_000_000", "AU19tCSKtiE4k9MJLyLH5sWGDZ7Rr2SiBf1ti3XqeCptwsXGvkef", "12000000");
+const sendTransactionId = await myAccount.sendTransaction("2000000000", "AU19tCSKtiE4k9MJLyLH5sWGDZ7Rr2SiBf1ti3XqeCptwsXGvkef", "12000000");
 
 // generate and add a new random account
 const newAccountDetails = await myProvider.generateNewAccount("my-trading-account");
