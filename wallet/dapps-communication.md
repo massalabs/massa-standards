@@ -753,7 +753,6 @@ properties:
   address:
     type: string
 required:
-  - name
   - address
 ```
 
