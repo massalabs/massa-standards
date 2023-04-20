@@ -705,6 +705,82 @@ items:
 </tbody>
 </table>
 
+#### Generating New Accounts
+
+This method will generate a new random account upon request with a specified name defined by the user. The account shall be added to the wallet automatically.
+
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>Type</th>
+<th>Format</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>Webpage to extension</td>
+<td><code>account.generateNewAccount</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  name:
+    type: string
+    format: base58check
+required:
+  - name
+```
+
+</td><td>
+  
+```json
+{
+ "name": "my-trading-account"
+}
+```
+
+</td>
+</tr>
+
+
+<tr>
+<td>Extension to webpage</td>
+<td><code>account.generateNewAccount.response</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  name:
+    type: string
+  address:
+    type: string
+    format: base58check
+required:
+  - name
+  - address
+```
+
+</td><td>
+  
+```json
+{
+ "name": "my-trading-account",
+ "address": "A12..."
+}
+```
+
+</td>
+</tr>
+
+
+</tbody>
+</table>
+
 ### Security Considerations
 
 - The wallet provider must validate all inputs before performing any action.
