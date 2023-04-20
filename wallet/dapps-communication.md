@@ -635,7 +635,6 @@ type: object
 properties:
   operationId:
     type: string
-    format: base58check
 required:
   - operationId
 ```
