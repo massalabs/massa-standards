@@ -418,7 +418,7 @@ required:
 
 #### Rolls
 
-##### List
+##### Sell
 
 <table>
 <thead>
@@ -467,6 +467,83 @@ required:
 <tr>
 <td>Extension to webpage</td>
 <td><code>account.sellRolls.response</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  operationId:
+    type: string
+    format: base58check
+required:
+  - operationId
+```
+
+</td><td>
+  
+```json
+{
+ "operationId": "O1sBc7PanPjB8tEadNC4t4GGPFM5kqC8yTKqwzHHV9q7FksuBoE"
+}
+```
+
+</td>
+</tr>
+
+
+
+</tbody>
+</table>
+
+##### Buy
+
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>Type</th>
+<th>Format</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>Webpage to extension</td>
+<td><code>account.buyRolls</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  fee:
+    type: string
+    format: BigInt
+  amount:
+    type: string
+    format: BigInt
+required:
+  - fee
+  - amount
+```
+
+</td><td>
+  
+```json
+{
+ "fee": "120000000",
+ "amount": "10"
+}
+```
+
+</td>
+</tr>
+
+
+
+<tr>
+<td>Extension to webpage</td>
+<td><code>account.buyRolls.response</code></td>
 <td>
 
 ```yaml
