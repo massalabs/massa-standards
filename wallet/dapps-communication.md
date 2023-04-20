@@ -730,7 +730,6 @@ type: object
 properties:
   name:
     type: string
-    format: base58check
 required:
   - name
 ```
@@ -832,4 +831,16 @@ await myProvider.importAccount(myAccount.address());
 
 // Get nodes url
 const urls = await myProvider.getNodeUrls();
+
+// buy rolls
+const buyOperationId = await myAccount.buyRolls("10", "12000000");
+
+// sell rolls
+const sellOperationId = await myAccount.sellRolls("3", "12000000");
+
+// send transaction
+const sendTransactionId = await myAccount.sendTransaction("2_000_000_000", "AU19tCSKtiE4k9MJLyLH5sWGDZ7Rr2SiBf1ti3XqeCptwsXGvkef", "12000000");
+
+// generate and add a new random account
+const newAccountDetails = await myProvider.generateNewAccount("my-trading-account");
 ```
