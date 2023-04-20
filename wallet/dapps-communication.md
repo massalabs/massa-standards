@@ -704,7 +704,7 @@ items:
 
 #### Generating New Accounts
 
-This method will generate a new random account upon request with a specified name defined by the user. The account shall be added to the wallet automatically.
+This method will generate a new account upon request with a specified name defined by the user. The account shall be added to the wallet automatically.
 
 <table>
 <thead>
@@ -727,8 +727,6 @@ type: object
 properties:
   name:
     type: string
-required:
-  - name
 ```
 
 </td><td>
