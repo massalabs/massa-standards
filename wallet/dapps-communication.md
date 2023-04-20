@@ -6,7 +6,7 @@ Initial meta issue: <https://github.com/massalabs/massa-standards/issues/13>
 
 **Status:** Draft
 
-**Version:** 0.2
+**Version:** 0.3
 
 ## Abstract
 
@@ -182,18 +182,23 @@ required:
 ```yaml
 type: object
 properties:
-  balance:
+  finalBalance:
+    type: string
+    format: BigInt
+  candidateBalance:
     type: string
     format: BigInt
 required:
-  - balance
+  - finalBalance
+  - candidateBalance
 ```
 
 </td><td>
   
 ```json
 {
-  "balance": "1000"
+  "finalBalance": "1000",
+  "currentBalance": "10"
 }
 ```
 
@@ -411,9 +416,242 @@ required:
  "publicKey": "P12..."
 }
 ```
+</td>
+</tr>
+</tbody>
+</table>
+
+#### Rolls
+
+##### Sell
+
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>Type</th>
+<th>Format</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>Webpage to extension</td>
+<td><code>account.sellRolls</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  fee:
+    type: string
+    format: BigInt
+  amount:
+    type: string
+    format: BigInt
+required:
+  - fee
+  - amount
+```
+
+</td><td>
+  
+```json
+{
+ "fee": "12000000",
+ "amount": "10"
+}
+```
 
 </td>
 </tr>
+
+
+
+<tr>
+<td>Extension to webpage</td>
+<td><code>account.sellRolls.response</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  operationId:
+    type: string
+required:
+  - operationId
+```
+
+</td><td>
+  
+```json
+{
+ "operationId": "O1sBc7PanPjB8tEadNC4t4GGPFM5kqC8yTKqwzHHV9q7FksuBoE"
+}
+```
+
+</td>
+</tr>
+
+
+
+</tbody>
+</table>
+
+##### Buy
+
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>Type</th>
+<th>Format</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>Webpage to extension</td>
+<td><code>account.buyRolls</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  fee:
+    type: string
+    format: BigInt
+  amount:
+    type: string
+    format: BigInt
+required:
+  - fee
+  - amount
+```
+
+</td><td>
+  
+```json
+{
+ "fee": "12000000",
+ "amount": "10"
+}
+```
+
+</td>
+</tr>
+
+
+
+<tr>
+<td>Extension to webpage</td>
+<td><code>account.buyRolls.response</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  operationId:
+    type: string
+required:
+  - operationId
+```
+
+</td><td>
+  
+```json
+{
+ "operationId": "O1sBc7PanPjB8tEadNC4t4GGPFM5kqC8yTKqwzHHV9q7FksuBoE"
+}
+```
+
+</td>
+</tr>
+
+
+
+</tbody>
+</table>
+
+#### Transaction
+
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>Type</th>
+<th>Format</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>Webpage to extension</td>
+<td><code>account.sendTransaction</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  fee:
+    type: string
+    format: BigInt
+  amount:
+    type: string
+    format: BigInt
+  recipientAddress:
+    type: string
+required:
+  - fee
+  - amount
+  - recipientAddress
+```
+
+</td><td>
+  
+```json
+{
+ "fee": "12000000",
+ "amount": "2000000000",
+ "recipientAddress": "AU19tCSKtiE4k9MJLyLH5sWGDZ7Rr2SiBf1ti3XqeCptwsXGvkef"
+}
+```
+
+</td>
+</tr>
+
+
+
+<tr>
+<td>Extension to webpage</td>
+<td><code>account.sendTransaction.response</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  operationId:
+    type: string
+required:
+  - operationId
+```
+
+</td><td>
+  
+```json
+{
+ "operationId": "O1sBc7PanPjB8tEadNC4t4GGPFM5kqC8yTKqwzHHV9q7FksuBoE"
+}
+```
+
+</td>
+</tr>
+
+
+
 </tbody>
 </table>
 
@@ -463,6 +701,77 @@ items:
 </tbody>
 </table>
 
+#### Generating New Accounts
+
+This method will generate a new account upon request with a specified name defined by the user. The account shall be added to the wallet automatically.
+
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>Type</th>
+<th>Format</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>Webpage to extension</td>
+<td><code>account.generateNewAccount</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  name:
+    type: string
+```
+
+</td><td>
+  
+```json
+{
+ "name": "my-trading-account"
+}
+```
+
+</td>
+</tr>
+
+
+<tr>
+<td>Extension to webpage</td>
+<td><code>account.generateNewAccount.response</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  name:
+    type: string
+  address:
+    type: string
+required:
+  - address
+```
+
+</td><td>
+  
+```json
+{
+ "name": "my-trading-account",
+ "address": "AU12..."
+}
+```
+
+</td>
+</tr>
+
+
+</tbody>
+</table>
+
 ### Security Considerations
 
 - The wallet provider must validate all inputs before performing any action.
@@ -503,7 +812,7 @@ const myAccount = myAccounts[0];
 // Get the account's address.
 const accountAddress = myAccount.address();
 
-// Get the account balance.
+// Get the account's balances.
 const accountBalance = await myAccount.balance();
 
 // Sign a message.
@@ -514,4 +823,16 @@ await myProvider.importAccount(myAccount.address());
 
 // Get nodes url
 const urls = await myProvider.getNodeUrls();
+
+// buy rolls
+const buyOperationId = await myAccount.buyRolls("10", "12000000");
+
+// sell rolls
+const sellOperationId = await myAccount.sellRolls("3", "12000000");
+
+// send transaction
+const sendTransactionId = await myAccount.sendTransaction("2000000000", "AU19tCSKtiE4k9MJLyLH5sWGDZ7Rr2SiBf1ti3XqeCptwsXGvkef", "12000000");
+
+// generate and add a new random account
+const newAccountDetails = await myProvider.generateNewAccount("my-trading-account");
 ```
