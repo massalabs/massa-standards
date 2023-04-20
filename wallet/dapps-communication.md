@@ -413,8 +413,23 @@ required:
 ```
 </td>
 </tr>
+</tbody>
+</table>
 
+#### Rolls
 
+##### List
+
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>Type</th>
+<th>Format</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
 
 <tr>
 <td>Webpage to extension</td>
