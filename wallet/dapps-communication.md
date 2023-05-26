@@ -606,7 +606,8 @@ properties:
   parameter:
     type: array
     items:
-      type: string
+      type: integer
+      format: uint8
   fee:
     type: string
     format: BigInt
