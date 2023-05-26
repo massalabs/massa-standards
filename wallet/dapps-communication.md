@@ -632,7 +632,6 @@ properties:
 required:
   - contractAddress
   - functionName
-  - fee
   - gas
 ```
 
