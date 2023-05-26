@@ -590,6 +590,97 @@ required:
 
 <tr>
 <td>Webpage to extension</td>
+<td><code>account.interactWithSC</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  contractAddress:
+    type: string
+    format: base58check
+  functionName:
+    type: string
+  parameter:
+    type: array
+    items:
+      type: string
+  fee:
+    type: string
+    format: BigInt
+  amount:
+    type: string
+    format: BigInt
+required:
+  - contractAddress
+  - functionName
+  - fee
+```
+
+</td><td>
+  
+```json
+{
+  "contractAddress": "AU19tCSKtiE4k9MJLyLH5sWGDZ7Rr2SiBf1ti3XqeCptwsXGvkef",
+  "functionName": "sum",
+  "parameter": ["1", "2"],
+  "fee": "12000000",
+  "amount": "2000000000",
+}
+```
+
+</td>
+</tr>
+
+
+
+<tr>
+<td>Extension to webpage</td>
+<td><code>account.interactWithSC.response</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  operationId:
+    type: string
+required:
+  - operationId
+```
+
+</td><td>
+  
+```json
+{
+ "operationId": "O1sBc7PanPjB8tEadNC4t4GGPFM5kqC8yTKqwzHHV9q7FksuBoE"
+}
+```
+
+</td>
+</tr>
+
+
+
+</tbody>
+</table>
+
+#### Interact with a smart contract
+
+This method is used to interact with a smart contract.
+
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>Type</th>
+<th>Format</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>Webpage to extension</td>
 <td><code>account.sendTransaction</code></td>
 <td>
 
@@ -653,7 +744,9 @@ required:
 
 
 </tbody>
-</table>
+</table> /////////
+
+
 
 #### Node URLs
 
