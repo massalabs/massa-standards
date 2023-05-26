@@ -608,10 +608,19 @@ properties:
     items:
       type: integer
       format: uint8
-  fee:
+  amount:
     type: string
     format: BigInt
-  amount:
+  gas:
+    type: object
+    properties:
+      price:
+        type: string
+        format: BigInt
+      limit:
+        type: string
+        format: BigInt
+  fee:
     type: string
     format: BigInt
 required:
