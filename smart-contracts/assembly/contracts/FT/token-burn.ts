@@ -64,7 +64,7 @@ function _burn(addressToBurn: Address, amount: u64): boolean {
  * @returns true if the total supply has been decreased
  */
 function _decreaseTotalSupply(amount: u64): boolean {
-  const oldTotalSupply = bytesToU64(totalSupply([]));
+  const oldTotalSupply = totalSupply();
   const newTotalSupply = oldTotalSupply - amount;
 
   // Underflow

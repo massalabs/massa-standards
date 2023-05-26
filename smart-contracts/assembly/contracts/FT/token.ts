@@ -8,6 +8,7 @@ import {
 } from '@massalabs/massa-as-sdk';
 import {
   Args,
+  bytesToString,
   bytesToU64,
   stringToBytes,
   u64ToBytes,
@@ -100,8 +101,9 @@ export function version(_: StaticArray<u8>): StaticArray<u8> {
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
  * @returns token name.
  */
-export function name(_: StaticArray<u8>): StaticArray<u8> {
-  return Storage.get(NAME_KEY);
+@massaExport()
+export function name(): string {
+  return bytesToString(Storage.get(NAME_KEY));
 }
 
 /** Returns the symbol of the token.
@@ -109,8 +111,9 @@ export function name(_: StaticArray<u8>): StaticArray<u8> {
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
  * @returns token symbol.
  */
-export function symbol(_: StaticArray<u8>): StaticArray<u8> {
-  return Storage.get(SYMBOL_KEY);
+@massaExport()
+export function symbol(): string {
+  return bytesToString(Storage.get(SYMBOL_KEY));
 }
 
 /**
@@ -121,8 +124,9 @@ export function symbol(_: StaticArray<u8>): StaticArray<u8> {
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
  * @returns u64
  */
-export function totalSupply(_: StaticArray<u8>): StaticArray<u8> {
-  return Storage.get(TOTAL_SUPPLY_KEY);
+@massaExport()
+export function totalSupply(): u64 {
+  return bytesToU64(Storage.get(TOTAL_SUPPLY_KEY));
 }
 
 /**
@@ -132,8 +136,9 @@ export function totalSupply(_: StaticArray<u8>): StaticArray<u8> {
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
  * @returns
  */
-export function decimals(_: StaticArray<u8>): StaticArray<u8> {
-  return Storage.get(DECIMALS_KEY);
+@massaExport()
+export function decimals(): u8 {
+  return Storage.get(DECIMALS_KEY)[0];
 }
 
 // ==================================================== //
@@ -145,14 +150,11 @@ export function decimals(_: StaticArray<u8>): StaticArray<u8> {
  *
  * @param binaryArgs - Args object serialized as a string containing an owner's account (Address).
  */
-export function balanceOf(binaryArgs: StaticArray<u8>): StaticArray<u8> {
-  const args = new Args(binaryArgs);
+@massaExport()
+export function balanceOf(strAddr: string): u64 {
+  const addr = new Address(strAddr);
 
-  const addr = new Address(
-    args.nextString().expect('Address argument is missing or invalid'),
-  );
-
-  return u64ToBytes(_balance(addr));
+  return _balance(addr);
 }
 
 // ==================================================== //
@@ -166,17 +168,13 @@ export function balanceOf(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  * - the recipient's account (address)
  * - the number of tokens (u64).
  */
-export function transfer(binaryArgs: StaticArray<u8>): void {
+@massaExport()
+export function transfer(toStrAddress: string, amount: u64): void {
   const owner = Context.caller();
-
-  const args = new Args(binaryArgs);
-  const toAddress = new Address(
-    args.nextString().expect('receiverAddress argument is missing or invalid'),
-  );
-  const amount = args.nextU64().expect('amount argument is missing or invalid');
+  const toAddress = new Address( toStrAddress );
 
   assert(
-    _transfer(owner, toAddress, amount),
+    __transfer(owner, toAddress, amount),
     'Transfer failed: Invalid amount',
   );
 
@@ -198,7 +196,7 @@ export function transfer(binaryArgs: StaticArray<u8>): void {
  *
  * @returns true if the transfer is successful
  */
-function _transfer(from: Address, to: Address, amount: u64): bool {
+function __transfer(from: Address, to: Address, amount: u64): bool {
   const currentFromBalance = _balance(from);
   const currentToBalance = _balance(to);
   const newToBalance = currentToBalance + amount;
@@ -372,7 +370,7 @@ export function transferFrom(binaryArgs: StaticArray<u8>): void {
   );
 
   assert(
-    _transfer(owner, recipient, amount),
+    __transfer(owner, recipient, amount),
     'transferFrom failed: invalid amount',
   );
 

@@ -69,7 +69,7 @@ function _mint(recipient: Address, amount: u64): boolean {
  * @returns true if the total supply has been increased
  */
 function _increaseTotalSupply(amount: u64): boolean {
-  const oldTotalSupply = bytesToU64(totalSupply([]));
+  const oldTotalSupply = totalSupply();
   const newTotalSupply = oldTotalSupply + amount;
   // Overflow
   if (oldTotalSupply > newTotalSupply) {
