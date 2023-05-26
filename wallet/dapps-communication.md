@@ -641,7 +641,7 @@ required:
 {
   "contractAddress": "AU19tCSKtiE4k9MJLyLH5sWGDZ7Rr2SiBf1ti3XqeCptwsXGvkef",
   "functionName": "sum",
-  "parameter": ["1", "2"],
+  "parameter": [222,173,190,239],
   "amount": "2000000000",
   "expiry": "6",
   "gas": {
