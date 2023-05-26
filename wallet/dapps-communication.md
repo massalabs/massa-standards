@@ -611,7 +611,12 @@ properties:
   amount:
     type: string
     format: BigInt
+  expiry: 
+    description: Set the expiry duration (in number of slots) of the transaction.
+    type: string
+    format: BigInt
   gas:
+    description: Gaz attibutes. Gaz is a virtual resource consumed by node while running smart contract.
     type: object
     properties:
       price:
@@ -621,12 +626,14 @@ properties:
         type: string
         format: BigInt
   fee:
+    description: Set the amount of fee given to the block creator.
     type: string
     format: BigInt
 required:
   - contractAddress
   - functionName
   - fee
+  - gas
 ```
 
 </td><td>
@@ -636,8 +643,13 @@ required:
   "contractAddress": "AU19tCSKtiE4k9MJLyLH5sWGDZ7Rr2SiBf1ti3XqeCptwsXGvkef",
   "functionName": "sum",
   "parameter": ["1", "2"],
-  "fee": "12000000",
   "amount": "2000000000",
+  "expiry": "6",
+  "gas": {
+    "price": "1000000",
+    "limit": "1000000"
+  },
+  "fee": "12000000",
 }
 ```
 
