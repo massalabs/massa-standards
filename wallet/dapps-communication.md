@@ -575,7 +575,9 @@ required:
 </tbody>
 </table>
 
-#### Transaction
+#### Interact with a smart contract
+
+This method is used to interact with a smart contract.
 
 <table>
 <thead>
@@ -664,9 +666,7 @@ required:
 </tbody>
 </table>
 
-#### Interact with a smart contract
-
-This method is used to interact with a smart contract.
+#### Transaction
 
 <table>
 <thead>
