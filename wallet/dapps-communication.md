@@ -744,7 +744,7 @@ required:
 
 
 </tbody>
-</table> /////////
+</table>
 
 
 
