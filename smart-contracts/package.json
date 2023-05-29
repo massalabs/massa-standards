@@ -39,6 +39,7 @@
     "type": "module",
     "prettier": "@massalabs/prettier-config-as",
     "files": [       
-        "build"
+        "build",
+        "assembly"
       ]
 }
