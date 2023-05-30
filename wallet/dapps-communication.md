@@ -575,9 +575,9 @@ required:
 </tbody>
 </table>
 
-#### Interact with a smart contract
+#### Call a smart contract
 
-This method is used to interact with a smart contract.
+This method is used to call smart contract.
 
 <table>
 <thead>
@@ -592,7 +592,7 @@ This method is used to interact with a smart contract.
 
 <tr>
 <td>Webpage to extension</td>
-<td><code>account.interactWithSC</code></td>
+<td><code>account.callSC</code></td>
 <td>
 
 ```yaml
@@ -659,7 +659,7 @@ required:
 
 <tr>
 <td>Extension to webpage</td>
-<td><code>account.interactWithSC.response</code></td>
+<td><code>account.callSC.response</code></td>
 <td>
 
 ```yaml
