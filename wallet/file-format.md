@@ -53,13 +53,14 @@ Specifically, the PBKDF2 arguments defined in section 5.2 of the aforementioned 
 The hash function utilized in this process is SHA-256, as specified in the NIST [FIPS 180-4](https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf) document.
 
 These values align with the recommendations set forth in the NIST [Special Publication 800-132](https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-132.pdf)
-and [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#pbkdf2). 
+and [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html#pbkdf2).
 
 #### AES-GCM
 
 After deriving the symmetric key (the derived key from PBKDF2), the account's private key is encrypted using AES-256 with Galois/Counter Mode (GCM), as defined by the NIST in the [Special Publication 800-38D](https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf). The AES-256 algorithm is specified in the NIST [FIPS 197](https://nvlpubs.nist.gov/nistpubs/fips/nist.fips.197.pdf) document.
 
 ##### Nonce
+
 The nonce, used as initialization vector for AES-GCM, must have a size of 96 bits (12 bytes) as recommended in Special Publication 800-38D.
 
 ##### Authentication tag
@@ -99,9 +100,11 @@ Nonce: [119, 196, 31, 33, 211, 243, 26, 58, 102, 180, 47, 57]
 CipheredData: [17, 42, ...]
 PublicKey: [21, 126, ...]
 ```
+
 #### Decryption of the Private Key
 
 In order to decrypt the private key, following steps are followed:
+
 1. User inputs a password.
 2. Password is converted to bytes (utf-8 encoding).
 3. Symmetric key is derived using PBKDF2 with this password (bytes) and the salt (bytes) as input.
