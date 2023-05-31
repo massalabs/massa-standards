@@ -79,7 +79,7 @@ The following table summarize the format:
 | Field | Presence | Format | Comment | Example |
 | ----- | -------- | ------ | ------- | ------- |
 | Version | Mandatory | Integer | Entire part of this specification version | 0 |
-| Nickname | Optional | String || "Savings" |
+| Nickname | Mandatory | String || "Savings" |
 | Address | Optional | String || "AU12..." |
 | Salt | Mandatory | Byte array | Salt for PBKDF2 (16 Bytes) | [57, 125, 102, 235, 118, 62, 21, 145, 126, 197, 242, 54, 145, 50, 178, 98] |
 | Nonce | Mandatory | Byte array | Initialization Vector (12 Bytes) for AES-GCM | [119, 196, 31, 33, 211, 243, 26, 58, 102, 180, 47, 57] |
