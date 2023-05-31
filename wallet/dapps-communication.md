@@ -598,57 +598,38 @@ This method is used to call smart contract.
 ```yaml
 type: object
 properties:
+  nickname:
+    type: string
+    description: The nickname of the account to use.
   contractAddress:
     type: string
     format: base58check
   functionName:
     type: string
   parameter:
-    type: array
-    items:
-      type: integer
-      format: uint8
+    type: string
+    format: base64
+    description: This is an Args object encoded in base64. It represents the arguments to pass to the function.
   amount:
-    type: string
-    format: BigInt
-  expiry: 
-    description: Set the expiry duration (in number of slots) of the transaction.
-    type: string
-    format: BigInt
-  gas:
-    description: Gaz attibutes. Gaz is a virtual resource consumed by node while running smart contract.
-    type: object
-    properties:
-      price:
-        type: string
-        format: BigInt
-      limit:
-        type: string
-        format: BigInt
-  fee:
-    description: Set the amount of fee given to the block creator.
-    type: string
-    format: BigInt
+    type: number
+    description: Set the amount of MASSA coins given to the block creator.
 required:
+  - nickname
   - contractAddress
   - functionName
-  - gas
+  - parameter
+  - amount
 ```
 
 </td><td>
   
 ```json
 {
+  "nickname": "my-account",
   "contractAddress": "AU19tCSKtiE4k9MJLyLH5sWGDZ7Rr2SiBf1ti3XqeCptwsXGvkef",
-  "functionName": "sum",
-  "parameter": [222,173,190,239],
-  "amount": "2000000000",
-  "expiry": "6",
-  "gas": {
-    "price": "1000000",
-    "limit": "1000000"
-  },
-  "fee": "12000000",
+  "functionName": "register",
+  "parameter": "SGk=",
+  "amount": "2"
 }
 ```
 
