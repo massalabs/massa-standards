@@ -607,9 +607,8 @@ properties:
   functionName:
     type: string
   parameter:
-    type: string
-    format: base64
-    description: This is an Args object encoded in base64. It represents the arguments to pass to the function.
+    type: Args
+    description: This is an Args object which represents the arguments to pass to the function.
   amount:
     type: number
     description: Set the amount of MASSA coins given to the block creator.
@@ -628,8 +627,14 @@ required:
   "nickname": "my-account",
   "contractAddress": "AU19tCSKtiE4k9MJLyLH5sWGDZ7Rr2SiBf1ti3XqeCptwsXGvkef",
   "functionName": "register",
-  "parameter": "SGk=",
-  "amount": "2"
+  "parameter": {
+    "offset": 4,
+    "serialized": [
+      4,   0,   0,   0,
+      116, 101, 115, 116
+    ]
+  },
+  "amount": 2.0
 }
 ```
 
