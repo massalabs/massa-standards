@@ -5,7 +5,7 @@ import {
   generateEvent,
   createEvent,
 } from '@massalabs/massa-as-sdk';
-import { Args, bytesToU64, byteToBool, u64ToBytes } from '@massalabs/as-types';
+import { byteToBool, u64ToBytes } from '@massalabs/as-types';
 import { totalSupply, TOTAL_SUPPLY_KEY } from './token';
 import { _balance, _setBalance } from './token-commons';
 import { isOwner } from '../utils/ownership';
@@ -19,14 +19,11 @@ const MINT_EVENT_NAME = 'MINT';
  * - the recipient's account (address)
  * - the amount of tokens to mint (u64).
  */
-export function mint(binaryArgs: StaticArray<u8>): void {
-  const args = new Args(binaryArgs);
-  const recipient = new Address(
-    args.nextString().expect('recipient argument is missing or invalid'),
-  );
-  const amount = args.nextU64().expect('amount argument is missing or invalid');
+@massaExport()
+export function mint(strAddr: string, amount: u64): void {
+  const recipient = new Address(strAddr);
 
-  assert(byteToBool(isOwner(Context.caller())), 'Caller is not the owner');
+  assert(isOwner(Context.caller()), 'Caller is not the owner');
 
   const isSuccessIncreaseTotalSupply = _increaseTotalSupply(amount);
   assert(
@@ -69,8 +66,8 @@ function _mint(recipient: Address, amount: u64): boolean {
  * @returns true if the total supply has been increased
  */
 function _increaseTotalSupply(amount: u64): boolean {
-  const oldTotalSupply = totalSupply();
-  const newTotalSupply = oldTotalSupply + amount;
+  const oldTotalSupply: u64 = totalSupply();
+  const newTotalSupply: u64 = oldTotalSupply + amount;
   // Overflow
   if (oldTotalSupply > newTotalSupply) {
     return false;

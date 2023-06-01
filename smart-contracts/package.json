@@ -3,7 +3,7 @@
     "version": "0.0.2",
     "scripts": {
         "test": "asp --summary",
-        "build": "npx massa-as-compile -r",
+        "build": "rm -rf build/ && npx massa-as-compile -r",
         "deploy": "npm run build && ts-node src/deploy.ts",
         "as-prettier": "as-prettier --check assembly",
         "as-prettier:fix": "as-prettier --write assembly",

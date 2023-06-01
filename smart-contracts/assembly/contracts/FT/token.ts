@@ -76,7 +76,7 @@ export function constructor(stringifyArgs: StaticArray<u8>): void {
     .expect('Error while initializing totalSupply');
   Storage.set(TOTAL_SUPPLY_KEY, u64ToBytes(totalSupply));
 
-  setOwner(new Args().add(Context.caller().toString()).serialize());
+  setOwner(Context.caller().toString());
   _setBalance(Context.caller(), totalSupply);
 }
 
@@ -87,8 +87,9 @@ export function constructor(stringifyArgs: StaticArray<u8>): void {
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
  * @returns token version
  */
-export function version(_: StaticArray<u8>): StaticArray<u8> {
-  return stringToBytes('0.0.0');
+@massaExport()
+export function version(): string {
+  return '0.0.0';
 }
 
 // ======================================================== //
@@ -226,16 +227,12 @@ function __transfer(from: Address, to: Address, amount: u64): bool {
  * - the owner's account (address)
  * - the spender's account (address).
  */
-export function allowance(binaryArgs: StaticArray<u8>): StaticArray<u8> {
-  const args = new Args(binaryArgs);
-  const owner = new Address(
-    args.nextString().expect('owner argument is missing or invalid'),
-  );
-  const spenderAddress = new Address(
-    args.nextString().expect('spenderAddress argument is missing or invalid'),
-  );
+@massaExport()
+export function allowance(strAddress: string, spenderStrAddress: string): u64 {
+  const owner = new Address(strAddress);
+  const spenderAddress = new Address(spenderStrAddress);
 
-  return u64ToBytes(_allowance(owner, spenderAddress));
+  return _allowance(owner, spenderAddress);
 }
 
 /**
@@ -260,14 +257,11 @@ function _allowance(owner: Address, spenderAddress: Address): u64 {
  * - the spender's account (address);
  * - the amount (u64).
  */
-export function increaseAllowance(binaryArgs: StaticArray<u8>): void {
+@massaExport()
+export function increaseAllowance(strAddress: string, amount: u64): void {
   const owner = Context.caller();
 
-  const args = new Args(binaryArgs);
-  const spenderAddress = new Address(
-    args.nextString().expect('spenderAddress argument is missing or invalid'),
-  );
-  const amount = args.nextU64().expect('amount argument is missing or invalid');
+  const spenderAddress = new Address( strAddress );
 
   const newAllowance = _allowance(owner, spenderAddress) + amount;
   assert(
@@ -295,14 +289,11 @@ export function increaseAllowance(binaryArgs: StaticArray<u8>): void {
  * - the spender's account (address);
  * - the amount (u64).
  */
-export function decreaseAllowance(binaryArgs: StaticArray<u8>): void {
+@massaExport()
+export function decreaseAllowance(strAddress: string, amount: u64): void {
   const owner = Context.caller();
 
-  const args = new Args(binaryArgs);
-  const spenderAddress = new Address(
-    args.nextString().expect('spenderAddress argument is missing or invalid'),
-  );
-  const amount = args.nextU64().expect('amount argument is missing or invalid');
+  const spenderAddress = new Address( strAddress );
 
   const current = _allowance(owner, spenderAddress);
 
@@ -350,17 +341,12 @@ function _approve(owner: Address, spenderAddress: Address, amount: u64): void {
  * - the recipient's account (address);
  * - the amount (u64).
  */
-export function transferFrom(binaryArgs: StaticArray<u8>): void {
+@massaExport()
+export function transferFrom(ownerAddr: string, recipientAddr: string, amount: u64): void {
   const spenderAddress = Context.caller();
 
-  const args = new Args(binaryArgs);
-  const owner = new Address(
-    args.nextString().expect('ownerAddress argument is missing or invalid'),
-  );
-  const recipient = new Address(
-    args.nextString().expect('recipientAddress argument is missing or invalid'),
-  );
-  const amount = args.nextU64().expect('amount argument is missing or invalid');
+  const owner = new Address(ownerAddr);
+  const recipient = new Address(recipientAddr);
 
   const spenderAllowance = _allowance(owner, spenderAddress);
 
