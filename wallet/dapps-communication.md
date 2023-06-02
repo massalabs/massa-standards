@@ -612,12 +612,16 @@ properties:
   amount:
     type: number
     description: Set the amount of MASSA coins given to the block creator.
+  dryRun:
+    type: boolean
+    description: If true, the transaction will run in dry-run mode so that the result can be checked without actually broadcasting the transaction.
 required:
   - nickname
   - contractAddress
   - functionName
   - parameter
   - amount
+  - dryRun
 ```
 
 </td><td>
@@ -634,7 +638,8 @@ required:
       116, 101, 115, 116
     ]
   },
-  "amount": 2.0
+  "amount": 2.0,
+  "dryRun": false
 }
 ```
 
