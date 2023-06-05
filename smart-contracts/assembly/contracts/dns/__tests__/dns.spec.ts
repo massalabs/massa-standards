@@ -22,6 +22,8 @@ const dnsAdmin = new Address(
   'A1qDAxGJ387ETi9JRQzZWSPKYq4YPXrFvdiE4VoXUaiAt38JFEC',
 );
 
+const contractAddr = 'A12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT';
+
 const websiteName = new Args().add('flappy').serialize();
 const blackListKey = new Args().add('blackList').serialize();
 
@@ -33,19 +35,25 @@ describe('DNS contract tests', () => {
     constructor(serializedDummyAddress);
     expect(Storage.get(contractOwnerKey)).toStrictEqual(serializedDummyAddress);
   });
+
   test('set owner', () => {
     const serializedDnsAdmin = new Args().add(dnsAdmin.toString()).serialize();
-    changeCallStack(
-      dummyAddress.toString() +
-        ' , A12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT',
-    );
+    changeCallStack(dummyAddress.toString() + ' , ' + contractAddr);
     setOwner(serializedDnsAdmin);
     expect(Storage.get(contractOwnerKey)).toStrictEqual(serializedDnsAdmin);
-    changeCallStack(
-      dnsAdmin.toString() +
-        ' , A12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT',
-    );
+    changeCallStack(dnsAdmin.toString() + ' , ' + contractAddr);
   });
+
+  test('invalid dns entry', () => {
+    expect(() => {
+      const setResolverArgs = new Args()
+        .add('invalid dns entry')
+        .add(dummyAddress.toString())
+        .serialize();
+      setResolver(setResolverArgs);
+    }).toThrow();
+  });
+
   test('setResolver call', () => {
     const setResolverArgs = new Args()
       .add('test')
@@ -66,25 +74,20 @@ describe('DNS contract tests', () => {
   });
 
   test('try to book an already booked DNS', () => {
-    const setResolverArgs = new Args()
-      .add('test')
-      .add(dummyAddress.toString())
-      .serialize();
-    setResolver(setResolverArgs);
-
-    const resolveParams = new Args().add('test').serialize();
-    const got = new Args(resolver(resolveParams))
-      .nextString()
-      .expect('got argument is missing or invalid');
-    expect(new Address(got)).toBe(websiteStorerAddress);
+    expect(() => {
+      const setResolverArgs = new Args()
+        .add('test')
+        .add(dummyAddress.toString())
+        .serialize();
+      setResolver(setResolverArgs);
+    }).toThrow();
   });
 
   test('try to blackList a websiteName not being the owner', () => {
-    changeCallStack(
-      dummyAddress.toString() +
-        ' , A12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT',
-    );
-    addWebsiteToBlackList(websiteName);
+    expect(() => {
+      changeCallStack(dummyAddress.toString() + ' , ' + contractAddr);
+      addWebsiteToBlackList(websiteName);
+    }).toThrow();
     expect(Storage.has(blackListKey)).toBeFalsy();
   });
 

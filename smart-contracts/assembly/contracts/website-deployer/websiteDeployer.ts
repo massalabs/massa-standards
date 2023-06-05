@@ -47,7 +47,6 @@ export function initializeWebsite(binaryArgs: StaticArray<u8>): void {
   // we check the website's owner
   if (!checkOwnership()) {
     triggerError('Caller not the website Owner');
-    return;
   }
 
   Storage.set(keyExpectedNbChunks, expectedNbChunksBytes);
@@ -87,14 +86,12 @@ export function appendBytesToWebsite(binaryArgs: StaticArray<u8>): void {
 
   if (!checkOwnership()) {
     triggerError('Caller is not the owner of this website');
-    return;
   }
   if (!Storage.has(metadataKey)) {
     triggerError(
       'Web site not initialized. This action can be performed by calling ' +
         'the function initializeWebsite() of this smart contract.',
     );
-    return;
   }
 
   setLastUpdate();
