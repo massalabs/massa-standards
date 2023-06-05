@@ -105,7 +105,7 @@ export function setResolver(binaryArgs: StaticArray<u8>): void {
 
   const websiteName = args
     .nextString()
-    .expect('websiteName argument is missing or invalid');
+    .expect('website name is missing or invalid');
 
   if (!isDnsValid(websiteName)) {
     triggerError('INVALID_DNS_ENTRY');
@@ -113,8 +113,12 @@ export function setResolver(binaryArgs: StaticArray<u8>): void {
 
   const websiteAddress = args
     .nextString()
-    .expect('websiteAddress argument is missing or invalid');
+    .expect('website address is missing or invalid');
   const websiteNameBytes = new Args().add(websiteName);
+
+  const description = args
+    .nextString()
+    .expect('website description is missing or invalid');
 
   if (Storage.has(websiteNameBytes)) {
     triggerError('Try another website name, this one is already taken.');
@@ -122,7 +126,10 @@ export function setResolver(binaryArgs: StaticArray<u8>): void {
 
   Storage.set(
     websiteNameBytes,
-    new Args().add(websiteAddress).add(Context.caller().toString()),
+    new Args()
+      .add(websiteAddress)
+      .add(Context.caller().toString())
+      .add(description),
   );
 
   addToOwnerList(Context.caller(), websiteName);
@@ -164,10 +171,10 @@ export function resolver(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  */
 export function owner(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   if (Storage.has(binaryArgs)) {
-    const websiteAddressAndOwner = new Args(Storage.get(binaryArgs));
-    websiteAddressAndOwner.nextString().unwrap();
-
-    const ownerAddress = websiteAddressAndOwner.nextString().unwrap();
+    const entry = new Args(Storage.get(binaryArgs));
+    // skip the website address
+    entry.nextString().unwrap();
+    const ownerAddress = entry.nextString().unwrap();
 
     return new Args().add(ownerAddress).serialize();
   }
