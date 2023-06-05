@@ -33,6 +33,27 @@ import { ownerKey, triggerError } from '../utils';
 
 export const contractOwnerKey = new Args().add('owner').serialize();
 
+function isDnsValid(input: string): bool {
+  for (let i = 0; i < input.length; i++) {
+    const charCode = input.charCodeAt(i);
+
+    if (
+      !(
+        (
+          (charCode >= 48 && charCode <= 57) || // numeric (0-9)
+          (charCode >= 65 && charCode <= 90) || // uppercase (A-Z)
+          (charCode >= 97 && charCode <= 122) || // lowercase (a-z)
+          charCode === 45
+        ) // dash (-)
+      )
+    ) {
+      return false; // character is not alphanumeric or dash
+    }
+  }
+
+  return true;
+}
+
 /**
  * This function is meant to be called only one time: when the contract is deployed.
  *
@@ -51,21 +72,20 @@ export function constructor(binaryArgs: StaticArray<u8>): StaticArray<u8> {
 /**
  * This function checks the caller is the admin of the DNS
  */
-function isOwner(): bool {
+function onlyOwner(): void {
   const owner = new Args(Storage.get(contractOwnerKey))
     .nextString()
     .expect('owner key is missing or invalid');
-  return owner == Context.caller().toString();
+  if (owner != Context.caller().toString()) {
+    triggerError('NOT_OWNER');
+  }
 }
 
 /**
  * @param binaryArgs - Arguments serialized with Args: owner address
  */
 export function setOwner(binaryArgs: StaticArray<u8>): void {
-  if (!isOwner()) {
-    generateEvent('setOwner: you are not the owner');
-    return;
-  }
+  onlyOwner();
   Storage.set(contractOwnerKey, binaryArgs);
 }
 
@@ -86,6 +106,11 @@ export function setResolver(binaryArgs: StaticArray<u8>): void {
   const websiteName = args
     .nextString()
     .expect('websiteName argument is missing or invalid');
+
+  if (!isDnsValid(websiteName)) {
+    triggerError('INVALID_DNS_ENTRY');
+  }
+
   const websiteAddress = args
     .nextString()
     .expect('websiteAddress argument is missing or invalid');
@@ -93,7 +118,6 @@ export function setResolver(binaryArgs: StaticArray<u8>): void {
 
   if (Storage.has(websiteNameBytes)) {
     triggerError('Try another website name, this one is already taken.');
-    return;
   }
 
   Storage.set(
@@ -139,14 +163,8 @@ export function resolver(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  * owner(new Args().add("my-website").serialize())
  */
 export function owner(binaryArgs: StaticArray<u8>): StaticArray<u8> {
-  const args = new Args(binaryArgs);
-  const websiteName = args
-    .nextString()
-    .expect('Website name argument is missing or invalid');
-  const websiteNameBytes = new Args().add(websiteName).serialize();
-
-  if (Storage.has(websiteNameBytes)) {
-    const websiteAddressAndOwner = new Args(Storage.get(websiteNameBytes));
+  if (Storage.has(binaryArgs)) {
+    const websiteAddressAndOwner = new Args(Storage.get(binaryArgs));
     websiteAddressAndOwner.nextString().unwrap();
 
     const ownerAddress = websiteAddressAndOwner.nextString().unwrap();
@@ -178,7 +196,6 @@ function addToOwnerList(owner: Address, websiteName: string): void {
 
   if (oldList.split(',').includes(websiteName)) {
     triggerError('ALREADY_RESERVED'); // it's not possible with the current implementation.
-    return;
   }
 
   let newList = '';
@@ -202,10 +219,7 @@ function addToOwnerList(owner: Address, websiteName: string): void {
  * @param binaryArgs - Website name in a binary format using Args.
  */
 export function addWebsiteToBlackList(binaryArgs: StaticArray<u8>): void {
-  if (!isOwner()) {
-    generateEvent('addWebsiteToBlackList: you are not the owner');
-    return;
-  }
+  onlyOwner();
   const blackListKey = new Args().add('blackList').serialize();
 
   const websiteName = new Args(binaryArgs)
@@ -221,7 +235,6 @@ export function addWebsiteToBlackList(binaryArgs: StaticArray<u8>): void {
 
   if (oldList.split(',').includes(websiteName)) {
     triggerError('ALREADY_BLACKLISTED');
-    return;
   }
 
   let newList = '';

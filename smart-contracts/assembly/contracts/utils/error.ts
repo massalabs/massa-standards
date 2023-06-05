@@ -8,4 +8,5 @@ const ERROR_PREFIX = 'ERROR';
  */
 export function triggerError(reason: string): void {
   generateEvent(`${ERROR_PREFIX} : ${reason}`);
+  assert(false, reason);
 }
