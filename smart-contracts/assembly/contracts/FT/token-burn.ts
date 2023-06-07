@@ -20,15 +20,10 @@ const BURN_EVENT_NAME = 'BURN';
 export function burn(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
   const amount = args.nextU64().expect('amount argument is missing or invalid');
-  const isDecreaseTotalSupplySuccess = _decreaseTotalSupply(amount);
 
-  assert(
-    isDecreaseTotalSupplySuccess,
-    'Requested burn amount causes an underflow',
-  );
+  _decreaseTotalSupply(amount);
 
-  const isBurnSuccess = _burn(Context.caller(), amount);
-  assert(isBurnSuccess, 'Requested burn amount causes an underflow');
+  _burn(Context.caller(), amount);
 
   generateEvent(
     createEvent(BURN_EVENT_NAME, [
@@ -45,16 +40,17 @@ export function burn(binaryArgs: StaticArray<u8>): void {
  * @param amount -
  * @returns true if tokens has been burned
  */
-export function _burn(addressToBurn: Address, amount: u64): boolean {
+export function _burn(addressToBurn: Address, amount: u64): void {
   const oldRecipientBalance = _balance(addressToBurn);
   const newRecipientBalance = oldRecipientBalance - amount;
 
   // Check underflow
-  if (oldRecipientBalance < newRecipientBalance) {
-    return false;
-  }
+  assert(
+    oldRecipientBalance > newRecipientBalance,
+    'Requested burn amount causes an underflow',
+  );
+
   _setBalance(addressToBurn, newRecipientBalance);
-  return true;
 }
 
 /**
@@ -63,14 +59,15 @@ export function _burn(addressToBurn: Address, amount: u64): boolean {
  * @param amount -
  * @returns true if the total supply has been decreased
  */
-export function _decreaseTotalSupply(amount: u64): boolean {
+export function _decreaseTotalSupply(amount: u64): void {
   const oldTotalSupply = bytesToU64(totalSupply([]));
   const newTotalSupply = oldTotalSupply - amount;
 
-  // Underflow
-  if (oldTotalSupply < newTotalSupply) {
-    return false;
-  }
+  // Check underflow
+  assert(
+    oldTotalSupply > newTotalSupply,
+    'Requested burn amount causes an underflow',
+  );
+
   Storage.set(TOTAL_SUPPLY_KEY, u64ToBytes(newTotalSupply));
-  return true;
 }
