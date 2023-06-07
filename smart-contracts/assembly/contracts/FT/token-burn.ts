@@ -45,7 +45,7 @@ export function burn(binaryArgs: StaticArray<u8>): void {
  * @param amount -
  * @returns true if tokens has been burned
  */
-function _burn(addressToBurn: Address, amount: u64): boolean {
+export function _burn(addressToBurn: Address, amount: u64): boolean {
   const oldRecipientBalance = _balance(addressToBurn);
   const newRecipientBalance = oldRecipientBalance - amount;
 
@@ -63,7 +63,7 @@ function _burn(addressToBurn: Address, amount: u64): boolean {
  * @param amount -
  * @returns true if the total supply has been decreased
  */
-function _decreaseTotalSupply(amount: u64): boolean {
+export function _decreaseTotalSupply(amount: u64): boolean {
   const oldTotalSupply = bytesToU64(totalSupply([]));
   const newTotalSupply = oldTotalSupply - amount;
 
