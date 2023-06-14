@@ -575,7 +575,7 @@ required:
 </tbody>
 </table>
 
-#### Call a smart contract
+#### Call a Smart Contract
 
 This method is used to call smart contract.
 
@@ -600,28 +600,35 @@ type: object
 properties:
   nickname:
     type: string
-    description: The nickname of the account to use.
-  contractAddress:
-    type: string
-    format: base58check
+    description: Account nickname
   functionName:
     type: string
-  parameter:
+  at:
+    type: string
+    format: base58check
+    description: Smart contract address
+  args:
     type: Args
-    description: This is an Args object which represents the arguments to pass to the function.
-  amount:
-    type: number
-    description: Set the amount of MASSA coins given to the block creator.
-  dryRun:
-    type: boolean
-    description: If true, the transaction will run in dry-run mode so that the result can be checked without actually broadcasting the transaction.
+    description: Smart contract arguments
+  coins:
+    type: string
+    format: BigInt
+    description: Amount of coins to send to the block creator
+  nonPersistentExecution (optional):
+    type: object
+    properties:
+      isNPE:
+        type: boolean
+      maxGas (optional):
+        type: string
+        format: BigInt
+    description: Setup a Non-persistent execution of the SC call
 required:
   - nickname
-  - contractAddress
   - functionName
-  - parameter
-  - amount
-  - dryRun
+  - at
+  - args
+  - coins
 ```
 
 </td><td>
@@ -629,17 +636,20 @@ required:
 ```json
 {
   "nickname": "my-account",
-  "contractAddress": "AU19tCSKtiE4k9MJLyLH5sWGDZ7Rr2SiBf1ti3XqeCptwsXGvkef",
-  "functionName": "register",
-  "parameter": {
+  "name": "register",
+  "at": "AU19tCSKtiE4k9MJLyLH5sWGDZ7Rr2SiBf1ti3XqeCptwsXGvkef",
+  "args": {
     "offset": 4,
     "serialized": [
       4,   0,   0,   0,
       116, 101, 115, 116
     ]
   },
-  "amount": 2.0,
-  "dryRun": false
+  "coins": "2.0",
+  "nonPersistentExecution": {
+    "isNPE": true,
+    "maxGas": "100000000"
+  }
 }
 ```
 
