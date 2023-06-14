@@ -2,6 +2,7 @@ import {
   Address,
   changeCallStack,
   resetStorage,
+  setDeployContext,
 } from '@massalabs/massa-as-sdk';
 import {
   Args,
@@ -26,10 +27,8 @@ import {
 } from '../token';
 import { _setBalance } from '../token-commons';
 
-// Those addresses have been generated randomly, user1 & contractAddressERC20Basic match with addresses in vm-mock
-const contractAddressERC20Basic = new Address(
-  'A12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT',
-);
+// address of the contract set in vm-mock. must match with contractAddr of @massalabs/massa-as-sdk/vm-mock/vm.js
+const contractAddr = 'AS12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT';
 
 const user1Address = new Address(
   'A12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq',
@@ -41,25 +40,23 @@ const user2Address = new Address(
 
 const user3Address = new Address('A12NewAddress3');
 
-resetStorage();
-
-changeCallStack(
-  user1Address.toString() + ' , ' + contractAddressERC20Basic.toString(),
-);
-
 const TOKEN_NAME = 'TOKEN_NAME';
 const TOKEN_SYMBOL = 'TKN';
 const DECIMALS: u8 = 8;
 const TOTAL_SUPPLY: u64 = 800000000;
 
-constructor(
-  new Args()
-    .add(TOKEN_NAME)
-    .add(TOKEN_SYMBOL)
-    .add(DECIMALS)
-    .add(TOTAL_SUPPLY)
-    .serialize(),
-);
+beforeAll(() => {
+  resetStorage();
+  setDeployContext(user1Address.toString());
+  constructor(
+    new Args()
+      .add(TOKEN_NAME)
+      .add(TOKEN_SYMBOL)
+      .add(DECIMALS)
+      .add(TOTAL_SUPPLY)
+      .serialize(),
+  );
+});
 
 describe('Initialization', () => {
   test('total supply is properly initialized', () =>
@@ -80,11 +77,9 @@ describe('Initialization', () => {
 
 describe('BalanceOf', () => {
   test('Check an empty balance', () =>
-    expect(
-      balanceOf(
-        new Args().add(contractAddressERC20Basic.toString()).serialize(),
-      ),
-    ).toStrictEqual(u64ToBytes(0)));
+    expect(balanceOf(new Args().add(contractAddr).serialize())).toStrictEqual(
+      u64ToBytes(0),
+    ));
 
   test('Check a non empty balance', () =>
     expect(
@@ -208,26 +203,20 @@ let u2u1AllowAmount: u64 = 6000;
 
 describe('transferFrom', () => {
   // Actual user switched to U2
-  changeCallStack(
-    user2Address.toString() + ' , ' + contractAddressERC20Basic.toString(),
-  );
+  changeCallStack(user2Address.toString() + ' , ' + contractAddr);
   // Increase allowance to 1 for 2
   increaseAllowance(
     new Args().add(user1Address.toString()).add(u2u1AllowAmount).serialize(),
   );
   // Actual user switched to U3
-  changeCallStack(
-    user3Address.toString() + ' , ' + contractAddressERC20Basic.toString(),
-  );
+  changeCallStack(user3Address.toString() + ' , ' + contractAddr);
   // Increase allowance to 1 for 3
   increaseAllowance(
     new Args().add(user1Address.toString()).add(u64(3000)).serialize(),
   );
 
   // Actual user switched back to U1
-  changeCallStack(
-    user1Address.toString() + ' , ' + contractAddressERC20Basic.toString(),
-  );
+  changeCallStack(user1Address.toString() + ' , ' + contractAddr);
 
   throws('Fails because not enough allowance U2 => U1 6000 < 10000', () =>
     transferFrom(
