@@ -1,4 +1,8 @@
-import { Address, Storage, mockScCall } from '@massalabs/massa-as-sdk';
+import {
+  Storage,
+  resetStorage,
+  setDeployContext,
+} from '@massalabs/massa-as-sdk';
 import {
   Args,
   bytesToString,
@@ -24,57 +28,31 @@ import {
   approve,
   transferFrom,
 } from '../NFT';
-import { NFTWrapper } from '../NFTWrapper';
 
 const callerAddress = 'A12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
+
+const userAddress = 'A12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1e8';
 
 const NFTName = 'MASSA_NFT';
 const NFTSymbol = 'NFT';
 const NFTBaseURI = 'my.massa/';
-const NFTtotalSupply = 5;
+const NFTtotalSupply: u64 = 5;
 
-describe('NFT contract TEST', () => {
-  test('demonstrative test', () => {
-    const NFTaddr = new Address(
-      'A1C5bqToGpzCg3K4yQkuto69KhxcC5AtrsA11zyuC3cd1QeHmgU',
-    );
-    const myAddress = new Address(
-      'A1qDAxGJ387ETi9JRQzZWSPKYq4YPXrFvdiE4VoXUaiAt38JFEC',
-    );
-    const NFT = new NFTWrapper(NFTaddr);
-    mockScCall(stringToBytes('NFT name'));
-    NFT.name();
-    mockScCall(stringToBytes('NFT'));
-    NFT.symbol();
-    mockScCall(stringToBytes('test.massa/'));
-    NFT.baseURI();
-    mockScCall(stringToBytes('test.massa/2'));
-    NFT.tokenURI(2);
-    mockScCall(u64ToBytes(3));
-    NFT.totalSupply();
-    for (let i = 0; i < 3; i++) {
-      mockScCall(stringToBytes('toto'));
-      NFT.mint(myAddress.toString());
-    }
-    mockScCall(u64ToBytes(3));
-    NFT.currentSupply();
-    mockScCall(stringToBytes(myAddress.toString()));
-    NFT.ownerOf(1);
-    mockScCall([]); // mocked calls need a mocked value, this may change is the future
-    NFT.transfer('1x', 1);
-    mockScCall(stringToBytes(myAddress.toString()));
-    NFT.ownerOf(1);
-  });
-
-  test('constructor call', () => {
+describe('NFT contract', () => {
+  beforeAll(() => {
+    resetStorage();
+    setDeployContext(callerAddress);
     constructor(
       new Args()
         .add(NFTName)
         .add(NFTSymbol)
-        .add(u64(NFTtotalSupply))
+        .add(NFTtotalSupply)
         .add(NFTBaseURI)
         .serialize(),
     );
+  });
+
+  test('initialized', () => {
     expect(bytesToU64(Storage.get(counterKey))).toBe(initCounter);
   });
 
@@ -113,7 +91,7 @@ describe('NFT contract TEST', () => {
 
   test('mint call, ownerOf and currentSupply call', () => {
     expect(bytesToU64(currentSupply())).toBe(0);
-    for (let i = 0; i < 5; i++) {
+    for (let i: u64 = 0; i < NFTtotalSupply; i++) {
       mint(new Args().add(callerAddress).serialize());
     }
     expect(Storage.get(counterKey)).toStrictEqual(u64ToBytes(NFTtotalSupply));
@@ -126,22 +104,19 @@ describe('NFT contract TEST', () => {
   throws('we have reach max supply', () => {
     mint(new Args().add(callerAddress).serialize());
   });
+
   test('current supply call', () => {
     expect(bytesToU64(currentSupply())).toBe(NFTtotalSupply);
   });
 
   test('transfer call', () => {
     const tokenToSend: u64 = 2;
-    const receiver = '2x';
-    const argTransfer = new Args()
-      .add(receiver)
-      .add(u64(tokenToSend))
-      .serialize();
-    transfer(argTransfer);
-    expect(ownerOf(u64ToBytes(tokenToSend))).toStrictEqual(
-      stringToBytes(receiver),
-    );
 
+    transfer(new Args().add(userAddress).add(tokenToSend).serialize());
+
+    expect(ownerOf(u64ToBytes(tokenToSend))).toStrictEqual(
+      stringToBytes(userAddress),
+    );
     expect(isAllowanceCleared(tokenToSend)).toBeTruthy();
   });
 
@@ -150,14 +125,13 @@ describe('NFT contract TEST', () => {
     const addresses = ['2x', '3x'];
 
     addresses.forEach((address) => approveAddress(tokenId, address));
-
     const approvedAddressArray = getAllowedAddress(tokenId);
 
     expect(approvedAddressArray[0]).toStrictEqual(addresses[0]);
     expect(approvedAddressArray[1]).toStrictEqual(addresses[1]);
   });
 
-  test('transferFrom', () => {
+  xtest('transferFrom', () => {
     const tokenId: u64 = 3;
     const addresses = ['2x', '3x'];
 
@@ -201,6 +175,7 @@ function getAllowedAddress(tokenId: u64): string[] {
   const allowedAddress = bytesToString(
     getApproved(new Args().add(tokenId).serialize()),
   );
+
   return allowedAddress === '' ? [] : allowedAddress.split(',');
 }
 

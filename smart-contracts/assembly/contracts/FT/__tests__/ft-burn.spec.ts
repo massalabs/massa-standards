@@ -1,8 +1,4 @@
-import {
-  Address,
-  changeCallStack,
-  resetStorage,
-} from '@massalabs/massa-as-sdk';
+import { resetStorage, setDeployContext } from '@massalabs/massa-as-sdk';
 import {
   Args,
   bytesToString,
@@ -23,18 +19,12 @@ import {
 import { burn } from '../token-burn';
 import { ownerAddress } from '../../utils/ownership';
 
-// Those addresses have been generated randomly, user1 & contractAddressERC20Burn match with addresses in as-tester
-const contractAddressERC20Burn = new Address(
-  'A12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT',
-);
-const user1Address = new Address(
-  'A12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq',
-);
+const user1Address = 'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
 
-resetStorage();
-changeCallStack(
-  user1Address.toString() + ' , ' + contractAddressERC20Burn.toString(),
-);
+beforeAll(() => {
+  resetStorage();
+  setDeployContext(user1Address);
+});
 
 const TOKEN_NAME = 'BURNABLE_TOKEN';
 const TOKEN_SYMBOL = 'BTKN';
@@ -72,9 +62,7 @@ describe('ERC20 BURN - Initialization', () => {
   });
 
   test('owner is properly initialized', () => {
-    expect(bytesToString(ownerAddress([]))).toStrictEqual(
-      user1Address.toString(),
-    );
+    expect(bytesToString(ownerAddress([]))).toStrictEqual(user1Address);
   });
 });
 
@@ -85,9 +73,7 @@ describe('Burn ERC20 to U1', () => {
 
     // check balance of U1
     expect(
-      bytesToU64(
-        balanceOf(new Args().add(user1Address.toString()).serialize()),
-      ),
+      bytesToU64(balanceOf(new Args().add(user1Address).serialize())),
     ).toBe(TOTAL_SUPPLY - burnAmount);
 
     // check totalSupply update

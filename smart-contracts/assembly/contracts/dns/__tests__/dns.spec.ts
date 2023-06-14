@@ -6,63 +6,69 @@ import {
   constructor,
   setOwner,
 } from '../dns';
-import { Address, Storage } from '@massalabs/massa-as-sdk';
+import { Storage, mockAdminContext } from '@massalabs/massa-as-sdk';
 import { Args } from '@massalabs/as-types';
-import { changeCallStack } from '@massalabs/massa-as-sdk/assembly/vm-mock/storage';
+import {
+  changeCallStack,
+  resetStorage,
+} from '@massalabs/massa-as-sdk/assembly/vm-mock/storage';
 
-const websiteStorerAddress = new Address(
-  'A12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq',
-);
+// address of admin caller set in vm-mock. must match with adminAddress of @massalabs/massa-as-sdk/vm-mock/vm.js
+const deployerAddress = 'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
+// address of the contract set in vm-mock. must match with contractAddr of @massalabs/massa-as-sdk/vm-mock/vm.js
+const contractAddr = 'AS12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT';
 
-const ownerAddress = new Address(
-  'A12kv833hMvZ7zCzrMpdrLMW9aGPwS9WUmq61jJYEoCjMdSLqut2',
-);
+const websiteAddr = 'A12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
 
-const dnsAdmin = new Address(
-  'A1qDAxGJ387ETi9JRQzZWSPKYq4YPXrFvdiE4VoXUaiAt38JFEC',
-);
+const dnsAdmin = 'AU1qDAxGJ387ETi9JRQzZWSPKYq4YPXrFvdiE4VoXUaiAt38JFEC';
 
-const contractAddr = 'A12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT';
+const user1Addr = 'AU125TiSrnD2YatYfEyRAWnBdD7TEuVbvGFkFgDuaYc2bdKyqKtb';
 
-const websiteName = new Args().add('flappy').serialize();
-const blackListKey = new Args().add('blackList').serialize();
+function switchUser(user: string): void {
+  changeCallStack(user + ' , ' + contractAddr);
+}
+
+beforeAll(() => {
+  resetStorage();
+  mockAdminContext(true);
+});
 
 describe('DNS contract tests', () => {
   test('constructor', () => {
-    const serializedOwnerAddress = new Args()
-      .add(ownerAddress.toString())
+    const serializeddeployerAddress = new Args()
+      .add(deployerAddress)
       .serialize();
-    constructor(serializedOwnerAddress);
-    expect(Storage.get(contractOwnerKey)).toStrictEqual(serializedOwnerAddress);
+    constructor(serializeddeployerAddress);
+    expect(Storage.get(contractOwnerKey)).toStrictEqual(
+      serializeddeployerAddress,
+    );
   });
 
-  test('set owner', () => {
-    const serializedDnsAdmin = new Args().add(dnsAdmin.toString()).serialize();
-    changeCallStack(ownerAddress.toString() + ' , ' + contractAddr);
+  test('change dns admin', () => {
+    const serializedDnsAdmin = new Args().add(dnsAdmin).serialize();
     setOwner(serializedDnsAdmin);
     expect(Storage.get(contractOwnerKey)).toStrictEqual(serializedDnsAdmin);
-    changeCallStack(dnsAdmin.toString() + ' , ' + contractAddr);
   });
 
   test('invalid dns entry', () => {
     expect(() => {
       const setResolverArgs = new Args()
         .add('invalid dns entry')
-        .add(ownerAddress.toString())
+        .add(deployerAddress)
         .serialize();
       setResolver(setResolverArgs);
     }).toThrow();
   });
 
   test('create dns entry', () => {
-    changeCallStack(ownerAddress.toString() + ' , ' + contractAddr);
+    switchUser(user1Addr);
 
     const name = 'test';
     const desc = 'website description';
 
     const setResolverArgs = new Args()
       .add(name)
-      .add(websiteStorerAddress.toString())
+      .add(websiteAddr)
       .add(desc)
       .serialize();
 
@@ -70,19 +76,19 @@ describe('DNS contract tests', () => {
 
     const stored = new Args(resolver(new Args().add(name).serialize()));
 
-    expect(stored.nextString().unwrap()).toBe(websiteStorerAddress.toString());
-    expect(stored.nextString().unwrap()).toBe(ownerAddress.toString());
-    expect(stored.nextString().unwrap()).toBe(desc);
+    expect(stored.nextString().unwrap()).toBe(websiteAddr, 'wrong websiteAddr');
+    expect(stored.nextString().unwrap()).toBe(user1Addr, 'wrong owner address');
+    expect(stored.nextString().unwrap()).toBe(desc, 'wrong description');
   });
 
   test('add dns entry with empty description', () => {
-    changeCallStack(ownerAddress.toString() + ' , ' + contractAddr);
+    switchUser(deployerAddress);
 
     const name = 'my-website';
     const desc = '';
     const setResolverArgs = new Args()
       .add(name)
-      .add(websiteStorerAddress.toString())
+      .add(websiteAddr)
       .add(desc)
       .serialize();
 
@@ -90,8 +96,8 @@ describe('DNS contract tests', () => {
 
     const stored = new Args(resolver(new Args().add(name).serialize()));
 
-    expect(stored.nextString().unwrap()).toBe(websiteStorerAddress.toString());
-    expect(stored.nextString().unwrap()).toBe(ownerAddress.toString());
+    expect(stored.nextString().unwrap()).toBe(websiteAddr);
+    expect(stored.nextString().unwrap()).toBe(deployerAddress);
     expect(stored.nextString().unwrap()).toBe(desc);
   });
 
@@ -99,26 +105,45 @@ describe('DNS contract tests', () => {
     expect(() => {
       const setResolverArgs = new Args()
         .add('test')
-        .add(ownerAddress.toString())
+        .add(deployerAddress)
         .serialize();
       setResolver(setResolverArgs);
     }).toThrow();
   });
 
-  test('try to blackList a websiteName not being the owner', () => {
-    expect(() => {
-      changeCallStack(ownerAddress.toString() + ' , ' + contractAddr);
-      addWebsiteToBlackList(websiteName);
-    }).toThrow();
-    expect(Storage.has(blackListKey)).toBeFalsy();
-  });
+  describe('DNS blacklist tests', () => {
+    const name = 'backlisted';
+    const desc = 'backlisted website description';
 
-  test('try to blackList a websiteName being the owner', () => {
-    changeCallStack(
-      dnsAdmin.toString() +
-        ' , A12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT',
-    );
-    addWebsiteToBlackList(websiteName);
-    expect(Storage.get(blackListKey)).toStrictEqual(websiteName);
+    beforeAll(() => {
+      // set a dns entry
+      switchUser(user1Addr);
+      const setResolverArgs = new Args()
+        .add(name)
+        .add(websiteAddr)
+        .add(desc)
+        .serialize();
+      setResolver(setResolverArgs);
+    });
+
+    test('try to blackList a websiteName not being admin', () => {
+      switchUser(deployerAddress);
+      const blackListKey = new Args().add('blackList').serialize();
+
+      expect(() =>
+        addWebsiteToBlackList(new Args().add(name).serialize()),
+      ).toThrow();
+      expect(Storage.has(blackListKey)).toBeFalsy();
+    });
+
+    test('try to blackList a websiteName being admin', () => {
+      switchUser(dnsAdmin);
+      const blackListKey = new Args().add('blackList').serialize();
+
+      addWebsiteToBlackList(new Args().add(name).serialize());
+      expect(Storage.get(blackListKey)).toStrictEqual(
+        new Args().add(name).serialize(),
+      );
+    });
   });
 });

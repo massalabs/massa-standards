@@ -383,8 +383,10 @@ export function getApproved(binaryArgs: StaticArray<u8>): StaticArray<u8> {
     .expect('tokenId argument is missing or invalid');
 
   const key = approvedTokenKey + tokenId.toString();
-
-  return stringToBytes(Storage.get(key));
+  if (Storage.has(key)) {
+    return stringToBytes(Storage.get(key));
+  }
+  return [];
 }
 
 /**
@@ -415,6 +417,10 @@ export function isApproved(binaryArgs: StaticArray<u8>): bool {
     .expect('tokenId argument is missing or invalid');
 
   const key = approvedTokenKey + tokenId.toString();
+
+  if (!Storage.has(key)) {
+    return false;
+  }
 
   const value = Storage.get(key);
 
