@@ -6,7 +6,7 @@ Initial meta issue: <https://github.com/massalabs/massa-standards/issues/13>
 
 **Status:** Draft
 
-**Version:** 0.3
+**Version:** 0.4
 
 ## Abstract
 
@@ -605,8 +605,6 @@ properties:
     type: string
   at:
     type: string
-    format: base58check
-    description: Smart contract address
   args:
     type: Args
     description: Smart contract arguments
@@ -619,6 +617,7 @@ properties:
     properties:
       isNPE:
         type: boolean
+        default: false
       maxGas (optional):
         type: string
         format: BigInt
