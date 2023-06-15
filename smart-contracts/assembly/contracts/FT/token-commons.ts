@@ -1,5 +1,7 @@
-import { bytesToU64, stringToBytes, u64ToBytes } from '@massalabs/as-types';
+import { stringToBytes } from '@massalabs/as-types';
+import { bytesToU256, u256ToBytes } from '@massalabs/as-types';
 import { Address, Storage } from '@massalabs/massa-as-sdk';
+import { u256 } from 'as-bignum/assembly';
 
 export const BALANCE_KEY = 'BALANCE';
 
@@ -15,12 +17,12 @@ export const BALANCE_KEY = 'BALANCE';
  *
  * @param address - address to get the balance for
  */
-export function _balance(address: Address): u64 {
+export function _balance(address: Address): u256 {
   const key = getBalanceKey(address);
   if (Storage.has(key)) {
-    return bytesToU64(Storage.get(key));
+    return bytesToU256(Storage.get(key));
   }
-  return 0;
+  return u256.Zero;
 }
 
 /**
@@ -29,8 +31,8 @@ export function _balance(address: Address): u64 {
  * @param address - address to set the balance for
  * @param balance -
  */
-export function _setBalance(address: Address, balance: u64): void {
-  Storage.set(getBalanceKey(address), u64ToBytes(balance));
+export function _setBalance(address: Address, balance: u256): void {
+  Storage.set(getBalanceKey(address), u256ToBytes(balance));
 }
 
 /**
