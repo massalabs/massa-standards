@@ -195,5 +195,25 @@ describe('DNS contract tests', () => {
         ),
       ).toBe(false);
     });
+
+    test('blacklist names and try to set resolver with a blacklisted name', () => {
+      switchUser(dnsAdmin);
+      // Blacklist a list of names
+      const blacklistNames = ['blacklist1', 'blacklist2', 'blacklist3'];
+      const blacklistArgs = new Args().addNativeTypeArray(blacklistNames);
+      const blacklistArgsBinary = blacklistArgs.serialize();
+      addWebsitesToBlackList(blacklistArgsBinary);
+
+      // Try to set resolver with a blacklisted name
+      const blacklistedName = 'blacklist1';
+
+      expect(() => {
+        const setResolverArgs = new Args()
+          .add(blacklistedName)
+          .add(deployerAddress)
+          .serialize();
+        setResolver(setResolverArgs);
+      }).toThrow();
+    });
   });
 });

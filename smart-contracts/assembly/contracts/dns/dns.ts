@@ -273,7 +273,7 @@ export function addWebsiteToBlackList(binaryArgs: StaticArray<u8>): void {
  *
  * @returns The array of blacklisted keys as a StaticArray<u8>.
  */
- export function getBlacklisted(): StaticArray<u8> {
+export function getBlacklisted(): StaticArray<u8> {
   // Deserialize the blacklisted keys from storage, if it exists
   const blacklistedKeys = Storage.has(blackListKey)
     ? new Args(Storage.get(blackListKey)).nextNativeTypeArray<string>().unwrap()
@@ -297,7 +297,9 @@ export function addWebsitesToBlackList(binaryArgs: StaticArray<u8>): void {
     .unwrap();
 
   // Retrieve the current blacklisted keys
-  const existingBlacklist = new Args(getBlacklisted()).nextNativeTypeArray<string>().unwrap();
+  const existingBlacklist = new Args(getBlacklisted())
+    .nextNativeTypeArray<string>()
+    .unwrap();
 
   // Create a Set to ensure uniqueness of website names
   const blacklistSet = new Set<string>();
@@ -335,7 +337,9 @@ export function addWebsitesToBlackList(binaryArgs: StaticArray<u8>): void {
 export function isBlacklisted(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   const websiteName = new Args(binaryArgs).nextString().unwrap();
 
-  const blacklistedKeys = new Args(getBlacklisted()).nextNativeTypeArray<string>().unwrap();
+  const blacklistedKeys = new Args(getBlacklisted())
+    .nextNativeTypeArray<string>()
+    .unwrap();
   const isBlacklisted = blacklistedKeys.includes(websiteName);
 
   return new Args().add(isBlacklisted).serialize();
