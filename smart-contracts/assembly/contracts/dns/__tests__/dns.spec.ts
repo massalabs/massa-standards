@@ -1,4 +1,4 @@
-import { contractOwnerKey } from './../dns';
+import { contractOwnerKey , blackListKey} from './../dns';
 import {
   setResolver,
   resolver,
@@ -130,7 +130,6 @@ describe('DNS contract tests', () => {
 
     test('try to blackList a websiteName not being admin', () => {
       switchUser(deployerAddress);
-      const blackListKey = new Args().add('blackList').serialize();
 
       expect(() =>
         addWebsiteToBlackList(new Args().add(name).serialize()),
@@ -140,8 +139,6 @@ describe('DNS contract tests', () => {
 
     test('try to blackList a websiteName being admin', () => {
       switchUser(dnsAdmin);
-      const blackListKey = new Args().add('blackList').serialize();
-
       addWebsiteToBlackList(new Args().add(name).serialize());
       expect(Storage.get(blackListKey)).toStrictEqual(
         new Args().add(name).serialize(),
@@ -150,7 +147,6 @@ describe('DNS contract tests', () => {
 
     test('add multiple websites to blacklist', () => {
       switchUser(dnsAdmin);
-      const blackListKey = new Args().add('blackList').serialize();
       const websiteNames = ['flappy', 'example', 'website'];
       const args = new Args().addNativeTypeArray(websiteNames);
       const websiteNamesBinary = args.serialize();

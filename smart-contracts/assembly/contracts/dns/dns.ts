@@ -133,7 +133,7 @@ export function setResolver(binaryArgs: StaticArray<u8>): void {
     .unwrap();
 
   if (isBlacklistedValue) {
-    triggerError('Try another website name, this one is already blacklisted.');
+    triggerError('Try another website name, this one is reserved.');
   }
 
   Storage.set(
@@ -274,8 +274,6 @@ export function addWebsiteToBlackList(binaryArgs: StaticArray<u8>): void {
  * @returns The array of blacklisted keys.
  */
 export function getBlacklisted(): string[] {
-  // Create a key for the blacklist in storage
-  const blackListKey = new Args().add('blackList').serialize();
 
   // Deserialize the blacklisted keys from storage, if it exists
   const blacklistedKeys = Storage.has(blackListKey)
@@ -294,9 +292,6 @@ export function addWebsitesToBlackList(binaryArgs: StaticArray<u8>): void {
   // Ensure that the caller is the contract owner
   onlyOwner();
 
-  // Create a key for the blacklist in storage
-  const blackListKey = new Args().add('blackList').serialize();
-
   // Extract the website names from binaryArgs and unwrap them into an array
   const websiteNames = new Args(binaryArgs)
     .nextNativeTypeArray<string>()
@@ -312,8 +307,9 @@ export function addWebsitesToBlackList(binaryArgs: StaticArray<u8>): void {
   const mergedWebsiteNames = websiteNames.concat(existingBlacklist);
 
   // Add each website name to the blacklist Set
-  // Iterators are not Implemented workaround done here
-  // to avoid compilation errors AS100
+  // the set is used to handle the case where a name is already blacklisted
+  // so we will not add it twice to the blacklist
+
   for (let i = 0; i < mergedWebsiteNames.length; i++) {
     blacklistSet.add(mergedWebsiteNames[i]);
   }
