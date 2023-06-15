@@ -115,10 +115,8 @@ describe('DNS contract tests', () => {
   describe('DNS blacklist tests', () => {
     const name = 'backlisted';
     const desc = 'backlisted website description';
-    //const websiteName = new Args().add('flappy').serialize();
-    const websiteNames = ['flappy', 'example', 'website'];
-    const args = new Args().addNativeTypeArray(websiteNames);
-    const websiteNamesBinary = args.serialize();
+    const websiteName = new Args().add('flappy').serialize();
+
 
     beforeAll(() => {
       // set a dns entry
@@ -154,9 +152,12 @@ describe('DNS contract tests', () => {
     test('add multiple websites to blacklist', () => {
       switchUser(dnsAdmin);
       const blackListKey = new Args().add('blackList').serialize();
+      const websiteNames = ['flappy', 'example', 'website'];
+      const args = new Args().addNativeTypeArray(websiteNames);
+      const websiteNamesBinary = args.serialize();
     
       // Clear existing blacklist (if any)
-      Storage.set(blackListKey, new Args().add([]).serialize());
+      Storage.set(blackListKey, new Args().addNativeTypeArray([]).serialize());
     
       // Call the addWebsitesToBlackList function with the list of website names
       addWebsitesToBlackList(websiteNamesBinary);
@@ -167,7 +168,8 @@ describe('DNS contract tests', () => {
         .unwrap();
     
       // Check if the website names have been added to the blacklist
-      expect(updatedBlacklist).toContainEqual(websiteNames);
+      expect(updatedBlacklist).toStrictEqual(websiteNames);
+      
 
     });
     
