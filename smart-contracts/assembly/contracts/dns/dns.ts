@@ -115,6 +115,7 @@ export function setResolver(binaryArgs: StaticArray<u8>): void {
   const websiteAddress = args
     .nextString()
     .expect('website address is missing or invalid');
+
   const websiteNameBytes = new Args().add(websiteName);
 
   const description = args
@@ -131,7 +132,10 @@ export function setResolver(binaryArgs: StaticArray<u8>): void {
   );
 
   if (isBlacklistedValue) {
-    triggerError('Try another website name, this one is reserved.');
+    log(
+      'Website name is blacklisted: ' + websiteName + 'Error will be triggered',
+    );
+    triggerError('Try another website name, ' + websiteName + ' is reserved.');
   }
 
   Storage.set(
@@ -143,6 +147,7 @@ export function setResolver(binaryArgs: StaticArray<u8>): void {
   );
 
   addToOwnerList(Context.caller(), websiteName);
+
   // this event should not be changed without changing the event listener in Thyra
   generateEvent(
     `Website name ${websiteName} added to DNS at address ${websiteAddress}`,
@@ -273,11 +278,7 @@ export function addWebsiteToBlackList(binaryArgs: StaticArray<u8>): void {
  */
 export function getBlacklisted(): StaticArray<u8> {
   // Deserialize the blacklisted keys from storage, if it exists
-  const blacklistedKeys = Storage.has(blackListKey)
-    ? new Args(Storage.get(blackListKey)).nextNativeTypeArray<string>().unwrap()
-    : [];
-
-  return new Args().addNativeTypeArray(blacklistedKeys).serialize();
+  return Storage.has(blackListKey) ? Storage.get(blackListKey) : [0, 0, 0, 0];
 }
 
 /**

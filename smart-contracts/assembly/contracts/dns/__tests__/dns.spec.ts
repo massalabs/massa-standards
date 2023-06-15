@@ -211,6 +211,7 @@ describe('DNS contract tests', () => {
         const setResolverArgs = new Args()
           .add(blacklistedName)
           .add(deployerAddress)
+          .add('')
           .serialize();
         setResolver(setResolverArgs);
       }).toThrow();
