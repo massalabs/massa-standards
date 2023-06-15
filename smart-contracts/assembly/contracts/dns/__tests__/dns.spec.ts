@@ -4,6 +4,7 @@ import {
   resolver,
   addWebsiteToBlackList,
   addWebsitesToBlackList,
+  isBlacklisted,
   constructor,
   setOwner,
 } from '../dns';
@@ -169,6 +170,15 @@ describe('DNS contract tests', () => {
     
       // Check if the website names have been added to the blacklist
       expect(updatedBlacklist).toStrictEqual(websiteNames);
+
+    // Test the isBlacklisted function for a blacklisted website name
+    const blacklistedName = 'example';
+    const blacklistedNameArgs = new Args().add(blacklistedName).serialize();
+    const isBlacklistedResult = isBlacklisted(blacklistedNameArgs);
+    const isBlacklistedValue = new Args(isBlacklistedResult).nextBool().unwrap();
+
+    // Expect the isBlacklistedValue to be true since 'example' is blacklisted
+    expect(isBlacklistedValue).toBe(true);
       
 
     });

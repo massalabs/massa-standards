@@ -259,35 +259,82 @@ export function addWebsiteToBlackList(binaryArgs: StaticArray<u8>): void {
 }
 
 /**
+ * Retrieves the array of blacklisted keys.
+ *
+ * @returns The array of blacklisted keys.
+ */
+ export function getBlacklisted(): string[] {
+  // Create a key for the blacklist in storage
+  const blackListKey = new Args().add('blackList').serialize();
+
+  // Deserialize the blacklisted keys from storage, if it exists
+  const blacklistedKeys = Storage.has(blackListKey)
+    ? new Args(Storage.get(blackListKey)).nextNativeTypeArray<string>().unwrap()
+    : [];
+
+  return blacklistedKeys;
+}
+
+
+
+/**
  * Appends multiple website names to the blacklist.
  *
  * @param binaryArgs - Website names in a binary format using Args.
  */
  export function addWebsitesToBlackList(binaryArgs: StaticArray<u8>): void {
+  // Ensure that the caller is the contract owner
   onlyOwner();
 
+  // Create a key for the blacklist in storage
+  const blackListKey = new Args().add('blackList').serialize();
 
   // Extract the website names from binaryArgs and unwrap them into an array
   const websiteNames = new Args(binaryArgs)
     .nextNativeTypeArray<string>()
     .unwrap();
 
-  // Deserialize the existing blacklist array from storage, if it exists
-  const existingList = Storage.has(blackListKey)
-    ? new Args(Storage.get(blackListKey)).nextNativeTypeArray<string>().unwrap()
-    : [];
+  // Retrieve the current blacklisted keys
+   const existingBlacklist = getBlacklisted();
 
-  // Check if any of the website names are already blacklisted
-  for (let i = 0; i < websiteNames.length; i++) {
-    if (existingList.includes(websiteNames[i])) {
-      triggerError('ALREADY_BLACKLISTED');
-    }
-  }
+  // Create a Set to ensure uniqueness of website names
+  const blacklistSet = new Set<string>();
 
   // Merge the existing blacklist with the new website names
-  const newList = existingList.concat(websiteNames);
+  const mergedWebsiteNames = websiteNames.concat(existingBlacklist);
+
+  // Add each website name to the blacklist Set
+  // Iterators are not Implemented workaround done here
+  // to avoid compilation errors AS100
+  for(let i = 0; i < mergedWebsiteNames.length; i++) {
+    blacklistSet.add(mergedWebsiteNames[i])
+  }
+
+  // Convert the Set back to an array
+  const updatedBlacklist = blacklistSet.values();
+
 
   // Serialize the new blacklist array and store it in storage
-  Storage.set(blackListKey, new Args().addNativeTypeArray(newList).serialize());
-  generateEvent(`Domain names added to blackList: ${websiteNames.join(', ')}`);
+  Storage.set(blackListKey, new Args().addNativeTypeArray(updatedBlacklist).serialize());
+
+  // Generate an event with the website names that were added to the blacklist
+  generateEvent(`Domain names added to blacklist: ${websiteNames.join(', ')}`);
 }
+
+/**
+ * Checks if a website name is blacklisted.
+ *
+ * @param binaryArgs - Website name in a binary format using Args.
+ * @returns A serialized boolean indicating whether the website name is blacklisted.
+ */
+ export function isBlacklisted(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+  const websiteName = new Args(binaryArgs).nextString().unwrap();;
+
+  const blacklistedKeys = getBlacklisted();
+  const isBlacklisted = blacklistedKeys.includes(websiteName);
+
+  const result = isBlacklisted ? 'true' : 'false';
+
+  return new Args().add(result).serialize();
+}
+
