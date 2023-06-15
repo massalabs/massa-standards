@@ -256,3 +256,39 @@ export function addWebsiteToBlackList(binaryArgs: StaticArray<u8>): void {
   Storage.set(blackListKey, new Args().add(newList).serialize());
   generateEvent(`Domain name ${websiteName} added to blackList`);
 }
+
+/**
+ * Appends multiple website names to the blacklist.
+ *
+ * @param binaryArgs - Website names in a binary format using Args.
+ */
+ export function addWebsitesToBlackList(binaryArgs: StaticArray<u8>): void {
+  onlyOwner();
+
+  // Serialize the "blackList" key to retrieve and store blacklist data in storage
+  const blackListKey = new Args().add('blackList').serialize();
+
+  // Extract the website names from binaryArgs and unwrap them into an array
+  const websiteNames = new Args(binaryArgs)
+    .nextNativeTypeArray<string[]>()
+    .unwrap();
+
+  // Deserialize the existing blacklist array from storage, if it exists
+  const existingList = Storage.has(blackListKey)
+    ? new Args(Storage.get(blackListKey)).nextNativeTypeArray<string[]>().unwrap()
+    : [];
+
+  // Check if any of the website names are already blacklisted
+  for (let i = 0; i < websiteNames.length; i++) {
+    if (existingList.includes(websiteNames[i])) {
+      triggerError('ALREADY_BLACKLISTED');
+    }
+  }
+
+  // Merge the existing blacklist with the new website names
+  const newList = existingList.concat(websiteNames);
+
+  // Serialize the new blacklist array and store it in storage
+  Storage.set(blackListKey, new Args().add(newList).serialize());
+  generateEvent(`Domain names added to blackList: ${websiteNames.join(', ')}`);
+}

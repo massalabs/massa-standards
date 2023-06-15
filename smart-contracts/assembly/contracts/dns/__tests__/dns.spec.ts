@@ -3,6 +3,7 @@ import {
   setResolver,
   resolver,
   addWebsiteToBlackList,
+  addWebsitesToBlackList,
   constructor,
   setOwner,
 } from '../dns';
@@ -114,6 +115,10 @@ describe('DNS contract tests', () => {
   describe('DNS blacklist tests', () => {
     const name = 'backlisted';
     const desc = 'backlisted website description';
+    //const websiteName = new Args().add('flappy').serialize();
+    const websiteNames = ['flappy', 'example', 'website'];
+    const args = new Args().addNativeTypeArray<string[]>(websiteNames);
+    const websiteNamesBinary = args.serialize();
 
     beforeAll(() => {
       // set a dns entry
@@ -145,5 +150,27 @@ describe('DNS contract tests', () => {
         new Args().add(name).serialize(),
       );
     });
+
+    test('add multiple websites to blacklist', () => {
+      switchUser(dnsAdmin);
+      const blackListKey = new Args().add('blackList').serialize();
+    
+      // Clear existing blacklist (if any)
+      Storage.set(blackListKey, new Args().add([]).serialize());
+    
+      // Call the addWebsitesToBlackList function with the list of website names
+      addWebsitesToBlackList(websiteNamesBinary);
+    
+      // Retrieve the updated blacklist from storage
+      const updatedBlacklist = new Args(Storage.get(blackListKey))
+        .nextNativeTypeArray<string[]>()
+        .unwrap();
+    
+      // Check if the website names have been added to the blacklist
+      expect(updatedBlacklist).toContainEqual(websiteNames);
+      
+    });
+    
+    
   });
 });
