@@ -7,8 +7,8 @@ import {
   Args,
   bytesToString,
   stringToBytes,
-  u64ToBytes,
   u8toByte,
+  u256ToBytes,
 } from '@massalabs/as-types';
 import { mint } from '../token-mint';
 import {
@@ -21,6 +21,7 @@ import {
   version,
 } from '../token';
 import { ownerAddress } from '../../utils/ownership';
+import { u256 } from 'as-bignum/assembly';
 
 // address of the contract set in vm-mock. must match with contractAddr of @massalabs/massa-as-sdk/vm-mock/vm.js
 const contractAddr = 'AS12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT';
@@ -36,7 +37,7 @@ function switchUser(user: string): void {
 const TOKEN_NAME = 'MINTABLE_TOKEN';
 const TOKEN_SYMBOL = 'MTKN';
 const DECIMALS: u8 = 2;
-const TOTAL_SUPPLY: u64 = 10000;
+const TOTAL_SUPPLY = new u256(10000, 1000, 100, 10);
 
 beforeAll(() => {
   resetStorage();
@@ -53,7 +54,7 @@ beforeAll(() => {
 
 describe('ERC20 MINT - Initialization', () => {
   test('total supply is properly initialized', () => {
-    expect(totalSupply([])).toStrictEqual(u64ToBytes(TOTAL_SUPPLY));
+    expect(totalSupply([])).toStrictEqual(u256ToBytes(TOTAL_SUPPLY));
   });
 
   test('token name is properly initialized', () => {
@@ -77,19 +78,20 @@ describe('ERC20 MINT - Initialization', () => {
   });
 });
 
-const mintAmount: u64 = 5000;
+const mintAmount = new u256(5000, 33);
 
 describe('Mint ERC20 to U2', () => {
   test('Should mint ERC20', () => {
     mint(new Args().add(user2Address).add(mintAmount).serialize());
     // check balance of U2
     expect(balanceOf(new Args().add(user2Address).serialize())).toStrictEqual(
-      u64ToBytes(mintAmount),
+      u256ToBytes(mintAmount),
     );
 
     // check totalSupply update
     expect(totalSupply([])).toStrictEqual(
-      u64ToBytes(mintAmount + TOTAL_SUPPLY),
+      // @ts-ignore
+      u256ToBytes(mintAmount + TOTAL_SUPPLY),
     );
   });
 });
@@ -107,7 +109,8 @@ describe('Fails mint ERC20', () => {
 
   test("Should check totalSupply didn't change", () => {
     expect(totalSupply([])).toStrictEqual(
-      u64ToBytes(mintAmount + TOTAL_SUPPLY),
+      // @ts-ignore
+      u256ToBytes(mintAmount + TOTAL_SUPPLY),
     );
   });
 });
