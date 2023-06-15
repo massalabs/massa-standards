@@ -126,6 +126,13 @@ export function setResolver(binaryArgs: StaticArray<u8>): void {
     triggerError('Try another website name, this one is already taken.');
   }
 
+    // Check if the website name is blacklisted
+    const isBlacklistedValue = new Args(isBlacklisted(websiteNameBytes.serialize())).nextBool().unwrap();
+  
+    if (isBlacklistedValue) {
+      triggerError('Try another website name, this one is already blacklisted.');
+    }
+
   Storage.set(
     websiteNameBytes,
     new Args()
@@ -328,13 +335,12 @@ export function addWebsiteToBlackList(binaryArgs: StaticArray<u8>): void {
  * @returns A serialized boolean indicating whether the website name is blacklisted.
  */
  export function isBlacklisted(binaryArgs: StaticArray<u8>): StaticArray<u8> {
-  const websiteName = new Args(binaryArgs).nextString().unwrap();;
+  const websiteName = new Args(binaryArgs).nextString().unwrap();
 
   const blacklistedKeys = getBlacklisted();
   const isBlacklisted = blacklistedKeys.includes(websiteName);
 
-  const result = isBlacklisted ? 'true' : 'false';
-
-  return new Args().add(result).serialize();
+  return new Args().add(isBlacklisted).serialize();
 }
+
 

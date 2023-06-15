@@ -171,17 +171,22 @@ describe('DNS contract tests', () => {
       // Check if the website names have been added to the blacklist
       expect(updatedBlacklist).toStrictEqual(websiteNames);
 
-    // Test the isBlacklisted function for a blacklisted website name
-    const blacklistedName = 'example';
-    const blacklistedNameArgs = new Args().add(blacklistedName).serialize();
-    const isBlacklistedResult = isBlacklisted(blacklistedNameArgs);
-    const isBlacklistedValue = new Args(isBlacklistedResult).nextBool().unwrap();
+ // Test the isBlacklisted function for a blacklisted website name
+ const blacklistedName = 'example';
+ const isBlacklistedResult = isBlacklisted(new Args().add(blacklistedName).serialize());
+ const isBlacklistedValue = new Args(isBlacklistedResult).nextBool().unwrap();
 
-    // Expect the isBlacklistedValue to be true since 'example' is blacklisted
-    expect(isBlacklistedValue).toBe(true);
-      
+ // Expect the isBlacklistedValue to be true since 'example' is blacklisted
+ expect(isBlacklistedValue).toBe(true);
 
-    });
-    
+ // Test the isBlacklisted function for a non-blacklisted website name
+ const nonBlacklistedName = 'loolo';
+ const isBlacklistedResult2 = isBlacklisted(new Args().add(nonBlacklistedName).serialize());
+ const isBlacklistedValue2 = new Args(isBlacklistedResult2).nextBool().unwrap();
+
+ // Expect the isBlacklistedValue to be false since 'loolo' is not blacklisted
+ expect(isBlacklistedValue2).toBe(false);
+});
+          
   });
 });
