@@ -28,7 +28,7 @@ import {
   Context,
   callerHasWriteAccess,
 } from '@massalabs/massa-as-sdk';
-import { Args } from '@massalabs/as-types';
+import { Args, byteToBool } from '@massalabs/as-types';
 import { ownerKey, triggerError } from '../utils';
 
 export const contractOwnerKey = new Args().add('owner').serialize();
@@ -126,11 +126,9 @@ export function setResolver(binaryArgs: StaticArray<u8>): void {
   }
 
   // Check if the website name is blacklisted
-  const isBlacklistedValue = new Args(
-    isBlacklisted(websiteNameBytes.serialize()),
-  )
-    .nextBool()
-    .unwrap();
+  const isBlacklistedValue = byteToBool(
+    isBlacklisted(new Args().add(websiteName).serialize()),
+  );
 
   if (isBlacklistedValue) {
     triggerError('Try another website name, this one is reserved.');
