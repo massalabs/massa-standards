@@ -32,6 +32,8 @@ import { Args } from '@massalabs/as-types';
 import { ownerKey, triggerError } from '../utils';
 
 export const contractOwnerKey = new Args().add('owner').serialize();
+export const blackListKey    = new Args().add('blackList').serialize();
+
 
 function isDnsValid(input: string): bool {
   for (let i = 0; i < input.length; i++) {
@@ -227,7 +229,6 @@ function addToOwnerList(owner: Address, websiteName: string): void {
  */
 export function addWebsiteToBlackList(binaryArgs: StaticArray<u8>): void {
   onlyOwner();
-  const blackListKey = new Args().add('blackList').serialize();
 
   const websiteName = new Args(binaryArgs)
     .nextString()
@@ -264,9 +265,6 @@ export function addWebsiteToBlackList(binaryArgs: StaticArray<u8>): void {
  */
  export function addWebsitesToBlackList(binaryArgs: StaticArray<u8>): void {
   onlyOwner();
-
-  // Serialize the "blackList" key to retrieve and store blacklist data in storage
-  const blackListKey = new Args().add('blackList').serialize();
 
   // Extract the website names from binaryArgs and unwrap them into an array
   const websiteNames = new Args(binaryArgs)
