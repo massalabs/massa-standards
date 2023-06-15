@@ -4,10 +4,9 @@ import { stringToBytes } from '@massalabs/as-types';
 
 const tokenName = 'myToken';
 
-/* eslint-disable-next-line require-jsdoc */
 function initToken(): TokenWrapper {
   const tokenAddr = new Address(
-    'A12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT',
+    'AU12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT',
   );
 
   return new TokenWrapper(tokenAddr);
