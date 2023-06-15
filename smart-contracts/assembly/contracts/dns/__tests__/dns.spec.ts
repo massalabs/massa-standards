@@ -117,7 +117,7 @@ describe('DNS contract tests', () => {
     const desc = 'backlisted website description';
     //const websiteName = new Args().add('flappy').serialize();
     const websiteNames = ['flappy', 'example', 'website'];
-    const args = new Args().addNativeTypeArray<string[]>(websiteNames);
+    const args = new Args().addNativeTypeArray(websiteNames);
     const websiteNamesBinary = args.serialize();
 
     beforeAll(() => {
@@ -163,14 +163,13 @@ describe('DNS contract tests', () => {
     
       // Retrieve the updated blacklist from storage
       const updatedBlacklist = new Args(Storage.get(blackListKey))
-        .nextNativeTypeArray<string[]>()
+        .nextNativeTypeArray<string>()
         .unwrap();
     
       // Check if the website names have been added to the blacklist
       expect(updatedBlacklist).toContainEqual(websiteNames);
-      
+
     });
-    
     
   });
 });
