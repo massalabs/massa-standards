@@ -1,4 +1,4 @@
-import { contractOwnerKey , blackListKey} from './../dns';
+import { contractOwnerKey, blackListKey } from './../dns';
 import {
   setResolver,
   resolver,
@@ -9,7 +9,7 @@ import {
   setOwner,
 } from '../dns';
 import { Storage, mockAdminContext } from '@massalabs/massa-as-sdk';
-import { Args } from '@massalabs/as-types';
+import { Args, byteToBool } from '@massalabs/as-types';
 import {
   changeCallStack,
   resetStorage,
@@ -165,29 +165,35 @@ describe('DNS contract tests', () => {
       // Check if the website names have been added to the blacklist
       expect(updatedBlacklist).toStrictEqual(websiteNames);
 
+      // Call again the addWebsitesToBlackList function with the same list of website names
+      // To check that we don't blacklist twice
+      addWebsitesToBlackList(websiteNamesBinary);
+
+      // Retrieve the updated blacklist from storage
+      const finalBlacklist = new Args(Storage.get(blackListKey))
+        .nextNativeTypeArray<string>()
+        .unwrap();
+
+      // Check if we always get the same website names and not twice
+      expect(finalBlacklist).toStrictEqual(websiteNames);
+
       // Test the isBlacklisted function for a blacklisted website name
       const blacklistedName = 'example';
-      const isBlacklistedResult = isBlacklisted(
-        new Args().add(blacklistedName).serialize(),
-      );
-      const isBlacklistedValue = new Args(isBlacklistedResult)
-        .nextBool()
-        .unwrap();
 
-      // Expect the isBlacklistedValue to be true since 'example' is blacklisted
-      expect(isBlacklistedValue).toBe(true);
+      // Expect the isBlacklisted return to be true since 'example' is blacklisted
+      expect(
+        byteToBool(isBlacklisted(new Args().add(blacklistedName).serialize())),
+      ).toBe(true);
 
       // Test the isBlacklisted function for a non-blacklisted website name
-      const nonBlacklistedName = 'example2';
-      const isBlacklistedResult2 = isBlacklisted(
-        new Args().add(nonBlacklistedName).serialize(),
-      );
-      const isBlacklistedValue2 = new Args(isBlacklistedResult2)
-        .nextBool()
-        .unwrap();
+      const nonblacklistedName = 'example2';
 
-      // Expect the isBlacklistedValue to be false since 'example2' is not blacklisted
-      expect(isBlacklistedValue2).toBe(false);
+      // Expect the isBlacklisted return to be false since 'example2' is non blacklisted
+      expect(
+        byteToBool(
+          isBlacklisted(new Args().add(nonblacklistedName).serialize()),
+        ),
+      ).toBe(false);
     });
   });
 });

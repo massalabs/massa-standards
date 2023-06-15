@@ -274,7 +274,6 @@ export function addWebsiteToBlackList(binaryArgs: StaticArray<u8>): void {
  * @returns The array of blacklisted keys.
  */
 export function getBlacklisted(): string[] {
-
   // Deserialize the blacklisted keys from storage, if it exists
   const blacklistedKeys = Storage.has(blackListKey)
     ? new Args(Storage.get(blackListKey)).nextNativeTypeArray<string>().unwrap()
