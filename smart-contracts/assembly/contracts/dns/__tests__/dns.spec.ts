@@ -116,8 +116,6 @@ describe('DNS contract tests', () => {
   describe('DNS blacklist tests', () => {
     const name = 'backlisted';
     const desc = 'backlisted website description';
-    const websiteName = new Args().add('flappy').serialize();
-
 
     beforeAll(() => {
       // set a dns entry
@@ -156,37 +154,44 @@ describe('DNS contract tests', () => {
       const websiteNames = ['flappy', 'example', 'website'];
       const args = new Args().addNativeTypeArray(websiteNames);
       const websiteNamesBinary = args.serialize();
-    
+
       // Clear existing blacklist (if any)
       Storage.set(blackListKey, new Args().addNativeTypeArray([]).serialize());
-    
+
       // Call the addWebsitesToBlackList function with the list of website names
       addWebsitesToBlackList(websiteNamesBinary);
-    
+
       // Retrieve the updated blacklist from storage
       const updatedBlacklist = new Args(Storage.get(blackListKey))
         .nextNativeTypeArray<string>()
         .unwrap();
-    
+
       // Check if the website names have been added to the blacklist
       expect(updatedBlacklist).toStrictEqual(websiteNames);
 
- // Test the isBlacklisted function for a blacklisted website name
- const blacklistedName = 'example';
- const isBlacklistedResult = isBlacklisted(new Args().add(blacklistedName).serialize());
- const isBlacklistedValue = new Args(isBlacklistedResult).nextBool().unwrap();
+      // Test the isBlacklisted function for a blacklisted website name
+      const blacklistedName = 'example';
+      const isBlacklistedResult = isBlacklisted(
+        new Args().add(blacklistedName).serialize(),
+      );
+      const isBlacklistedValue = new Args(isBlacklistedResult)
+        .nextBool()
+        .unwrap();
 
- // Expect the isBlacklistedValue to be true since 'example' is blacklisted
- expect(isBlacklistedValue).toBe(true);
+      // Expect the isBlacklistedValue to be true since 'example' is blacklisted
+      expect(isBlacklistedValue).toBe(true);
 
- // Test the isBlacklisted function for a non-blacklisted website name
- const nonBlacklistedName = 'loolo';
- const isBlacklistedResult2 = isBlacklisted(new Args().add(nonBlacklistedName).serialize());
- const isBlacklistedValue2 = new Args(isBlacklistedResult2).nextBool().unwrap();
+      // Test the isBlacklisted function for a non-blacklisted website name
+      const nonBlacklistedName = 'example2';
+      const isBlacklistedResult2 = isBlacklisted(
+        new Args().add(nonBlacklistedName).serialize(),
+      );
+      const isBlacklistedValue2 = new Args(isBlacklistedResult2)
+        .nextBool()
+        .unwrap();
 
- // Expect the isBlacklistedValue to be false since 'loolo' is not blacklisted
- expect(isBlacklistedValue2).toBe(false);
-});
-          
+      // Expect the isBlacklistedValue to be false since 'example2' is not blacklisted
+      expect(isBlacklistedValue2).toBe(false);
+    });
   });
 });
