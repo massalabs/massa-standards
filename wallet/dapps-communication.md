@@ -600,7 +600,7 @@ type: object
 properties:
   nickname:
     type: string
-    description: Account nickname
+    description: Account nickname to use to sign the operation.
   functionName:
     type: string
   at:
