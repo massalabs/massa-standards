@@ -9,7 +9,7 @@ import {
   setOwner,
 } from '../dns';
 import { Storage, mockAdminContext } from '@massalabs/massa-as-sdk';
-import { Args, byteToBool } from '@massalabs/as-types';
+import { Args, byteToBool, NoArg } from '@massalabs/as-types';
 import {
   changeCallStack,
   resetStorage,
@@ -37,12 +37,9 @@ beforeAll(() => {
 
 describe('DNS contract tests', () => {
   test('constructor', () => {
-    const serializeddeployerAddress = new Args()
-      .add(deployerAddress)
-      .serialize();
-    constructor(serializeddeployerAddress);
+    constructor([]);
     expect(Storage.get(contractOwnerKey)).toStrictEqual(
-      serializeddeployerAddress,
+      new Args().add(deployerAddress).serialize(),
     );
   });
 

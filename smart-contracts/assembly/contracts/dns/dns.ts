@@ -66,7 +66,7 @@ export function constructor(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   if (!callerHasWriteAccess()) {
     return [];
   }
-  Storage.set(contractOwnerKey, binaryArgs);
+  Storage.set(contractOwnerKey, new Args().add(Context.caller()).serialize());
   return [];
 }
 
