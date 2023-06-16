@@ -28,10 +28,11 @@ import {
   Context,
   callerHasWriteAccess,
 } from '@massalabs/massa-as-sdk';
-import { Args } from '@massalabs/as-types';
+import { Args, byteToBool } from '@massalabs/as-types';
 import { ownerKey, triggerError } from '../utils';
 
 export const contractOwnerKey = new Args().add('owner').serialize();
+export const blackListKey = new Args().add('blackList').serialize();
 
 function isDnsValid(input: string): bool {
   for (let i = 0; i < input.length; i++) {
@@ -59,13 +60,13 @@ function isDnsValid(input: string): bool {
  *
  * @param binaryArgs - Arguments serialized with Args: dns owner address
  */
-export function constructor(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+export function constructor(_: StaticArray<u8>): StaticArray<u8> {
   // This line is important. It ensures that this function can't be called in the future.
   // If you remove this check, someone could call your constructor function and reset your smart contract.
   if (!callerHasWriteAccess()) {
     return [];
   }
-  Storage.set(contractOwnerKey, binaryArgs);
+  Storage.set(contractOwnerKey, new Args().add(Context.caller()).serialize());
   return [];
 }
 
@@ -114,6 +115,7 @@ export function setResolver(binaryArgs: StaticArray<u8>): void {
   const websiteAddress = args
     .nextString()
     .expect('website address is missing or invalid');
+
   const websiteNameBytes = new Args().add(websiteName);
 
   const description = args
@@ -122,6 +124,15 @@ export function setResolver(binaryArgs: StaticArray<u8>): void {
 
   if (Storage.has(websiteNameBytes)) {
     triggerError('Try another website name, this one is already taken.');
+  }
+
+  // Check if the website name is blacklisted
+  const isBlacklistedValue = byteToBool(
+    isBlacklisted(new Args().add(websiteName).serialize()),
+  );
+
+  if (isBlacklistedValue) {
+    triggerError('Try another website name, ' + websiteName + ' is reserved.');
   }
 
   Storage.set(
@@ -133,6 +144,7 @@ export function setResolver(binaryArgs: StaticArray<u8>): void {
   );
 
   addToOwnerList(Context.caller(), websiteName);
+
   // this event should not be changed without changing the event listener in Thyra
   generateEvent(
     `Website name ${websiteName} added to DNS at address ${websiteAddress}`,
@@ -227,7 +239,6 @@ function addToOwnerList(owner: Address, websiteName: string): void {
  */
 export function addWebsiteToBlackList(binaryArgs: StaticArray<u8>): void {
   onlyOwner();
-  const blackListKey = new Args().add('blackList').serialize();
 
   const websiteName = new Args(binaryArgs)
     .nextString()
@@ -255,4 +266,77 @@ export function addWebsiteToBlackList(binaryArgs: StaticArray<u8>): void {
 
   Storage.set(blackListKey, new Args().add(newList).serialize());
   generateEvent(`Domain name ${websiteName} added to blackList`);
+}
+
+/**
+ * Retrieves the array of blacklisted keys.
+ *
+ * @returns The array of blacklisted keys as a StaticArray<u8>.
+ */
+export function getBlacklisted(): StaticArray<u8> {
+  // Deserialize the blacklisted keys from storage, if it exists
+  return Storage.has(blackListKey) ? Storage.get(blackListKey) : [0, 0, 0, 0];
+}
+
+/**
+ * Appends multiple website names to the blacklist.
+ *
+ * @param binaryArgs - Website names in a binary format using Args.
+ */
+export function addWebsitesToBlackList(binaryArgs: StaticArray<u8>): void {
+  // Ensure that the caller is the contract owner
+  onlyOwner();
+
+  // Extract the website names from binaryArgs and unwrap them into an array
+  const websiteNames = new Args(binaryArgs)
+    .nextNativeTypeArray<string>()
+    .unwrap();
+
+  // Retrieve the current blacklisted keys
+  const existingBlacklist = new Args(getBlacklisted())
+    .nextNativeTypeArray<string>()
+    .unwrap();
+
+  // Create a Set to ensure uniqueness of website names
+  const blacklistSet = new Set<string>();
+
+  // Merge the existing blacklist with the new website names
+  const mergedWebsiteNames = websiteNames.concat(existingBlacklist);
+
+  // Add each website name to the blacklist Set
+  // the set is used to handle the case where a name is already blacklisted
+  // so we will not add it twice to the blacklist
+
+  for (let i = 0; i < mergedWebsiteNames.length; i++) {
+    blacklistSet.add(mergedWebsiteNames[i]);
+  }
+
+  // Convert the Set back to an array
+  const updatedBlacklist = blacklistSet.values();
+
+  // Serialize the new blacklist array and store it in storage
+  Storage.set(
+    blackListKey,
+    new Args().addNativeTypeArray(updatedBlacklist).serialize(),
+  );
+
+  // Generate an event with the website names that were added to the blacklist
+  generateEvent(`Domain names added to blacklist: ${websiteNames.join(', ')}`);
+}
+
+/**
+ * Checks if a website name is blacklisted.
+ *
+ * @param binaryArgs - Website name in a binary format using Args.
+ * @returns A serialized boolean indicating whether the website name is blacklisted.
+ */
+export function isBlacklisted(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+  const websiteName = new Args(binaryArgs).nextString().unwrap();
+
+  const blacklistedKeys = new Args(getBlacklisted())
+    .nextNativeTypeArray<string>()
+    .unwrap();
+  const isBlacklisted = blacklistedKeys.includes(websiteName);
+
+  return new Args().add(isBlacklisted).serialize();
 }

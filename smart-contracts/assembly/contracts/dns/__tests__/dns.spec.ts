@@ -1,13 +1,15 @@
-import { contractOwnerKey } from './../dns';
+import { contractOwnerKey, blackListKey } from './../dns';
 import {
   setResolver,
   resolver,
   addWebsiteToBlackList,
+  addWebsitesToBlackList,
+  isBlacklisted,
   constructor,
   setOwner,
 } from '../dns';
 import { Storage, mockAdminContext } from '@massalabs/massa-as-sdk';
-import { Args } from '@massalabs/as-types';
+import { Args, byteToBool } from '@massalabs/as-types';
 import {
   changeCallStack,
   resetStorage,
@@ -35,12 +37,9 @@ beforeAll(() => {
 
 describe('DNS contract tests', () => {
   test('constructor', () => {
-    const serializeddeployerAddress = new Args()
-      .add(deployerAddress)
-      .serialize();
-    constructor(serializeddeployerAddress);
+    constructor([]);
     expect(Storage.get(contractOwnerKey)).toStrictEqual(
-      serializeddeployerAddress,
+      new Args().add(deployerAddress).serialize(),
     );
   });
 
@@ -128,7 +127,6 @@ describe('DNS contract tests', () => {
 
     test('try to blackList a websiteName not being admin', () => {
       switchUser(deployerAddress);
-      const blackListKey = new Args().add('blackList').serialize();
 
       expect(() =>
         addWebsiteToBlackList(new Args().add(name).serialize()),
@@ -138,12 +136,82 @@ describe('DNS contract tests', () => {
 
     test('try to blackList a websiteName being admin', () => {
       switchUser(dnsAdmin);
-      const blackListKey = new Args().add('blackList').serialize();
-
       addWebsiteToBlackList(new Args().add(name).serialize());
       expect(Storage.get(blackListKey)).toStrictEqual(
         new Args().add(name).serialize(),
       );
+    });
+
+    test('add multiple websites to blacklist', () => {
+      switchUser(dnsAdmin);
+      const websiteNames = ['flappy', 'example', 'website'];
+      const args = new Args().addNativeTypeArray(websiteNames);
+      const websiteNamesBinary = args.serialize();
+
+      // Clear existing blacklist (if any)
+      Storage.set(blackListKey, new Args().addNativeTypeArray([]).serialize());
+
+      // Call the addWebsitesToBlackList function with the list of website names
+      addWebsitesToBlackList(websiteNamesBinary);
+
+      // Retrieve the updated blacklist from storage
+      const updatedBlacklist = new Args(Storage.get(blackListKey))
+        .nextNativeTypeArray<string>()
+        .unwrap();
+
+      // Check if the website names have been added to the blacklist
+      expect(updatedBlacklist).toStrictEqual(websiteNames);
+
+      // Call again the addWebsitesToBlackList function with the same list of website names
+      // To check that we don't blacklist twice
+      addWebsitesToBlackList(websiteNamesBinary);
+
+      // Retrieve the updated blacklist from storage
+      const finalBlacklist = new Args(Storage.get(blackListKey))
+        .nextNativeTypeArray<string>()
+        .unwrap();
+
+      // Check if we always get the same website names and not twice
+      expect(finalBlacklist).toStrictEqual(websiteNames);
+
+      // Test the isBlacklisted function for a blacklisted website name
+      const blacklistedName = 'example';
+
+      // Expect the isBlacklisted return to be true since 'example' is blacklisted
+      expect(
+        byteToBool(isBlacklisted(new Args().add(blacklistedName).serialize())),
+      ).toBe(true);
+
+      // Test the isBlacklisted function for a non-blacklisted website name
+      const nonblacklistedName = 'example2';
+
+      // Expect the isBlacklisted return to be false since 'example2' is non blacklisted
+      expect(
+        byteToBool(
+          isBlacklisted(new Args().add(nonblacklistedName).serialize()),
+        ),
+      ).toBe(false);
+    });
+
+    test('blacklist names and try to set resolver with a blacklisted name', () => {
+      switchUser(dnsAdmin);
+      // Blacklist a list of names
+      const blacklistNames = ['blacklist1', 'blacklist2', 'blacklist3'];
+      const blacklistArgs = new Args().addNativeTypeArray(blacklistNames);
+      const blacklistArgsBinary = blacklistArgs.serialize();
+      addWebsitesToBlackList(blacklistArgsBinary);
+
+      // Try to set resolver with a blacklisted name
+      const blacklistedName = 'blacklist1';
+
+      expect(() => {
+        const setResolverArgs = new Args()
+          .add(blacklistedName)
+          .add(deployerAddress)
+          .add('')
+          .serialize();
+        setResolver(setResolverArgs);
+      }).toThrow();
     });
   });
 });
