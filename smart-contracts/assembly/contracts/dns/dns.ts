@@ -132,9 +132,6 @@ export function setResolver(binaryArgs: StaticArray<u8>): void {
   );
 
   if (isBlacklistedValue) {
-    log(
-      'Website name is blacklisted: ' + websiteName + 'Error will be triggered',
-    );
     triggerError('Try another website name, ' + websiteName + ' is reserved.');
   }
 
