@@ -9,7 +9,7 @@ import {
   setOwner,
 } from '../dns';
 import { Storage, mockAdminContext } from '@massalabs/massa-as-sdk';
-import { Args, byteToBool, NoArg } from '@massalabs/as-types';
+import { Args, byteToBool } from '@massalabs/as-types';
 import {
   changeCallStack,
   resetStorage,
