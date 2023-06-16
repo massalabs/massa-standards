@@ -6,7 +6,7 @@ Initial meta issue: <https://github.com/massalabs/massa-standards/issues/13>
 
 **Status:** Draft
 
-**Version:** 0.3
+**Version:** 0.4
 
 ## Abstract
 
@@ -575,6 +575,119 @@ required:
 </tbody>
 </table>
 
+#### Call a Smart Contract
+
+This method is used to call smart contract.
+
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>Type</th>
+<th>Format</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+
+<tr>
+<td>Webpage to extension</td>
+<td><code>account.callSC</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  nickname:
+    type: string
+    description: Account nickname to use to sign the operation.
+  functionName:
+    type: string
+  at:
+    type: string
+  args:
+    type: Args
+    description: Smart contract arguments
+  coins:
+    type: string
+    format: BigInt
+    description: Amount of coins to send to the block creator
+  nonPersistentExecution (optional):
+    type: object
+    properties:
+      isNPE:
+        type: boolean
+        default: false
+      maxGas:
+        type: string
+        format: BigInt
+        default:"0"
+    description: Setup a Non-persistent execution of the SC call
+required:
+  - nickname
+  - functionName
+  - at
+  - args
+  - coins
+```
+
+</td><td>
+  
+```json
+{
+  "nickname": "my-account",
+  "name": "register",
+  "at": "AU19tCSKtiE4k9MJLyLH5sWGDZ7Rr2SiBf1ti3XqeCptwsXGvkef",
+  "args": {
+    "offset": 4,
+    "serialized": [
+      4,   0,   0,   0,
+      116, 101, 115, 116
+    ]
+  },
+  "coins": "2.0",
+  "nonPersistentExecution": {
+    "isNPE": true,
+    "maxGas": "100000000"
+  }
+}
+```
+
+</td>
+</tr>
+
+
+
+<tr>
+<td>Extension to webpage</td>
+<td><code>account.callSC.response</code></td>
+<td>
+
+```yaml
+type: object
+properties:
+  operationId:
+    type: string
+required:
+  - operationId
+```
+
+</td><td>
+  
+```json
+{
+ "operationId": "O1sBc7PanPjB8tEadNC4t4GGPFM5kqC8yTKqwzHHV9q7FksuBoE"
+}
+```
+
+</td>
+</tr>
+
+
+
+</tbody>
+</table>
+
 #### Transaction
 
 <table>
@@ -654,6 +767,8 @@ required:
 
 </tbody>
 </table>
+
+
 
 #### Node URLs
 
