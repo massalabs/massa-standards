@@ -237,7 +237,9 @@ function addToOwnerList(owner: Address, websiteName: string): void {
  *
  * @param binaryArgs - Website name in a binary format using Args.
  */
-export function addWebsiteToBlackList(binaryArgs: StaticArray<u8>): void {
+export function addWebsiteToBlackList(
+  binaryArgs: StaticArray<u8>,
+): StaticArray<u8> {
   onlyOwner();
 
   const websiteName = new Args(binaryArgs)
@@ -246,7 +248,7 @@ export function addWebsiteToBlackList(binaryArgs: StaticArray<u8>): void {
   if (!Storage.has(blackListKey)) {
     Storage.set(blackListKey, binaryArgs);
     generateEvent(`Domain name ${websiteName} added to blackList`);
-    return;
+    return [];
   }
 
   const oldList = new Args(Storage.get(blackListKey)).nextString().unwrap();
@@ -266,6 +268,7 @@ export function addWebsiteToBlackList(binaryArgs: StaticArray<u8>): void {
 
   Storage.set(blackListKey, new Args().add(newList).serialize());
   generateEvent(`Domain name ${websiteName} added to blackList`);
+  return [];
 }
 
 /**
@@ -283,7 +286,9 @@ export function getBlacklisted(): StaticArray<u8> {
  *
  * @param binaryArgs - Website names in a binary format using Args.
  */
-export function addWebsitesToBlackList(binaryArgs: StaticArray<u8>): void {
+export function addWebsitesToBlackList(
+  binaryArgs: StaticArray<u8>,
+): StaticArray<u8> {
   // Ensure that the caller is the contract owner
   onlyOwner();
 
@@ -322,6 +327,8 @@ export function addWebsitesToBlackList(binaryArgs: StaticArray<u8>): void {
 
   // Generate an event with the website names that were added to the blacklist
   generateEvent(`Domain names added to blacklist: ${websiteNames.join(', ')}`);
+
+  return [];
 }
 
 /**
