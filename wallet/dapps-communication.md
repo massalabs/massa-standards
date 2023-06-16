@@ -618,9 +618,10 @@ properties:
       isNPE:
         type: boolean
         default: false
-      maxGas (optional):
+      maxGas:
         type: string
         format: BigInt
+        default:"0"
     description: Setup a Non-persistent execution of the SC call
 required:
   - nickname
