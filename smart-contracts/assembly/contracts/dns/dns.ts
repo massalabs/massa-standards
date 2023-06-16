@@ -60,7 +60,7 @@ function isDnsValid(input: string): bool {
  *
  * @param binaryArgs - Arguments serialized with Args: dns owner address
  */
-export function constructor(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+export function constructor(_: StaticArray<u8>): StaticArray<u8> {
   // This line is important. It ensures that this function can't be called in the future.
   // If you remove this check, someone could call your constructor function and reset your smart contract.
   if (!callerHasWriteAccess()) {
