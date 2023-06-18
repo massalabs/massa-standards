@@ -2,6 +2,7 @@ import { contractOwnerKey, blackListKey } from './../dns';
 import {
   setResolver,
   resolver,
+  isDnsValid,
   addWebsiteToBlackList,
   addWebsitesToBlackList,
   isBlacklisted,
@@ -49,7 +50,7 @@ describe('DNS contract tests', () => {
     expect(Storage.get(contractOwnerKey)).toStrictEqual(serializedDnsAdmin);
   });
 
-  test('invalid dns entry', () => {
+  test('setResolver invalid dns entry', () => {
     expect(() => {
       const setResolverArgs = new Args()
         .add('invalid dns entry')
@@ -57,6 +58,38 @@ describe('DNS contract tests', () => {
         .serialize();
       setResolver(setResolverArgs);
     }).toThrow();
+  });
+  test('valid dns entry', () => {
+    const validDnsEntries = [
+      'example',
+      'example123',
+      'example_name',
+      'example-name',
+      'example_name-123',
+    ];
+
+    validDnsEntries.forEach((entry) => {
+      expect(isDnsValid(entry)).toBe(true);
+    });
+  });
+
+  test('invalid dns entry', () => {
+    const invalidDnsEntries = [
+      'example@',
+      'example!',
+      'example$',
+      'example%',
+      'example^',
+      'example&',
+      'example*',
+      'example(',
+      'example)',
+      'example=',
+    ];
+
+    invalidDnsEntries.forEach((entry) => {
+      expect(isDnsValid(entry)).toBe(false);
+    });
   });
 
   test('create dns entry', () => {
