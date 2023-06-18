@@ -55,6 +55,15 @@ function isDnsValid(input: string): bool {
   return true;
 }
 
+export function isDescriptionValid(description: string): boolean {
+  // Check if the length exceeds the maximum limit of 280 characters
+  if (description.length > 280) {
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * This function is meant to be called only one time: when the contract is deployed.
  *
