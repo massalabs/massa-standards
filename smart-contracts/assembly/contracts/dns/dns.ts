@@ -79,9 +79,6 @@ function onlyOwner(): void {
     .expect('owner key is missing or invalid');
   const caller = Context.caller().toString();
 
-  log(`Owner: ${owner}`);
-  log(`Caller: ${caller}`);
-
   if (owner != caller) {
     triggerError('NOT_OWNER');
   }
