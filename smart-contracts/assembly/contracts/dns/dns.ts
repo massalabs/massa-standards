@@ -34,7 +34,7 @@ import { ownerKey, triggerError } from '../utils';
 export const contractOwnerKey = new Args().add('owner').serialize();
 export const blackListKey = new Args().add('blackList').serialize();
 
-export function isDnsValid(input: string): boolean {
+export function isDnsValid(input: string): bool {
   for (let i = 0; i < input.length; i++) {
     const charCode = input.charCodeAt(i);
 
