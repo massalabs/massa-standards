@@ -59,36 +59,39 @@ describe('DNS contract tests', () => {
       setResolver(setResolverArgs);
     }).toThrow();
   });
-  test('valid dns entry', () => {
-    const validDnsEntries = [
-      'example',
-      'example123',
-      'example_name',
-      'example-name',
-      'example_name-123',
-    ];
 
-    validDnsEntries.forEach((entry) => {
-      expect(isDnsValid(entry)).toBe(true);
+  describe('DNS Name Validity', () => {
+    test('valid DNS name', () => {
+      const validDnsEntries = [
+        'example',
+        'example123',
+        'example_name',
+        'example-name',
+        'example_name-123',
+      ];
+
+      validDnsEntries.forEach((entry) => {
+        expect(isDnsValid(entry)).toBe(true);
+      });
     });
-  });
 
-  test('invalid dns entry', () => {
-    const invalidDnsEntries = [
-      'example@',
-      'example!',
-      'example$',
-      'example%',
-      'example^',
-      'example&',
-      'example*',
-      'example(',
-      'example)',
-      'example=',
-    ];
+    test('invalid DNS name', () => {
+      const invalidDnsEntries = [
+        'example@',
+        'example!',
+        'example$',
+        'example%',
+        'example^',
+        'example&',
+        'example*',
+        'example(',
+        'example)',
+        'example=',
+      ];
 
-    invalidDnsEntries.forEach((entry) => {
-      expect(isDnsValid(entry)).toBe(false);
+      invalidDnsEntries.forEach((entry) => {
+        expect(isDnsValid(entry)).toBe(false);
+      });
     });
   });
 
