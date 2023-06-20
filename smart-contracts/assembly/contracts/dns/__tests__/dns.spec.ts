@@ -1,6 +1,7 @@
 import { contractOwnerKey, blackListKey } from './../dns';
 import {
   setResolver,
+  isDescriptionValid,
   resolver,
   addWebsiteToBlackList,
   addWebsitesToBlackList,
@@ -47,6 +48,19 @@ describe('DNS contract tests', () => {
     const serializedDnsAdmin = new Args().add(dnsAdmin).serialize();
     setOwner(serializedDnsAdmin);
     expect(Storage.get(contractOwnerKey)).toStrictEqual(serializedDnsAdmin);
+  });
+
+  test('description length', () => {
+    const validDescriptionLessThan280 =
+      'Valid description with less than 280 characters.';
+    const invalidDescriptionMoreThan280 =
+      'Invalid description exceeding the maximum limit of 280 characters.' +
+      'x'.repeat(300);
+    const validDescriptionExactly280 = 'x'.repeat(280);
+
+    expect(isDescriptionValid(validDescriptionLessThan280)).toBe(true);
+    expect(isDescriptionValid(invalidDescriptionMoreThan280)).toBe(false);
+    expect(isDescriptionValid(validDescriptionExactly280)).toBe(true);
   });
 
   test('invalid dns entry', () => {
