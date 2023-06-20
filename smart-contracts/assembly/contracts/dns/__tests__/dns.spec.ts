@@ -1,8 +1,7 @@
-import { contractOwnerKey, blackListKey } from './../dns';
+import { contractOwnerKey, blackListKey, getBlacklisted } from './../dns';
 import {
   setResolver,
   resolver,
-  addWebsiteToBlackList,
   addWebsitesToBlackList,
   isBlacklisted,
   constructor,
@@ -125,23 +124,6 @@ describe('DNS contract tests', () => {
       setResolver(setResolverArgs);
     });
 
-    test('try to blackList a websiteName not being admin', () => {
-      switchUser(deployerAddress);
-
-      expect(() =>
-        addWebsiteToBlackList(new Args().add(name).serialize()),
-      ).toThrow();
-      expect(Storage.has(blackListKey)).toBeFalsy();
-    });
-
-    test('try to blackList a websiteName being admin', () => {
-      switchUser(dnsAdmin);
-      addWebsiteToBlackList(new Args().add(name).serialize());
-      expect(Storage.get(blackListKey)).toStrictEqual(
-        new Args().add(name).serialize(),
-      );
-    });
-
     test('add multiple websites to blacklist', () => {
       switchUser(dnsAdmin);
       const websiteNames = ['flappy', 'example', 'website'];
@@ -155,7 +137,7 @@ describe('DNS contract tests', () => {
       addWebsitesToBlackList(websiteNamesBinary);
 
       // Retrieve the updated blacklist from storage
-      const updatedBlacklist = new Args(Storage.get(blackListKey))
+      const updatedBlacklist = new Args(getBlacklisted())
         .nextNativeTypeArray<string>()
         .unwrap();
 
@@ -167,7 +149,7 @@ describe('DNS contract tests', () => {
       addWebsitesToBlackList(websiteNamesBinary);
 
       // Retrieve the updated blacklist from storage
-      const finalBlacklist = new Args(Storage.get(blackListKey))
+      const finalBlacklist = new Args(getBlacklisted())
         .nextNativeTypeArray<string>()
         .unwrap();
 
