@@ -131,6 +131,10 @@ export function setResolver(binaryArgs: StaticArray<u8>): void {
     .nextString()
     .expect('website description is missing or invalid');
 
+  if (!isDescriptionValid(description)) {
+    triggerError('INVALID_DESCRIPTION_ENTRY');
+  }
+
   if (Storage.has(websiteNameBytes)) {
     triggerError('Try another website name, this one is already taken.');
   }
