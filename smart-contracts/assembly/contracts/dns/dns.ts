@@ -246,42 +246,6 @@ function addToOwnerList(owner: Address, websiteName: string): void {
 }
 
 /**
- * Appends a new website name to the blacklist
- *
- * @param binaryArgs - Website name in a binary format using Args.
- */
-export function addWebsiteToBlackList(binaryArgs: StaticArray<u8>): void {
-  onlyOwner();
-
-  const websiteName = new Args(binaryArgs)
-    .nextString()
-    .expect('Website Name is missing or invalid');
-  if (!Storage.has(blackListKey)) {
-    Storage.set(blackListKey, binaryArgs);
-    generateEvent(`Domain name ${websiteName} added to blackList`);
-    return;
-  }
-
-  const oldList = new Args(Storage.get(blackListKey)).nextString().unwrap();
-
-  if (oldList.split(',').includes(websiteName)) {
-    triggerError('ALREADY_BLACKLISTED');
-  }
-
-  let newList = '';
-
-  if (oldList.length == 0) {
-    // needed if we implement a removeFromBlackList function
-    newList = websiteName;
-  } else {
-    newList = oldList + ',' + websiteName;
-  }
-
-  Storage.set(blackListKey, new Args().add(newList).serialize());
-  generateEvent(`Domain name ${websiteName} added to blackList`);
-}
-
-/**
  * Retrieves the array of blacklisted keys.
  *
  * @returns The array of blacklisted keys as a StaticArray<u8>.
