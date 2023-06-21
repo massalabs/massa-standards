@@ -124,7 +124,17 @@ describe('DNS contract tests', () => {
       setResolver(setResolverArgs);
     });
 
-    test('add multiple websites to blacklist', () => {
+    test('blacklist name not being admin', () => {
+      switchUser(user1Addr);
+      expect(() => {
+        const blacklistArgs = new Args()
+          .addNativeTypeArray(['blacklist1'])
+          .serialize();
+        addWebsitesToBlackList(blacklistArgs);
+      }).toThrow();
+    });
+
+    test('add multiple websites to blacklist being dns admin', () => {
       switchUser(dnsAdmin);
       const websiteNames = ['flappy', 'example', 'website'];
       const args = new Args().addNativeTypeArray(websiteNames);
