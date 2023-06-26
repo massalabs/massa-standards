@@ -42,3 +42,32 @@ export function _setBalance(address: Address, balance: u256): void {
 function getBalanceKey(address: Address): StaticArray<u8> {
   return stringToBytes(BALANCE_KEY + address.toString());
 }
+
+/**
+ * Sets the allowance of the spender on the owner's account.
+ *
+ * @param owner - owner address
+ * @param spenderAddress - spender address
+ * @param amount - amount to set an allowance for
+ */
+export function _approve(
+  owner: Address,
+  spenderAddress: Address,
+  amount: u256,
+): void {
+  const key = stringToBytes(owner.toString().concat(spenderAddress.toString()));
+  Storage.set(key, u256ToBytes(amount));
+}
+
+/**
+ * Returns the allowance set on the owner's account for the spender.
+ *
+ * @param owner - owner's id
+ * @param spenderAddress - spender's id
+ *
+ * @returns the allowance
+ */
+export function _allowance(owner: Address, spenderAddress: Address): u256 {
+  const key = stringToBytes(owner.toString().concat(spenderAddress.toString()));
+  return Storage.has(key) ? bytesToU256(Storage.get(key)) : u256.Zero;
+}

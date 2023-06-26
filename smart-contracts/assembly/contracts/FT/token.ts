@@ -6,13 +6,8 @@ import {
   createEvent,
   callerHasWriteAccess,
 } from '@massalabs/massa-as-sdk';
-import {
-  Args,
-  stringToBytes,
-  bytesToU256,
-  u256ToBytes,
-} from '@massalabs/as-types';
-import { _balance, _setBalance } from './token-commons';
+import { Args, stringToBytes, u256ToBytes } from '@massalabs/as-types';
+import { _balance, _setBalance, _approve, _allowance } from './token-commons';
 import { setOwner } from '../utils/ownership';
 import { u256 } from 'as-bignum/assembly';
 
@@ -235,19 +230,6 @@ export function allowance(binaryArgs: StaticArray<u8>): StaticArray<u8> {
 }
 
 /**
- * Returns the allowance set on the owner's account for the spender.
- *
- * @param owner - owner's id
- * @param spenderAddress - spender's id
- *
- * @returns the allowance
- */
-function _allowance(owner: Address, spenderAddress: Address): u256 {
-  const key = stringToBytes(owner.toString().concat(spenderAddress.toString()));
-  return Storage.has(key) ? bytesToU256(Storage.get(key)) : u256.Zero;
-}
-
-/**
  * Increases the allowance of the spender on the owner's account by the amount.
  *
  * This function can only be called by the owner.
@@ -322,18 +304,6 @@ export function decreaseAllowance(binaryArgs: StaticArray<u8>): void {
       newAllowance.toString(),
     ]),
   );
-}
-
-/**
- * Sets the allowance of the spender on the owner's account.
- *
- * @param owner - owner address
- * @param spenderAddress - spender address
- * @param amount - amount to set an allowance for
- */
-function _approve(owner: Address, spenderAddress: Address, amount: u256): void {
-  const key = stringToBytes(owner.toString().concat(spenderAddress.toString()));
-  Storage.set(key, u256ToBytes(amount));
 }
 
 /**
