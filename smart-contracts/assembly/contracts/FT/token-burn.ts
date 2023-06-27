@@ -100,8 +100,6 @@ export function burnFrom(binaryArgs: StaticArray<u8>): void {
 
   _burn(account, amount);
 
-  spenderAllowance.toU64();
-
   _approve(account, Context.caller(), u256.sub(spenderAllowance, amount));
 
   generateEvent(
