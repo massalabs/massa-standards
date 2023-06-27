@@ -4,7 +4,6 @@ import {
   isDescriptionValid,
   resolver,
   isDnsValid,
-  addWebsiteToBlackList,
   addWebsitesToBlackList,
   isBlacklisted,
   constructor,
@@ -50,7 +49,7 @@ describe('DNS contract tests', () => {
     setOwner(serializedDnsAdmin);
     expect(Storage.get(contractOwnerKey)).toStrictEqual(serializedDnsAdmin);
   });
-  
+
   test('description length', () => {
     const validDescriptionLessThan280 =
       'Valid description with less than 280 characters.';
