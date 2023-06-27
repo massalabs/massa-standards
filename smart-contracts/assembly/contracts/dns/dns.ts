@@ -34,21 +34,21 @@ import { ownerKey, triggerError } from '../utils';
 export const contractOwnerKey = new Args().add('owner').serialize();
 export const blackListKey = new Args().add('blackList').serialize();
 
-function isDnsValid(input: string): bool {
+export function isDnsValid(input: string): bool {
   for (let i = 0; i < input.length; i++) {
     const charCode = input.charCodeAt(i);
 
     if (
       !(
         (
-          (charCode >= 48 && charCode <= 57) || // numeric (0-9)
-          (charCode >= 65 && charCode <= 90) || // uppercase (A-Z)
           (charCode >= 97 && charCode <= 122) || // lowercase (a-z)
-          charCode === 45
-        ) // dash (-)
+          (charCode >= 48 && charCode <= 57) || // numeric (0-9)
+          charCode === 45 || // dash (-)
+          charCode === 95
+        ) // underscore (_)
       )
     ) {
-      return false; // character is not alphanumeric or dash
+      return false; // character is not alphanumeric or dash or underscore
     }
   }
 
@@ -86,7 +86,9 @@ function onlyOwner(): void {
   const owner = new Args(Storage.get(contractOwnerKey))
     .nextString()
     .expect('owner key is missing or invalid');
-  if (owner != Context.caller().toString()) {
+  const caller = Context.caller().toString();
+
+  if (owner != caller) {
     triggerError('NOT_OWNER');
   }
 }
