@@ -55,6 +55,15 @@ export function isDnsValid(input: string): bool {
   return true;
 }
 
+export function isDescriptionValid(description: string): boolean {
+  // Check if the length exceeds the maximum limit of 280 characters
+  if (description.length > 280) {
+    return false;
+  }
+
+  return true;
+}
+
 /**
  * This function is meant to be called only one time: when the contract is deployed.
  *
@@ -123,6 +132,10 @@ export function setResolver(binaryArgs: StaticArray<u8>): void {
   const description = args
     .nextString()
     .expect('website description is missing or invalid');
+
+  if (!isDescriptionValid(description)) {
+    triggerError('INVALID_DESCRIPTION_ENTRY');
+  }
 
   if (Storage.has(websiteNameBytes)) {
     triggerError('Try another website name, this one is already taken.');
@@ -232,42 +245,6 @@ function addToOwnerList(owner: Address, websiteName: string): void {
   generateEvent(
     `Domain name ${websiteName} added to owner address ${owner.toString()}`,
   );
-}
-
-/**
- * Appends a new website name to the blacklist
- *
- * @param binaryArgs - Website name in a binary format using Args.
- */
-export function addWebsiteToBlackList(binaryArgs: StaticArray<u8>): void {
-  onlyOwner();
-
-  const websiteName = new Args(binaryArgs)
-    .nextString()
-    .expect('Website Name is missing or invalid');
-  if (!Storage.has(blackListKey)) {
-    Storage.set(blackListKey, binaryArgs);
-    generateEvent(`Domain name ${websiteName} added to blackList`);
-    return;
-  }
-
-  const oldList = new Args(Storage.get(blackListKey)).nextString().unwrap();
-
-  if (oldList.split(',').includes(websiteName)) {
-    triggerError('ALREADY_BLACKLISTED');
-  }
-
-  let newList = '';
-
-  if (oldList.length == 0) {
-    // needed if we implement a removeFromBlackList function
-    newList = websiteName;
-  } else {
-    newList = oldList + ',' + websiteName;
-  }
-
-  Storage.set(blackListKey, new Args().add(newList).serialize());
-  generateEvent(`Domain name ${websiteName} added to blackList`);
 }
 
 /**

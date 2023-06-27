@@ -1,6 +1,7 @@
-import { contractOwnerKey, blackListKey } from './../dns';
+import { contractOwnerKey, blackListKey, getBlacklisted } from './../dns';
 import {
   setResolver,
+  isDescriptionValid,
   resolver,
   isDnsValid,
   addWebsiteToBlackList,
@@ -49,8 +50,21 @@ describe('DNS contract tests', () => {
     setOwner(serializedDnsAdmin);
     expect(Storage.get(contractOwnerKey)).toStrictEqual(serializedDnsAdmin);
   });
+  
+  test('description length', () => {
+    const validDescriptionLessThan280 =
+      'Valid description with less than 280 characters.';
+    const invalidDescriptionMoreThan280 =
+      'Invalid description exceeding the maximum limit of 280 characters.' +
+      'x'.repeat(300);
+    const validDescriptionExactly280 = 'x'.repeat(280);
 
-  test('setResolver invalid dns entry', () => {
+    expect(isDescriptionValid(validDescriptionLessThan280)).toBe(true);
+    expect(isDescriptionValid(invalidDescriptionMoreThan280)).toBe(false);
+    expect(isDescriptionValid(validDescriptionExactly280)).toBe(true);
+  });
+
+  test('invalid dns entry', () => {
     expect(() => {
       const setResolverArgs = new Args()
         .add('invalid dns entry')
@@ -161,24 +175,17 @@ describe('DNS contract tests', () => {
       setResolver(setResolverArgs);
     });
 
-    test('try to blackList a websiteName not being admin', () => {
-      switchUser(deployerAddress);
-
-      expect(() =>
-        addWebsiteToBlackList(new Args().add(name).serialize()),
-      ).toThrow();
-      expect(Storage.has(blackListKey)).toBeFalsy();
+    test('blacklist name not being admin', () => {
+      switchUser(user1Addr);
+      expect(() => {
+        const blacklistArgs = new Args()
+          .addNativeTypeArray(['blacklist1'])
+          .serialize();
+        addWebsitesToBlackList(blacklistArgs);
+      }).toThrow();
     });
 
-    test('try to blackList a websiteName being admin', () => {
-      switchUser(dnsAdmin);
-      addWebsiteToBlackList(new Args().add(name).serialize());
-      expect(Storage.get(blackListKey)).toStrictEqual(
-        new Args().add(name).serialize(),
-      );
-    });
-
-    test('add multiple websites to blacklist', () => {
+    test('add multiple websites to blacklist being dns admin', () => {
       switchUser(dnsAdmin);
       const websiteNames = ['flappy', 'example', 'website'];
       const args = new Args().addNativeTypeArray(websiteNames);
@@ -191,7 +198,7 @@ describe('DNS contract tests', () => {
       addWebsitesToBlackList(websiteNamesBinary);
 
       // Retrieve the updated blacklist from storage
-      const updatedBlacklist = new Args(Storage.get(blackListKey))
+      const updatedBlacklist = new Args(getBlacklisted())
         .nextNativeTypeArray<string>()
         .unwrap();
 
@@ -203,7 +210,7 @@ describe('DNS contract tests', () => {
       addWebsitesToBlackList(websiteNamesBinary);
 
       // Retrieve the updated blacklist from storage
-      const finalBlacklist = new Args(Storage.get(blackListKey))
+      const finalBlacklist = new Args(getBlacklisted())
         .nextNativeTypeArray<string>()
         .unwrap();
 

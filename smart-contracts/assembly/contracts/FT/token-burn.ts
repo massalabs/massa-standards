@@ -5,9 +5,10 @@ import {
   generateEvent,
   createEvent,
 } from '@massalabs/massa-as-sdk';
-import { Args, bytesToU64, u64ToBytes } from '@massalabs/as-types';
+import { Args, bytesToU256, u256ToBytes } from '@massalabs/as-types';
 import { totalSupply, TOTAL_SUPPLY_KEY } from './token';
 import { _balance, _setBalance } from './token-commons';
+import { u256 } from 'as-bignum/assembly';
 
 const BURN_EVENT_NAME = 'BURN';
 
@@ -15,11 +16,13 @@ const BURN_EVENT_NAME = 'BURN';
  * Burn tokens from the caller address
  *
  * @param binaryArgs - byte string with the following format:
- * - the amount of tokens to burn obn the caller address (u64).
+ * - the amount of tokens to burn obn the caller address (u256).
  */
 export function burn(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
-  const amount = args.nextU64().expect('amount argument is missing or invalid');
+  const amount = args
+    .nextU256()
+    .expect('amount argument is missing or invalid');
 
   _decreaseTotalSupply(amount);
 
@@ -40,9 +43,10 @@ export function burn(binaryArgs: StaticArray<u8>): void {
  * @param amount -
  * @returns true if tokens has been burned
  */
-export function _burn(addressToBurn: Address, amount: u64): void {
+export function _burn(addressToBurn: Address, amount: u256): void {
   const oldRecipientBalance = _balance(addressToBurn);
-  const newRecipientBalance = oldRecipientBalance - amount;
+  // @ts-ignore
+  const newRecipientBalance: u256 = oldRecipientBalance - amount;
 
   // Check underflow
   assert(
@@ -59,9 +63,10 @@ export function _burn(addressToBurn: Address, amount: u64): void {
  * @param amount -
  * @returns true if the total supply has been decreased
  */
-export function _decreaseTotalSupply(amount: u64): void {
-  const oldTotalSupply = bytesToU64(totalSupply([]));
-  const newTotalSupply = oldTotalSupply - amount;
+export function _decreaseTotalSupply(amount: u256): void {
+  const oldTotalSupply = bytesToU256(totalSupply([]));
+  // @ts-ignore
+  const newTotalSupply: u256 = oldTotalSupply - amount;
 
   // Check underflow
   assert(
@@ -69,5 +74,5 @@ export function _decreaseTotalSupply(amount: u64): void {
     'Requested burn amount causes an underflow',
   );
 
-  Storage.set(TOTAL_SUPPLY_KEY, u64ToBytes(newTotalSupply));
+  Storage.set(TOTAL_SUPPLY_KEY, u256ToBytes(newTotalSupply));
 }

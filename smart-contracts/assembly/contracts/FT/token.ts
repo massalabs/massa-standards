@@ -8,12 +8,13 @@ import {
 } from '@massalabs/massa-as-sdk';
 import {
   Args,
-  bytesToU64,
   stringToBytes,
-  u64ToBytes,
+  bytesToU256,
+  u256ToBytes,
 } from '@massalabs/as-types';
 import { _balance, _setBalance } from './token-commons';
 import { setOwner } from '../utils/ownership';
+import { u256 } from 'as-bignum/assembly';
 
 const TRANSFER_EVENT_NAME = 'TRANSFER';
 const APPROVAL_EVENT_NAME = 'APPROVAL';
@@ -43,7 +44,7 @@ export const DECIMALS_KEY = stringToBytes('DECIMALS');
  * - the token name (string)
  * - the token symbol (string).
  * - the decimals (u8).
- * - the totalSupply (u64)
+ * - the totalSupply (u256)
  * - first owner (address)e
  */
 export function constructor(stringifyArgs: StaticArray<u8>): void {
@@ -71,9 +72,9 @@ export function constructor(stringifyArgs: StaticArray<u8>): void {
 
   // initialize totalSupply
   const totalSupply = args
-    .nextU64()
+    .nextU256()
     .expect('Error while initializing totalSupply');
-  Storage.set(TOTAL_SUPPLY_KEY, u64ToBytes(totalSupply));
+  Storage.set(TOTAL_SUPPLY_KEY, u256ToBytes(totalSupply));
 
   setOwner(new Args().add(Context.caller().toString()).serialize());
   _setBalance(Context.caller(), totalSupply);
@@ -119,7 +120,7 @@ export function symbol(_: StaticArray<u8>): StaticArray<u8> {
  * The number of tokens that were initially minted.
  *
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
- * @returns u64
+ * @returns u256
  */
 export function totalSupply(_: StaticArray<u8>): StaticArray<u8> {
   return Storage.get(TOTAL_SUPPLY_KEY);
@@ -152,7 +153,7 @@ export function balanceOf(binaryArgs: StaticArray<u8>): StaticArray<u8> {
     args.nextString().expect('Address argument is missing or invalid'),
   );
 
-  return u64ToBytes(_balance(addr));
+  return u256ToBytes(_balance(addr));
 }
 
 // ==================================================== //
@@ -164,7 +165,7 @@ export function balanceOf(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  *
  * @param binaryArgs - Args object serialized as a string containing:
  * - the recipient's account (address)
- * - the number of tokens (u64).
+ * - the number of tokens (u256).
  */
 export function transfer(binaryArgs: StaticArray<u8>): void {
   const owner = Context.caller();
@@ -173,12 +174,11 @@ export function transfer(binaryArgs: StaticArray<u8>): void {
   const toAddress = new Address(
     args.nextString().expect('receiverAddress argument is missing or invalid'),
   );
-  const amount = args.nextU64().expect('amount argument is missing or invalid');
+  const amount = args
+    .nextU256()
+    .expect('amount argument is missing or invalid');
 
-  assert(
-    _transfer(owner, toAddress, amount),
-    'Transfer failed: Invalid amount',
-  );
+  _transfer(owner, toAddress, amount);
 
   generateEvent(
     createEvent(TRANSFER_EVENT_NAME, [
@@ -198,23 +198,17 @@ export function transfer(binaryArgs: StaticArray<u8>): void {
  *
  * @returns true if the transfer is successful
  */
-function _transfer(from: Address, to: Address, amount: u64): bool {
+function _transfer(from: Address, to: Address, amount: u256): void {
   const currentFromBalance = _balance(from);
   const currentToBalance = _balance(to);
+  // @ts-ignore
   const newToBalance = currentToBalance + amount;
 
-  if (
-    currentFromBalance < amount || // underflow of balance from
-    newToBalance < currentToBalance
-  ) {
-    // overflow of balance to
-    return false;
-  }
-
+  assert(currentFromBalance >= amount, 'Transfer failed: insufficient funds');
+  assert(newToBalance >= currentToBalance, 'Transfer failed: overflow');
+  // @ts-ignore
   _setBalance(from, currentFromBalance - amount);
   _setBalance(to, newToBalance);
-
-  return true;
 }
 
 // ==================================================== //
@@ -237,7 +231,7 @@ export function allowance(binaryArgs: StaticArray<u8>): StaticArray<u8> {
     args.nextString().expect('spenderAddress argument is missing or invalid'),
   );
 
-  return u64ToBytes(_allowance(owner, spenderAddress));
+  return u256ToBytes(_allowance(owner, spenderAddress));
 }
 
 /**
@@ -248,9 +242,9 @@ export function allowance(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  *
  * @returns the allowance
  */
-function _allowance(owner: Address, spenderAddress: Address): u64 {
+function _allowance(owner: Address, spenderAddress: Address): u256 {
   const key = stringToBytes(owner.toString().concat(spenderAddress.toString()));
-  return Storage.has(key) ? bytesToU64(Storage.get(key)) : 0;
+  return Storage.has(key) ? bytesToU256(Storage.get(key)) : u256.Zero;
 }
 
 /**
@@ -260,7 +254,7 @@ function _allowance(owner: Address, spenderAddress: Address): u64 {
  *
  * @param binaryArgs - Args object serialized as a string containing:
  * - the spender's account (address);
- * - the amount (u64).
+ * - the amount (u256).
  */
 export function increaseAllowance(binaryArgs: StaticArray<u8>): void {
   const owner = Context.caller();
@@ -269,11 +263,14 @@ export function increaseAllowance(binaryArgs: StaticArray<u8>): void {
   const spenderAddress = new Address(
     args.nextString().expect('spenderAddress argument is missing or invalid'),
   );
-  const amount = args.nextU64().expect('amount argument is missing or invalid');
+  const amount = args
+    .nextU256()
+    .expect('amount argument is missing or invalid');
 
+  // @ts-ignore
   let newAllowance = _allowance(owner, spenderAddress) + amount;
   if (newAllowance < amount) {
-    newAllowance = U64.MAX_VALUE;
+    newAllowance = u256.Max;
   }
 
   _approve(owner, spenderAddress, newAllowance);
@@ -294,7 +291,7 @@ export function increaseAllowance(binaryArgs: StaticArray<u8>): void {
  *
  * @param binaryArgs - Args object serialized as a string containing:
  * - the spender's account (address);
- * - the amount (u64).
+ * - the amount (u256).
  */
 export function decreaseAllowance(binaryArgs: StaticArray<u8>): void {
   const owner = Context.caller();
@@ -303,13 +300,16 @@ export function decreaseAllowance(binaryArgs: StaticArray<u8>): void {
   const spenderAddress = new Address(
     args.nextString().expect('spenderAddress argument is missing or invalid'),
   );
-  const amount = args.nextU64().expect('amount argument is missing or invalid');
+  const amount = args
+    .nextU256()
+    .expect('amount argument is missing or invalid');
 
   const current = _allowance(owner, spenderAddress);
 
-  let newAllowance: u64 = 0;
+  let newAllowance = u256.Zero;
 
   if (current > amount) {
+    // @ts-ignore
     newAllowance = current - amount;
   }
 
@@ -331,9 +331,9 @@ export function decreaseAllowance(binaryArgs: StaticArray<u8>): void {
  * @param spenderAddress - spender address
  * @param amount - amount to set an allowance for
  */
-function _approve(owner: Address, spenderAddress: Address, amount: u64): void {
+function _approve(owner: Address, spenderAddress: Address, amount: u256): void {
   const key = stringToBytes(owner.toString().concat(spenderAddress.toString()));
-  Storage.set(key, u64ToBytes(amount));
+  Storage.set(key, u256ToBytes(amount));
 }
 
 /**
@@ -348,7 +348,7 @@ function _approve(owner: Address, spenderAddress: Address, amount: u64): void {
  * @param binaryArgs - Args object serialized as a string containing:
  * - the owner's account (address);
  * - the recipient's account (address);
- * - the amount (u64).
+ * - the amount (u256).
  */
 export function transferFrom(binaryArgs: StaticArray<u8>): void {
   const spenderAddress = Context.caller();
@@ -360,7 +360,9 @@ export function transferFrom(binaryArgs: StaticArray<u8>): void {
   const recipient = new Address(
     args.nextString().expect('recipientAddress argument is missing or invalid'),
   );
-  const amount = args.nextU64().expect('amount argument is missing or invalid');
+  const amount = args
+    .nextU256()
+    .expect('amount argument is missing or invalid');
 
   const spenderAllowance = _allowance(owner, spenderAddress);
 
@@ -369,11 +371,9 @@ export function transferFrom(binaryArgs: StaticArray<u8>): void {
     'transferFrom failed: insufficient allowance',
   );
 
-  assert(
-    _transfer(owner, recipient, amount),
-    'transferFrom failed: invalid amount',
-  );
+  _transfer(owner, recipient, amount);
 
+  // @ts-ignore
   _approve(owner, spenderAddress, spenderAllowance - amount);
 
   generateEvent(
