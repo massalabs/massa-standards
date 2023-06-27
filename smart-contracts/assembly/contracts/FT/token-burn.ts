@@ -100,7 +100,7 @@ export function burnFrom(binaryArgs: StaticArray<u8>): void {
 
   _burn(account, amount);
 
-  _approve(account, Context.caller(), u256.sub(spenderAllowance, amount));
+  _approve(account, Context.caller(), spenderAllowance - amount);
 
   generateEvent(
     createEvent(BURN_EVENT_NAME, [account.toString(), amount.toString()]),
