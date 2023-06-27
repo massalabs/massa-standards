@@ -122,7 +122,7 @@ describe('burnFrom', () => {
     switchUser(user1Address);
   });
 
-  throws('Fails because not enough allowance U3 => U1 ', () => {
+  throws('on insufficient allowance ', () => {
     burnFrom(
       new Args()
         .add(user3Address)
@@ -133,7 +133,7 @@ describe('burnFrom', () => {
     );
   });
 
-  throws('Fails because not enough token on U3', () =>
+  throws('on insufficient balance', () =>
     burnFrom(
       new Args()
         .add(user3Address)
@@ -143,7 +143,7 @@ describe('burnFrom', () => {
     ),
   );
 
-  test('u1 sends tokens to u3 then burnFrom all tokens', () => {
+  test('should be able to burn tokens from an other address', () => {
     const u1balanceBefore = balanceOf(new Args().add(user1Address).serialize());
     const u3balanceBefore = balanceOf(new Args().add(user3Address).serialize());
 

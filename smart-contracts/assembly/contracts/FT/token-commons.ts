@@ -4,6 +4,7 @@ import { Address, Storage } from '@massalabs/massa-as-sdk';
 import { u256 } from 'as-bignum/assembly';
 
 export const BALANCE_KEY = 'BALANCE';
+export const ALLOWANCE_KEY = 'ALLOWANCE';
 
 /**
  * Theses function are intended to be used in different token types (mintable, burnable...).
@@ -47,15 +48,12 @@ function getBalanceKey(address: Address): StaticArray<u8> {
  * Sets the allowance of the spender on the owner's account.
  *
  * @param owner - owner address
- * @param spenderAddress - spender address
+ * @param spender - spender address
  * @param amount - amount to set an allowance for
  */
-export function _approve(
-  owner: Address,
-  spenderAddress: Address,
-  amount: u256,
-): void {
-  const key = stringToBytes(owner.toString().concat(spenderAddress.toString()));
+export function _approve(owner: Address, spender: Address, amount: u256): void {
+  const key = getAllowanceKey(owner, spender);
+
   Storage.set(key, u256ToBytes(amount));
 }
 
@@ -63,11 +61,22 @@ export function _approve(
  * Returns the allowance set on the owner's account for the spender.
  *
  * @param owner - owner's id
- * @param spenderAddress - spender's id
+ * @param spender - spender's id
  *
  * @returns the allowance
  */
-export function _allowance(owner: Address, spenderAddress: Address): u256 {
-  const key = stringToBytes(owner.toString().concat(spenderAddress.toString()));
+export function _allowance(owner: Address, spender: Address): u256 {
+  const key = getAllowanceKey(owner, spender);
   return Storage.has(key) ? bytesToU256(Storage.get(key)) : u256.Zero;
+}
+
+/**
+ * @param owner - address of the token owner
+ * @param spender - address of the token spender
+ * @returns the key of the allowance in the storage for the given addresses
+ */
+function getAllowanceKey(owner: Address, spender: Address): StaticArray<u8> {
+  return stringToBytes(
+    ALLOWANCE_KEY + owner.toString().concat(spender.toString()),
+  );
 }

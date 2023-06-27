@@ -81,28 +81,29 @@ export function _decreaseTotalSupply(amount: u256): void {
  * Burn tokens from the caller address
  *
  * @param binaryArgs - byte string with the following format:
- * - the amount of tokens to burn obn the caller address (u256).
+ * - the amount of tokens to burn on the caller address (u256).
+ * - the owner of the tokens to be burned
  */
 export function burnFrom(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
   const amount = args
     .nextU256()
     .expect('amount argument is missing or invalid');
-  const account = new Address(
+  const owner = new Address(
     args.nextString().expect('account argument is missing or invalid'),
   );
 
-  const spenderAllowance = _allowance(account, Context.caller());
+  const spenderAllowance = _allowance(owner, Context.caller());
 
   assert(spenderAllowance >= amount, 'burnFrom failed: insufficient allowance');
 
   _decreaseTotalSupply(amount);
 
-  _burn(account, amount);
+  _burn(owner, amount);
 
-  _approve(account, Context.caller(), spenderAllowance - amount);
+  _approve(owner, Context.caller(), spenderAllowance - amount);
 
   generateEvent(
-    createEvent(BURN_EVENT_NAME, [account.toString(), amount.toString()]),
+    createEvent(BURN_EVENT_NAME, [owner.toString(), amount.toString()]),
   );
 }
