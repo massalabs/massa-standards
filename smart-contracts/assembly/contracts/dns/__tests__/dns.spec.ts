@@ -3,6 +3,7 @@ import {
   setResolver,
   isDescriptionValid,
   resolver,
+  isDnsValid,
   addWebsitesToBlackList,
   isBlacklisted,
   constructor,
@@ -70,6 +71,41 @@ describe('DNS contract tests', () => {
         .serialize();
       setResolver(setResolverArgs);
     }).toThrow();
+  });
+
+  describe('DNS Name Validity', () => {
+    test('valid DNS name', () => {
+      const validDnsEntries = [
+        'example',
+        'example123',
+        'example_name',
+        'example-name',
+        'example_name-123',
+      ];
+
+      validDnsEntries.forEach((entry) => {
+        expect(isDnsValid(entry)).toBe(true);
+      });
+    });
+
+    test('invalid DNS name', () => {
+      const invalidDnsEntries = [
+        'example@',
+        'example!',
+        'example$',
+        'example%',
+        'example^',
+        'example&',
+        'example*',
+        'example(',
+        'example)',
+        'example=',
+      ];
+
+      invalidDnsEntries.forEach((entry) => {
+        expect(isDnsValid(entry)).toBe(false);
+      });
+    });
   });
 
   test('create dns entry', () => {

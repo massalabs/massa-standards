@@ -148,7 +148,6 @@ describe('burnFrom', () => {
     const u3balanceBefore = balanceOf(new Args().add(user3Address).serialize());
 
     transfer(new Args().add(user3Address).add(allowAmount).serialize());
-
     burnFrom(new Args().add(user3Address).add(allowAmount).serialize());
 
     // Check balance changes
