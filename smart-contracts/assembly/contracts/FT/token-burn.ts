@@ -86,12 +86,12 @@ export function _decreaseTotalSupply(amount: u256): void {
  */
 export function burnFrom(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
-  const amount = args
-    .nextU256()
-    .expect('amount argument is missing or invalid');
   const owner = new Address(
     args.nextString().expect('account argument is missing or invalid'),
   );
+  const amount = args
+    .nextU256()
+    .expect('amount argument is missing or invalid');
 
   const spenderAllowance = _allowance(owner, Context.caller());
 

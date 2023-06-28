@@ -149,7 +149,7 @@ describe('burnFrom', () => {
 
     transfer(new Args().add(user3Address).add(allowAmount).serialize());
 
-    burnFrom(new Args().add(allowAmount).add(user3Address).serialize());
+    burnFrom(new Args().add(user3Address).add(allowAmount).serialize());
 
     // Check balance changes
     expect(balanceOf(new Args().add(user1Address).serialize())).toStrictEqual(
