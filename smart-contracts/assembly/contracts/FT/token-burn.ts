@@ -7,7 +7,7 @@ import {
 } from '@massalabs/massa-as-sdk';
 import { Args, bytesToU256, u256ToBytes } from '@massalabs/as-types';
 import { totalSupply, TOTAL_SUPPLY_KEY } from './token';
-import { _balance, _setBalance } from './token-commons';
+import { _balance, _setBalance, _approve, _allowance } from './token-commons';
 import { u256 } from 'as-bignum/assembly';
 
 const BURN_EVENT_NAME = 'BURN';
@@ -75,4 +75,35 @@ export function _decreaseTotalSupply(amount: u256): void {
   );
 
   Storage.set(TOTAL_SUPPLY_KEY, u256ToBytes(newTotalSupply));
+}
+
+/**
+ * Burn tokens from the caller address
+ *
+ * @param binaryArgs - byte string with the following format:
+ * - the amount of tokens to burn on the caller address (u256).
+ * - the owner of the tokens to be burned
+ */
+export function burnFrom(binaryArgs: StaticArray<u8>): void {
+  const args = new Args(binaryArgs);
+  const amount = args
+    .nextU256()
+    .expect('amount argument is missing or invalid');
+  const owner = new Address(
+    args.nextString().expect('account argument is missing or invalid'),
+  );
+
+  const spenderAllowance = _allowance(owner, Context.caller());
+
+  assert(spenderAllowance >= amount, 'burnFrom failed: insufficient allowance');
+
+  _decreaseTotalSupply(amount);
+
+  _burn(owner, amount);
+
+  _approve(owner, Context.caller(), spenderAllowance - amount);
+
+  generateEvent(
+    createEvent(BURN_EVENT_NAME, [owner.toString(), amount.toString()]),
+  );
 }
