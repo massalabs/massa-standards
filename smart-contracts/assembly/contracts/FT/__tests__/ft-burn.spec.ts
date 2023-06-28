@@ -143,7 +143,7 @@ describe('burnFrom', () => {
     ),
   );
 
-  test('should be able to burn tokens from an other address', () => {
+  test('should burn tokens from an other address', () => {
     const u1balanceBefore = balanceOf(new Args().add(user1Address).serialize());
     const u3balanceBefore = balanceOf(new Args().add(user3Address).serialize());
 
