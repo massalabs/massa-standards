@@ -10,7 +10,10 @@ import {
   setOwner,
 } from '../dns';
 import { Storage, mockAdminContext } from '@massalabs/massa-as-sdk';
-import { Args, byteToBool } from '@massalabs/as-types';
+import { byteToBool } from '@massalabs/as-types';
+import {
+  Args,
+} from '@massalabs/massa-web3';
 import {
   changeCallStack,
   resetStorage,
@@ -178,7 +181,7 @@ describe('DNS contract tests', () => {
       switchUser(user1Addr);
       expect(() => {
         const blacklistArgs = new Args()
-          .addNativeTypeArray(['blacklist1'])
+          .add(['blacklist1'])
           .serialize();
         addWebsitesToBlackList(blacklistArgs);
       }).toThrow();
@@ -187,18 +190,18 @@ describe('DNS contract tests', () => {
     test('add multiple websites to blacklist being dns admin', () => {
       switchUser(dnsAdmin);
       const websiteNames = ['flappy', 'example', 'website'];
-      const args = new Args().addNativeTypeArray(websiteNames);
+      const args = new Args().add(websiteNames);
       const websiteNamesBinary = args.serialize();
 
       // Clear existing blacklist (if any)
-      Storage.set(blackListKey, new Args().addNativeTypeArray([]).serialize());
+      Storage.set(blackListKey, new Args().add([]).serialize());
 
       // Call the addWebsitesToBlackList function with the list of website names
       addWebsitesToBlackList(websiteNamesBinary);
 
       // Retrieve the updated blacklist from storage
       const updatedBlacklist = new Args(getBlacklisted())
-        .nextNativeTypeArray<string>()
+        .nextStringArray()
         .unwrap();
 
       // Check if the website names have been added to the blacklist
@@ -210,7 +213,7 @@ describe('DNS contract tests', () => {
 
       // Retrieve the updated blacklist from storage
       const finalBlacklist = new Args(getBlacklisted())
-        .nextNativeTypeArray<string>()
+        .nextStringArray()
         .unwrap();
 
       // Check if we always get the same website names and not twice
@@ -239,7 +242,7 @@ describe('DNS contract tests', () => {
       switchUser(dnsAdmin);
       // Blacklist a list of names
       const blacklistNames = ['blacklist1', 'blacklist2', 'blacklist3'];
-      const blacklistArgs = new Args().addNativeTypeArray(blacklistNames);
+      const blacklistArgs = new Args().add(blacklistNames);
       const blacklistArgsBinary = blacklistArgs.serialize();
       addWebsitesToBlackList(blacklistArgsBinary);
 
