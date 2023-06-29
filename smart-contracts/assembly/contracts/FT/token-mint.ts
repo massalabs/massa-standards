@@ -1,19 +1,13 @@
 import {
   Storage,
-  Context,
   Address,
   generateEvent,
   createEvent,
 } from '@massalabs/massa-as-sdk';
-import {
-  Args,
-  byteToBool,
-  bytesToU256,
-  u256ToBytes,
-} from '@massalabs/as-types';
+import { Args, bytesToU256, u256ToBytes } from '@massalabs/as-types';
 import { totalSupply, TOTAL_SUPPLY_KEY } from './token';
 import { _balance, _setBalance } from './token-commons';
-import { isOwner } from '../utils/ownership';
+import { onlyOwner } from '../utils/ownership';
 import { u256 } from 'as-bignum/assembly';
 
 const MINT_EVENT_NAME = 'MINT';
@@ -26,6 +20,7 @@ const MINT_EVENT_NAME = 'MINT';
  * - the amount of tokens to mint (u256).
  */
 export function mint(binaryArgs: StaticArray<u8>): void {
+  onlyOwner();
   const args = new Args(binaryArgs);
   const recipient = new Address(
     args.nextString().expect('recipient argument is missing or invalid'),
@@ -33,8 +28,6 @@ export function mint(binaryArgs: StaticArray<u8>): void {
   const amount = args
     .nextU256()
     .expect('amount argument is missing or invalid');
-
-  assert(byteToBool(isOwner(Context.caller())), 'Caller is not the owner');
 
   _increaseTotalSupply(amount);
 
