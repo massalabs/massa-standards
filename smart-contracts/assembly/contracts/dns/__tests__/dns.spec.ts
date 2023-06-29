@@ -1,4 +1,4 @@
-import { contractOwnerKey, blackListKey, getBlacklisted } from './../dns';
+import { blackListKey, getBlacklisted } from './../dns';
 import {
   setResolver,
   isDescriptionValid,
@@ -7,14 +7,14 @@ import {
   addWebsitesToBlackList,
   isBlacklisted,
   constructor,
-  setOwner,
 } from '../dns';
 import { Storage, mockAdminContext } from '@massalabs/massa-as-sdk';
-import { Args, byteToBool } from '@massalabs/as-types';
+import { Args, byteToBool, stringToBytes } from '@massalabs/as-types';
 import {
   changeCallStack,
   resetStorage,
 } from '@massalabs/massa-as-sdk/assembly/vm-mock/storage';
+import { ownerAddress, setOwner } from '../../utils';
 
 // address of admin caller set in vm-mock. must match with adminAddress of @massalabs/massa-as-sdk/vm-mock/vm.js
 const deployerAddress = 'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
@@ -39,15 +39,13 @@ beforeAll(() => {
 describe('DNS contract tests', () => {
   test('constructor', () => {
     constructor([]);
-    expect(Storage.get(contractOwnerKey)).toStrictEqual(
-      new Args().add(deployerAddress).serialize(),
-    );
+    expect(ownerAddress([])).toStrictEqual(stringToBytes(deployerAddress));
   });
 
   test('change dns admin', () => {
     const serializedDnsAdmin = new Args().add(dnsAdmin).serialize();
     setOwner(serializedDnsAdmin);
-    expect(Storage.get(contractOwnerKey)).toStrictEqual(serializedDnsAdmin);
+    expect(ownerAddress([])).toStrictEqual(stringToBytes(dnsAdmin));
   });
 
   test('description length', () => {

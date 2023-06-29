@@ -1,24 +1,56 @@
-import { Args, stringToBytes } from '@massalabs/as-types';
-import { Address, changeCallStack } from '@massalabs/massa-as-sdk';
-import { ownerAddress, setOwner } from '../ownership';
+import { Args, boolToByte, stringToBytes } from '@massalabs/as-types';
+import { Storage, changeCallStack } from '@massalabs/massa-as-sdk';
+import {
+  OWNER_KEY,
+  isOwner,
+  onlyOwner,
+  ownerAddress,
+  setOwner,
+} from '../ownership';
+
+import { resetStorage } from '@massalabs/massa-as-sdk';
+
+// address of the contract set in vm-mock. must match with contractAddr of @massalabs/massa-as-sdk/vm-mock/vm.js
+const contractAddr = 'AS12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT';
+
+const owner = 'AUDeadBeefDeadBeefDeadBeefDeadBeefDeadBeefDeadBOObs';
+const ownerArg = new Args().add(owner).serialize();
+
+beforeAll(() => {
+  log('beforeAll');
+  resetStorage();
+});
 
 describe('Ownership', () => {
-  test('Set/Get owner', () => {
-    const ownerAddr = 'A12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
-    setOwner(new Args().add(ownerAddr).serialize());
-    const owner = ownerAddress([]);
-    expect(owner).toStrictEqual(stringToBytes(ownerAddr));
+  describe('Ownership not set', () => {
+    test('OWNER_KEY is not set', () =>
+      expect(Storage.has(OWNER_KEY)).toStrictEqual(false));
+    test('ownerAddress is empty', () =>
+      expect(ownerAddress([])).toStrictEqual(stringToBytes('')));
+    test('isOwner is false', () =>
+      expect(isOwner(ownerArg)).toStrictEqual(boolToByte(false)));
+    throws('onlyOwner throw', () => onlyOwner());
+    test('set owner', () => setOwner(ownerArg));
   });
 
-  throws('Set owner forbidden', () => {
-    const notOwnerAddr = 'B12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
-    const contractAddressERC20Basic = new Address(
-      'A12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT',
+  describe('Ownership is set', () => {
+    test('OWNER_KEY is set', () =>
+      expect(Storage.has(OWNER_KEY)).toStrictEqual(true));
+    test('OWNER_KEY contains owner', () =>
+      expect(Storage.get(OWNER_KEY)).toStrictEqual(owner));
+    test('ownerAddress', () =>
+      expect(ownerAddress([])).toStrictEqual(stringToBytes(owner)));
+    test('isOwner', () =>
+      expect(isOwner(ownerArg)).toStrictEqual(boolToByte(true)));
+    throws('onlyOwner of random user throws', () => onlyOwner());
+    test('onlyOwner should not throw', () => {
+      changeCallStack(owner + ' , ' + contractAddr);
+      onlyOwner();
+    });
+    test('set new owner', () =>
+      setOwner(new Args().add('new owner').serialize()));
+    throws('forbidden set new owner', () =>
+      setOwner(new Args().add('another owner').serialize()),
     );
-    changeCallStack(
-      notOwnerAddr + ' , ' + contractAddressERC20Basic.toString(),
-    );
-
-    setOwner(new Args().add(notOwnerAddr).serialize());
   });
 });

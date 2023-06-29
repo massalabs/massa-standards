@@ -29,9 +29,8 @@ import {
   callerHasWriteAccess,
 } from '@massalabs/massa-as-sdk';
 import { Args, byteToBool } from '@massalabs/as-types';
-import { ownerKey, triggerError } from '../utils';
+import { onlyOwner, setOwner, triggerError } from '../utils';
 
-export const contractOwnerKey = new Args().add('owner').serialize();
 export const blackListKey = new Args().add('blackList').serialize();
 
 export function isDnsValid(input: string): bool {
@@ -75,30 +74,12 @@ export function constructor(_: StaticArray<u8>): StaticArray<u8> {
   if (!callerHasWriteAccess()) {
     return [];
   }
-  Storage.set(contractOwnerKey, new Args().add(Context.caller()).serialize());
+  setOwner(new Args().add(Context.caller().toString()).serialize());
   return [];
 }
 
-/**
- * This function checks the caller is the admin of the DNS
- */
-function onlyOwner(): void {
-  const owner = new Args(Storage.get(contractOwnerKey))
-    .nextString()
-    .expect('owner key is missing or invalid');
-  const caller = Context.caller().toString();
-
-  if (owner != caller) {
-    triggerError('NOT_OWNER');
-  }
-}
-
-/**
- * @param binaryArgs - Arguments serialized with Args: owner address
- */
-export function setOwner(binaryArgs: StaticArray<u8>): void {
-  onlyOwner();
-  Storage.set(contractOwnerKey, binaryArgs);
+function ownerKey(address: Address): StaticArray<u8> {
+  return new Args().add('owned' + address.toString()).serialize();
 }
 
 /**
