@@ -22,7 +22,7 @@ jobs:
         sudo apt-get update -y && sudo apt-get install -y jq
         sudo npm install -g license-report 
     - name: Make script executable
-      run: chmod +x generate_powered-by.sh
+      run: chmod +x ./scripts/generate_powered-by.sh
     - name: Generate Powered-By
       run: |
         ./scripts/generate_powered-by.sh
