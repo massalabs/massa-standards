@@ -4,7 +4,15 @@ Thank you for your interest in contributing to the Massa Standard Definition pro
 
 This project is open to contributions from anyone in the Massa community, and we welcome your input.
 
-## Getting Started
+Thank you for considering contributing to massa-web3!
+
+## Reporting Bugs
+
+If you discover a bug, please create a [new issue](https://github.com/massalabs/massa-standards/issues/new?assignees=&labels=issue%3Abug&projects=&template=bug.md&title=) on our GitHub repository.
+
+In your issue, please include a clear and concise description of the bug, any relevant code snippets, error messages, and steps to reproduce the issue.
+
+## Contributing Code
 
 To get started with contributing to the project, please follow these steps:
 
@@ -23,9 +31,35 @@ When contributing to the project, please follow these guidelines:
 - Ensure that your code is well-structured and easy to read.
 - Be respectful and professional in your interactions with other contributors.
 
+## Code style
+Please ensure that your code follows the existing code style used in the project.
+
+For smart contract, ensure that your code follows the existing code style used in the project. We use the [MassaLabs Prettier configuration](https://github.com/massalabs/prettier-config-as) and [MassaLabs ESLint configuration](https://github.com/massalabs/eslint-config) for formatting and linting.
+
+You can run the following command to format your code before committing:
+
+```sh
+npm run fmt
+```
+
+## Tests
+
+Please ensure that your changes include any necessary tests.
+  
+You can run the following command to run the smart-contracts tests:
+
+```sh
+npm run build
+```
+
+and then
+
+```sh
+npm run test
+```
 ## Template
 
-Please use the following template when starting a new standard:
+Please use the following template when starting a new standard document (see [example](wallet/dapps-communication.md)):
 
 ```markdown
 # Name
