@@ -1,0 +1,38 @@
+name: Generate Powered-By
+on: 
+  push:
+    branches:
+      - 77-add-poweredby
+
+jobs:
+  generate-powered-by:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install node 
+      uses: actions/setup-node@v3
+      with:
+        node-version: 18
+        registry-url: https://registry.npmjs.org
+
+    - name: Install license-report and jq
+      run: |
+        sudo apt-get update -y && sudo apt-get install -y jq
+        sudo npm install -g license-report 
+    - name: Make script executable
+      run: chmod +x generate_powered-by.sh
+    - name: Generate Powered-By
+      run: |
+        ./scripts/generate_powered-by.sh
+    - name: Commit Changes
+      uses: stefanzweifel/git-auto-commit-action@v4
+      with:
+        token: ${{ secrets.MASSABOTCLASSIC }}
+        commit_message: "Generate powered-by"
+        file_pattern: "**/powered-by.md"
+        commit_user_email: info@massa.net
+        commit_user_name: massabot
+        commit_author: massabot <info@massa.net>
+        push_options: '--force'
