@@ -21,13 +21,11 @@ jobs:
       run: |
         sudo apt-get update -y && sudo apt-get install -y jq
         sudo npm install -g license-report 
-    - name: Empty Powered-By file
-      run: echo "" > powered-by.md
     - name: Make script executable
-      run: chmod +x ./scripts/generate_powered-by.sh
+      run: chmod +x ./generate_powered-by.sh
     - name: Generate Powered-By for smart-contracts
       run: |
-        ./scripts/generate_powered-by.sh smart-contracts
+        ./generate_powered-by.sh smart-contracts
     - name: Commit Changes
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
