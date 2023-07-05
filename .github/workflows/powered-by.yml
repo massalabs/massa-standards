@@ -21,6 +21,8 @@ jobs:
       run: |
         sudo apt-get update -y && sudo apt-get install -y jq
         sudo npm install -g license-report 
+    - name: Empty Powered-By file
+      run: echo "" > powered-by.md
     - name: Make script executable
       run: chmod +x ./scripts/generate_powered-by.sh
     - name: Generate Powered-By for smart-contracts

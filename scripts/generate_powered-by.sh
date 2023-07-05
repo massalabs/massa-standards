@@ -4,14 +4,18 @@ project_dir=$1
 
 cd $project_dir
 
-fileName="powered-by.md"
 report=$(license-report)
 
-echo "# Dependencies Report" > $fileName
-echo "" >> $fileName
-echo "The following is a list of all the dependencies of this project:" >> $fileName
+output_file="../powered-by.md"
 
-# base64 encoding/decoding used to handle any potential special characters or escape sequences in the JSON data.
+if [ ! -f $output_file ]; then
+    echo "# Dependencies Report" > $output_file
+    echo "" >> $output_file
+    echo "The following is a list of all the dependencies of the projects:" >> $output_file
+fi
+
+echo "## Project: ${project_dir}" >> $output_file
+echo "" >> $output_file
 
 for row in $(echo "${report}" | jq -r '.[] | @base64'); do
     _jq() {
@@ -31,14 +35,14 @@ for row in $(echo "${report}" | jq -r '.[] | @base64'); do
         author="${author})"     # adding ")" at the end
     fi
 
-    echo "## [${name}](${url})" >> $fileName
-    echo "" >> $fileName
-    echo "**License:** ${licenseType} - ${licensePeriod}" >> $fileName
-    echo "" >> $fileName
-    echo "**Used version:** ${installedVersion}" >> $fileName
-    echo "" >> $fileName
-    echo "**Many thanks to:** ${author}" >> $fileName
-    echo "" >> $fileName
+    echo "### [${name}](${url})" >> $output_file
+    echo "" >> $output_file
+    echo "**License:** ${licenseType} - ${licensePeriod}" >> $output_file
+    echo "" >> $output_file
+    echo "**Used version:** ${installedVersion}" >> $output_file
+    echo "" >> $output_file
+    echo "**Many thanks to:** ${author}" >> $output_file
+    echo "" >> $output_file
 done
 
 cd -
