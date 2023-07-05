@@ -23,9 +23,9 @@ jobs:
         sudo npm install -g license-report 
     - name: Make script executable
       run: chmod +x ./scripts/generate_powered-by.sh
-    - name: Generate Powered-By
+    - name: Generate Powered-By for smart-contracts
       run: |
-        ./scripts/generate_powered-by.sh
+        ./scripts/generate_powered-by.sh smart-contracts
     - name: Commit Changes
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
