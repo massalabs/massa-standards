@@ -4,7 +4,7 @@ Thank you for your interest in contributing to the Massa Standard Definition pro
 
 This project is open to contributions from anyone in the Massa community, and we welcome your input.
 
-Thank you for considering contributing to massa-web3!
+Thank you for considering contributing to massa-standards!
 
 ## Reporting Bugs
 
