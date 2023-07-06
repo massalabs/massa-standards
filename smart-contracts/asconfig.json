@@ -3,7 +3,8 @@
         "debug": {
             "outFile": "build/main.wasm",
             "sourceMap": true,
-            "debug": true
+            "debug": true,
+            "transform": ["@massalabs/as-transformer"]
         },
         "release": {
             "outFile": "build/main.wasm",
@@ -11,7 +12,8 @@
             "optimizeLevel": 3,
             "shrinkLevel": 0,
             "converge": false,
-            "noAssert": false
+            "noAssert": false,
+            "transform": ["@massalabs/as-transformer"]
         }
     },
     "options": {

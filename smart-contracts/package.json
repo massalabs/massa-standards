@@ -39,5 +39,8 @@
     "files": [
         "build",
         "assembly"
-    ]
+    ],
+    "dependencies": {
+        "@massalabs/as-transformer": "^0.2.2-dev.20230626150134"
+    }
 }
