@@ -92,7 +92,8 @@ export function burnFrom(amount: u256, owner: string): void {
   _decreaseTotalSupply(amount);
 
   _burn(ownerAddress, amount);
-
+  
+  // @ts-ignore
   _approve(ownerAddress, Context.caller(), spenderAllowance - amount);
   generateEvent(
     createEvent(BURN_EVENT_NAME, [owner.toString(), amount.toString()]),
