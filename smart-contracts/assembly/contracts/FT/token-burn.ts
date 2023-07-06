@@ -18,12 +18,8 @@ const BURN_EVENT_NAME = 'BURN';
  * @param binaryArgs - byte string with the following format:
  * - the amount of tokens to burn obn the caller address (u256).
  */
-export function burn(binaryArgs: StaticArray<u8>): void {
-  const args = new Args(binaryArgs);
-  const amount = args
-    .nextU256()
-    .expect('amount argument is missing or invalid');
-
+@massaExport()
+export function burn(amount: u256): void {
   _decreaseTotalSupply(amount);
 
   _burn(Context.caller(), amount);
@@ -43,6 +39,7 @@ export function burn(binaryArgs: StaticArray<u8>): void {
  * @param amount -
  * @returns true if tokens has been burned
  */
+@massaExport()
 export function _burn(addressToBurn: Address, amount: u256): void {
   const oldRecipientBalance = _balance(addressToBurn);
   // @ts-ignore
@@ -63,6 +60,7 @@ export function _burn(addressToBurn: Address, amount: u256): void {
  * @param amount -
  * @returns true if the total supply has been decreased
  */
+@massaExport()
 export function _decreaseTotalSupply(amount: u256): void {
   const oldTotalSupply = bytesToU256(totalSupply([]));
   // @ts-ignore
@@ -84,25 +82,18 @@ export function _decreaseTotalSupply(amount: u256): void {
  * - the amount of tokens to burn on the caller address (u256).
  * - the owner of the tokens to be burned
  */
-export function burnFrom(binaryArgs: StaticArray<u8>): void {
-  const args = new Args(binaryArgs);
-  const amount = args
-    .nextU256()
-    .expect('amount argument is missing or invalid');
-  const owner = new Address(
-    args.nextString().expect('account argument is missing or invalid'),
-  );
-
-  const spenderAllowance = _allowance(owner, Context.caller());
+@massaExport()
+export function burnFrom(amount: u256, owner: string): void {
+  const ownerAddress = new Address(owner);
+  const spenderAllowance = _allowance(ownerAddress, Context.caller());
 
   assert(spenderAllowance >= amount, 'burnFrom failed: insufficient allowance');
 
   _decreaseTotalSupply(amount);
 
-  _burn(owner, amount);
+  _burn(ownerAddress, amount);
 
-  _approve(owner, Context.caller(), spenderAllowance - amount);
-
+  _approve(ownerAddress, Context.caller(), spenderAllowance - amount);
   generateEvent(
     createEvent(BURN_EVENT_NAME, [owner.toString(), amount.toString()]),
   );
