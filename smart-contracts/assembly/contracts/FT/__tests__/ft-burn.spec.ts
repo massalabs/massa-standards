@@ -88,7 +88,7 @@ const burnAmount = new u256(5000, 0, 1);
 
 describe('Burn ERC20 to U1', () => {
   test('Should burn ERC20', () => {
-    burn(new Args().add(burnAmount).serialize());
+    burn(burnAmount);
 
     // check balance of U1
     expect(
@@ -105,9 +105,7 @@ describe('Burn ERC20 to U1', () => {
 });
 
 describe('Fails burn ERC20', () => {
-  throws('Fails to burn because of underflow ', () =>
-    burn(new Args().add(u256.Max).serialize()),
-  );
+  throws('Fails to burn because of underflow ', () => burn(u256.Max));
 });
 
 const allowAmount = new u256(1, 1, 1, 1);
@@ -123,47 +121,33 @@ describe('burnFrom', () => {
   });
 
   throws('on insufficient allowance ', () => {
-    burnFrom(
-      new Args()
-        .add(user3Address)
-        .add(user2Address)
-        // @ts-ignore
-        .add(allowAmount + u256.One)
-        .serialize(),
-    );
+    // @ts-ignore
+    burnFrom(allowAmount + u256.One, user2Address);
   });
 
-  throws('on insufficient balance', () =>
-    burnFrom(
-      new Args()
-        .add(user3Address)
-        .add(user2Address)
-        .add(allowAmount)
-        .serialize(),
-    ),
-  );
+  throws('on insufficient balance', () => burnFrom(u256.Max, user2Address));
 
   test('should burn tokens from an other address', () => {
     const u1balanceBefore = balanceOf(new Args().add(user1Address).serialize());
     const u3balanceBefore = balanceOf(new Args().add(user3Address).serialize());
 
-    transfer(new Args().add(user3Address).add(allowAmount).serialize());
+    transfer(allowAmount, user3Address);
 
-    burnFrom(new Args().add(allowAmount).add(user3Address).serialize());
+    burnFrom(allowAmount, user3Address);
 
     // Check balance changes
-    expect(balanceOf(new Args().add(user1Address).serialize())).toStrictEqual(
+    expect(balanceOf(user1Address)).toStrictEqual(
       // @ts-ignore
-      u256ToBytes(bytesToU256(u1balanceBefore) - allowAmount),
+      bytesToU256(u1balanceBefore) - allowAmount
     );
 
-    expect(balanceOf(new Args().add(user3Address).serialize())).toStrictEqual(
-      u3balanceBefore,
+    expect(balanceOf(user3Address)).toStrictEqual(
+      u3balanceBefore
     );
 
     // Verify allowances after transferFrom
     expect(
-      allowance(new Args().add(user1Address).add(user3Address).serialize()),
-    ).toStrictEqual(u256ToBytes(u256.Zero));
+      allowance(user1Address, user3Address),
+    ).toStrictEqual(u256.Zero);
   });
 });
