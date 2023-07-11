@@ -2,10 +2,7 @@
 
 color="red"
 
-# Remove the percentage sign
-COVERAGE="${COVERAGE//%}"
-
-echo "Running coverage script, coverage is $COVERAGE%"
+echo "Running coverage script, coverage is $COVERAGE"
 
 if [ "$COVERAGE" -ge 80 ]; then
     color="green"
