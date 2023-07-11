@@ -5,6 +5,9 @@ color="red"
 # Remove the percentage sign
 COVERAGE="${COVERAGE//%}"
 
+# Cast COVERAGE to an integer
+COVERAGE=$(($COVERAGE + 0))
+
 echo "Running coverage script, coverage is $COVERAGE"
 
 if [ "$COVERAGE" -ge 80 ]; then
