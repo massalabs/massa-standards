@@ -1,6 +1,6 @@
 # Massa Standard Definition
 
-
+![check-code-coverage](https://img.shields.io/badge/coverage-91%%25-red)
 
 Welcome to the Massa Standard Definition project!
 
