@@ -19,6 +19,7 @@
     "license": "ISC",
     "devDependencies": {
         "@as-pect/cli": "^8.0.1",
+        "lint-staged": "^13.0.3",
         "@assemblyscript/loader": "^0.25.2",
         "@massalabs/as-types": "^1.0.1",
         "@massalabs/eslint-config": "^0.0.9",
