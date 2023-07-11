@@ -2,6 +2,8 @@
 
 color="red"
 
+echo "Running coverage script, coverage is $COVERAGE%"
+
 if [ "$COVERAGE" -ge 80 ]; then
     color="green"
 elif [ "$COVERAGE" -ge 70 ]; then
