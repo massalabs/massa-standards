@@ -2,6 +2,9 @@
 
 color="red"
 
+# Remove the percentage sign
+COVERAGE="${COVERAGE//%}"
+
 if [ "$COVERAGE" -ge 80 ]; then
     color="green"
 elif [ "$COVERAGE" -ge 70 ]; then
