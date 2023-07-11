@@ -30,6 +30,7 @@ jobs:
 
     - name: Execute unit tests
       run: |
+        cd smart-contracts
         npm ci
         npm run fmt:check
         npm run test:ci
@@ -37,6 +38,7 @@ jobs:
     - id: coverage
       name: Extract coverage
       run: |
+        cd smart-contracts
         value=$(npm run test:ci | grep -oE '^│\s*total\s+\│\s*([0-9.]+)%' | grep -oE '[0-9]+(\.[0-9]+)?%' | cut -d'.' -f1)
         echo "coverage=$value" >> $GITHUB_OUTPUT
 
