@@ -7,7 +7,7 @@ import {
   callerHasWriteAccess,
 } from '@massalabs/massa-as-sdk';
 import { Args, stringToBytes, u256ToBytes } from '@massalabs/as-types';
-import { _balance, _setBalance, _approve, _allowance } from './token-commons';
+import { _balance, _setBalance, _approve, _allowance } from './token-internals';
 import { setOwner } from '../utils/ownership';
 import { u256 } from 'as-bignum/assembly';
 

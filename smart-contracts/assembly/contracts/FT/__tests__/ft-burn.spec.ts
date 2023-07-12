@@ -23,7 +23,7 @@ import {
   transfer,
   allowance,
 } from '../token';
-import { burn, burnFrom } from '../token-burn';
+import { burn, burnFrom } from '../burnable/burn';
 import { ownerAddress } from '../../utils/ownership';
 import { u256 } from 'as-bignum/assembly';
 
