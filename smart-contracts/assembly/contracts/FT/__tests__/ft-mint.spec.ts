@@ -10,7 +10,7 @@ import {
   u8toByte,
   u256ToBytes,
 } from '@massalabs/as-types';
-import { mint } from '../token-mint';
+import { mint } from '../mintable/mint';
 import {
   balanceOf,
   constructor,
