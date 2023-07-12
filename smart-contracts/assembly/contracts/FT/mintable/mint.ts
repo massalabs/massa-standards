@@ -1,20 +1,18 @@
 import { Address, generateEvent } from '@massalabs/massa-as-sdk';
 import { Args } from '@massalabs/as-types';
-import { _balance, _setBalance } from '../token-commons';
 import { onlyOwner } from '../../utils/ownership';
 import { _increaseTotalSupply, _mint } from './mint-internal';
 
-
 /**
- * Mintable ability for fungible token.
- * 
+ * Mintable feature for fungible token.
+ *
  * Re-export this file in your contract entry file to make it available in the contract.
- * 
+ *
  * Token mint is restricted to the owner of the contract.
  *
  */
 
-export const MINT_EVENT = 'MINTED';
+export const MINT_EVENT = 'MINT';
 
 /**
  *  Mint tokens on the recipient address
@@ -41,4 +39,3 @@ export function mint(binaryArgs: StaticArray<u8>): void {
     `${MINT_EVENT}: ${amount.toString()} tokens to ${recipient.toString()}`,
   );
 }
-
