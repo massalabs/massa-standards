@@ -37,17 +37,18 @@ export function burn(binaryArgs: StaticArray<u8>): void {
  * Burn tokens from the caller address
  *
  * @param binaryArgs - byte string with the following format:
+ * - the owner of the tokens to be burned (string).
  * - the amount of tokens to burn on the caller address (u256).
- * - the owner of the tokens to be burned
+ *
  */
 export function burnFrom(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
+  const owner = new Address(
+    args.nextString().expect('owner argument is missing or invalid'),
+  );
   const amount = args
     .nextU256()
     .expect('amount argument is missing or invalid');
-  const owner = new Address(
-    args.nextString().expect('account argument is missing or invalid'),
-  );
 
   const spenderAllowance = _allowance(owner, Context.caller());
 

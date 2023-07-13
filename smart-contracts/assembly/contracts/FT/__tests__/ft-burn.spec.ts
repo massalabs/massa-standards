@@ -126,7 +126,6 @@ describe('burnFrom', () => {
     burnFrom(
       new Args()
         .add(user3Address)
-        .add(user2Address)
         // @ts-ignore
         .add(allowAmount + u256.One)
         .serialize(),
@@ -134,13 +133,7 @@ describe('burnFrom', () => {
   });
 
   throws('on insufficient balance', () =>
-    burnFrom(
-      new Args()
-        .add(user3Address)
-        .add(user2Address)
-        .add(allowAmount)
-        .serialize(),
-    ),
+    burnFrom(new Args().add(user2Address).add(allowAmount).serialize()),
   );
 
   test('should burn tokens from an other address', () => {
@@ -149,7 +142,7 @@ describe('burnFrom', () => {
 
     transfer(new Args().add(user3Address).add(allowAmount).serialize());
 
-    burnFrom(new Args().add(allowAmount).add(user3Address).serialize());
+    burnFrom(new Args().add(user3Address).add(allowAmount).serialize());
 
     // Check balance changes
     expect(balanceOf(new Args().add(user1Address).serialize())).toStrictEqual(
