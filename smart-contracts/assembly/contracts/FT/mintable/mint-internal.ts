@@ -1,6 +1,6 @@
-import { bytesToU256, u256ToBytes } from '@massalabs/as-types';
+import { Args, bytesToU256, u256ToBytes } from '@massalabs/as-types';
 import { _balance, _setBalance } from '../token-internals';
-import { Address, Storage } from '@massalabs/massa-as-sdk';
+import { Address, Storage, generateEvent } from '@massalabs/massa-as-sdk';
 import { TOTAL_SUPPLY_KEY, totalSupply } from '../token';
 import { u256 } from 'as-bignum/assembly';
 
@@ -11,14 +11,40 @@ import { u256 } from 'as-bignum/assembly';
  *
  */
 
+export const MINT_EVENT = 'MINT';
+
+/**
+ *  Mint tokens on the recipient address
+ *
+ * @param binaryArgs - `Args` serialized StaticArray<u8> containing:
+ * - the recipient's account (address)
+ * - the amount of tokens to mint (u256).
+ */
+export function _mint(binaryArgs: StaticArray<u8>): void {
+  const args = new Args(binaryArgs);
+  const recipient = new Address(
+    args.nextString().expect('recipient argument is missing or invalid'),
+  );
+  const amount = args
+    .nextU256()
+    .expect('amount argument is missing or invalid');
+
+  _increaseTotalSupply(amount);
+
+  _increaseBalance(recipient, amount);
+
+  generateEvent(
+    `${MINT_EVENT}: ${amount.toString()} tokens to ${recipient.toString()}`,
+  );
+}
+
 /**
  * Adds amount of token to recipient.
  *
  * @param recipient -
  * @param amount -
- * @returns true if the token has been minted
  */
-export function _mint(recipient: Address, amount: u256): void {
+export function _increaseBalance(recipient: Address, amount: u256): void {
   const oldRecipientBalance = _balance(recipient);
   // @ts-ignore
   const newRecipientBalance = oldRecipientBalance + amount;
@@ -36,7 +62,6 @@ export function _mint(recipient: Address, amount: u256): void {
  * Increases the total supply of the token.
  *
  * @param amount - how much you want to increase the total supply
- * @returns true if the total supply has been increased
  */
 export function _increaseTotalSupply(amount: u256): void {
   const oldTotalSupply = bytesToU256(totalSupply([]));

@@ -1,7 +1,5 @@
-import { Address, generateEvent } from '@massalabs/massa-as-sdk';
-import { Args } from '@massalabs/as-types';
 import { onlyOwner } from '../../utils/ownership';
-import { _increaseTotalSupply, _mint } from './mint-internal';
+import { _mint } from './mint-internal';
 
 /**
  * Mintable feature for fungible token.
@@ -12,10 +10,9 @@ import { _increaseTotalSupply, _mint } from './mint-internal';
  *
  */
 
-export const MINT_EVENT = 'MINT';
-
 /**
- *  Mint tokens on the recipient address
+ *  Mint tokens on the recipient address.
+ *  Restricted to the owner of the contract.
  *
  * @param binaryArgs - `Args` serialized StaticArray<u8> containing:
  * - the recipient's account (address)
@@ -23,19 +20,5 @@ export const MINT_EVENT = 'MINT';
  */
 export function mint(binaryArgs: StaticArray<u8>): void {
   onlyOwner();
-  const args = new Args(binaryArgs);
-  const recipient = new Address(
-    args.nextString().expect('recipient argument is missing or invalid'),
-  );
-  const amount = args
-    .nextU256()
-    .expect('amount argument is missing or invalid');
-
-  _increaseTotalSupply(amount);
-
-  _mint(recipient, amount);
-
-  generateEvent(
-    `${MINT_EVENT}: ${amount.toString()} tokens to ${recipient.toString()}`,
-  );
+  _mint(binaryArgs);
 }
