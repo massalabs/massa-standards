@@ -16,6 +16,7 @@ const contractAddr = 'AS12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT';
 const owner = 'AUDeadBeefDeadBeefDeadBeefDeadBeefDeadBeefDeadBOObs';
 const ownerArg = new Args().add(owner).serialize();
 
+const randomUser = 'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiq';
 beforeAll(() => {
   log('beforeAll');
   resetStorage();
@@ -42,7 +43,11 @@ describe('Ownership', () => {
       expect(ownerAddress([])).toStrictEqual(stringToBytes(owner)));
     test('isOwner', () =>
       expect(isOwner(ownerArg)).toStrictEqual(boolToByte(true)));
-    throws('onlyOwner of random user throws', () => onlyOwner());
+
+    throws('onlyOwner of random user throws', () => {
+      changeCallStack(randomUser + ' , ' + contractAddr);
+      onlyOwner();
+    });
     test('onlyOwner should not throw', () => {
       changeCallStack(owner + ' , ' + contractAddr);
       onlyOwner();
