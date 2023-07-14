@@ -6,7 +6,7 @@ Initial meta issue: <https://github.com/massalabs/massa-standards/issues/15>
 
 **Status:** Review
 
-**Version:** 0.1
+**Version:** 1.0
 
 ## Introduction
 
@@ -57,7 +57,7 @@ and [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Chea
 
 #### AES-GCM
 
-After deriving the symmetric key (the derived key from PBKDF2), the account's private key is encrypted using AES-256 with Galois/Counter Mode (GCM), as defined by the NIST in the [Special Publication 800-38D](https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf). The AES-256 algorithm is specified in the NIST [FIPS 197](https://nvlpubs.nist.gov/nistpubs/fips/nist.fips.197.pdf) document.
+After deriving the symmetric key (the derived key from PBKDF2), the account's private key is prepended by its version and encrypted using AES-256 with Galois/Counter Mode (GCM), as defined by the NIST in the [Special Publication 800-38D](https://nvlpubs.nist.gov/nistpubs/legacy/sp/nistspecialpublication800-38d.pdf). The AES-256 algorithm is specified in the NIST [FIPS 197](https://nvlpubs.nist.gov/nistpubs/fips/nist.fips.197.pdf) document.
 
 ##### Nonce
 
@@ -78,13 +78,13 @@ The following table summarize the format:
 
 | Field | Presence | Format | Comment | Example |
 | ----- | -------- | ------ | ------- | ------- |
-| Version | Mandatory | Integer | Entire part of this specification version | 0 |
+| Version | Mandatory | Integer | Entire part of this specification version | 1 |
 | Nickname | Mandatory | String || "Savings" |
 | Address | Optional | String || "AU12..." |
 | Salt | Mandatory | Byte array | Salt for PBKDF2 (16 Bytes) | [57, 125, 102, 235, 118, 62, 21, 145, 126, 197, 242, 54, 145, 50, 178, 98] |
 | Nonce | Mandatory | Byte array | Initialization Vector (12 Bytes) for AES-GCM | [119, 196, 31, 33, 211, 243, 26, 58, 102, 180, 47, 57] |
 | CipheredData | Mandatory | Byte array | Ciphered Private Key Bytes (using AES-GCM) followed by Authentication Tag (16 Bytes) | [17, 42 ...] |
-| PublicKey | Mandatory | Byte array || [21, 126 ...] |
+| PublicKey | Mandatory | Byte array | Public key prepended by it's version | [21, 126 ...] |
 
 #### Example
 
@@ -92,13 +92,13 @@ Here is an example of YAML serialization:
 
 ```yaml
 ---
-Version: 0
+Version: 1
 Nickname: Savings
 Address: AU12...
 Salt: [57, 125, 102, 235, 118, 62, 21, 145, 126, 197, 242, 54, 145, 50, 178, 98]
 Nonce: [119, 196, 31, 33, 211, 243, 26, 58, 102, 180, 47, 57]
 CipheredData: [17, 42, ...]
-PublicKey: [21, 126, ...]
+PublicKey: [0, 21, 126, ...]
 ```
 
 #### Decryption of the Private Key
