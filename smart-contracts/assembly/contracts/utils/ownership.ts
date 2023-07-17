@@ -55,8 +55,14 @@ export function isOwner(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   const address = new Args(binaryArgs)
     .nextString()
     .expect('address argument is missing or invalid');
-  const owner = Storage.get(OWNER_KEY);
-  return boolToByte(address === owner);
+  return boolToByte(_isOwner(address));
+}
+
+export function _isOwner(account: string): bool {
+  if (!Storage.has(OWNER_KEY)) {
+    return false;
+  }
+  return account === Storage.get(OWNER_KEY);
 }
 
 /**

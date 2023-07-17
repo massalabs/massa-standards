@@ -5,7 +5,7 @@ import {
   Context,
 } from '@massalabs/massa-as-sdk';
 import { Args, boolToByte } from '@massalabs/as-types';
-import { isOwner, onlyOwner } from './ownership';
+import { _isOwner, onlyOwner } from './ownership';
 import { _hasRole, _members, _roleKey } from './accessControl-internal';
 
 export const ROLES_KEY = '_ROLES';
@@ -77,12 +77,15 @@ export function revokeRole(binaryArgs: StaticArray<u8>): StaticArray<u8> {
     .nextString()
     .expect('account argument is missing or invalid');
 
-  assert(_hasRole(role, account), `Account does not have ${role} role`);
-  assert(
-    Context.caller().toString() === account ||
-      isOwner(new Args().add(Context.caller().toString()).serialize()),
-    `Caller is not ${account} or admin`,
-  );
+  const caller = Context.caller().toString();
+
+  if (!_isOwner(caller)) {
+    assert(
+      Context.caller().toString() === account,
+      `Caller is not ${account} or admin`,
+    );
+    assert(_hasRole(role, account), `Account does not have ${role} role`);
+  }
 
   let membersList = _members(role);
   if (membersList.length > 1) {
@@ -103,7 +106,10 @@ export function revokeRole(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  * @param role - role name string
  * @returns boolean
  */
-export function onlyRole(role: string): void {
+export function onlyRole(binaryArgs: StaticArray<u8>): void {
+  const role = new Args(binaryArgs)
+    .nextString()
+    .expect('role argument is missing or invalid');
   assert(
     _hasRole(role, Context.caller().toString()),
     `Caller does not have ${role} role`,
