@@ -22,24 +22,42 @@ const roleArg1 = new Args().add(minterRole).add(owner).serialize();
 const roleArg2 = new Args().add(minterRole).add(minterUser).serialize();
 
 beforeAll(() => {
-  log('beforeAll');
   resetStorage();
 });
 
 describe('Roles', () => {
   test('has no role yet', () => {
     expect(hasRole(roleArg1)).toStrictEqual(boolToByte(false));
+    expect(members(new Args().add(minterRole).serialize())).toStrictEqual([
+      0, 0, 0, 0,
+    ]);
   });
+  throws('cannot perform action without role', () => {
+    onlyRole(new Args().add(minterRole).serialize());
+  });
+
   test('can grant a role', () => {
     setOwner(new Args().add(owner).serialize());
     switchUser(owner);
     grantRole(roleArg1);
+    onlyRole(new Args().add(minterRole).serialize());
     expect(hasRole(roleArg1)).toBeTruthy();
+    expect(members(new Args().add(minterRole).serialize())).toStrictEqual(
+      new Args().add([owner]).serialize(),
+    );
   });
-  test('can revoke a role', () => {
+
+  test('self revoke a role', () => {
     revokeRole(roleArg1);
     expect(hasRole(roleArg1)).toStrictEqual(boolToByte(false));
+    expect(members(new Args().add(minterRole).serialize())).toStrictEqual([
+      0, 0, 0, 0,
+    ]);
   });
+  throws('cannot perform action without role', () => {
+    onlyRole(new Args().add(minterRole).serialize());
+  });
+
   test('can get members of some role', () => {
     grantRole(roleArg1);
     grantRole(roleArg2);
@@ -48,9 +66,35 @@ describe('Roles', () => {
       .unwrap();
     expect(minters).toStrictEqual([owner, minterUser]);
   });
+
   throws('cannot perform action without role', () => {
     switchUser(randomUser);
-    onlyRole(minterRole);
+    onlyRole(new Args().add(minterRole).serialize());
+  });
+
+  test('create and grant a new role', () => {
+    const role = 'SINGER_ROLE';
+    const userRoleArg = new Args().add(role).add(randomUser).serialize();
+    switchUser(owner);
+    grantRole(userRoleArg);
+    expect(hasRole(userRoleArg)).toBeTruthy();
+    expect(members(new Args().add(role).serialize())).toStrictEqual(
+      new Args().add([randomUser]).serialize(),
+    );
+
+    switchUser(randomUser);
+    onlyRole(new Args().add(role).serialize());
+  });
+
+  test('admin revoke a role', () => {
+    const role = 'SINGER_ROLE';
+    const userRoleArg = new Args().add(role).add(randomUser).serialize();
+    switchUser(owner);
+    revokeRole(userRoleArg);
+    expect(hasRole(userRoleArg)).toStrictEqual(boolToByte(false));
+    expect(members(new Args().add(role).serialize())).toStrictEqual([
+      0, 0, 0, 0,
+    ]);
   });
 });
 
