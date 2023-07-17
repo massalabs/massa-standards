@@ -84,7 +84,7 @@ The following table summarize the format:
 | Salt | Mandatory | Byte array | Salt for PBKDF2 (16 Bytes) | [57, 125, 102, 235, 118, 62, 21, 145, 126, 197, 242, 54, 145, 50, 178, 98] |
 | Nonce | Mandatory | Byte array | Initialization Vector (12 Bytes) for AES-GCM | [119, 196, 31, 33, 211, 243, 26, 58, 102, 180, 47, 57] |
 | CipheredData | Mandatory | Byte array | Ciphered Private Key Bytes (using AES-GCM) followed by Authentication Tag (16 Bytes) | [17, 42 ...] |
-| PublicKey | Mandatory | Byte array | Public key prepended by it's version | [21, 126 ...] |
+| PublicKey | Mandatory | Byte array | Public key prepended by its version | [0, 21, 126 ...] |
 
 #### Example
 
