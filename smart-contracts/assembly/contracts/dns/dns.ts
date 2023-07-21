@@ -293,3 +293,33 @@ export function isBlacklisted(binaryArgs: StaticArray<u8>): StaticArray<u8> {
 
   return new Args().add(isBlacklisted).serialize();
 }
+
+/**
+ * Deletes entries from the DNS based on the given website names.
+ *
+ * @param binaryArgs - Website names in a binary format using Args.
+ */
+export function deleteEntriesFromDNS(binaryArgs: StaticArray<u8>): void {
+  // Ensure that the caller is the contract owner
+  onlyOwner();
+
+  // Extract the website names from binaryArgs and unwrap them into an array
+  const websiteNamesToDelete = new Args(binaryArgs).nextStringArray().unwrap();
+
+  // Loop through the list of website names to delete and remove them from the DNS
+  for (let i = 0; i < websiteNamesToDelete.length; i++) {
+    const websiteName = websiteNamesToDelete[i];
+    const websiteNameBytes = new Args().add(websiteName);
+
+    if (Storage.has(websiteNameBytes)) {
+      // Check if the website name exists in the DNS and delete it if found
+      Storage.del(websiteNameBytes);
+      // removeFromOwnerList(Context.caller(), websiteName);
+    }
+  }
+
+  // Generate an event with the website names that were deleted from the DNS
+  generateEvent(
+    `Domain names deleted from DNS: ${websiteNamesToDelete.join(', ')}`,
+  );
+}

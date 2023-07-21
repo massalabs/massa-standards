@@ -1,4 +1,4 @@
-import { blackListKey, getBlacklisted } from './../dns';
+import { blackListKey, getBlacklisted, owner } from './../dns';
 import {
   setResolver,
   isDescriptionValid,
@@ -6,6 +6,7 @@ import {
   isDnsValid,
   addWebsitesToBlackList,
   isBlacklisted,
+  deleteEntriesFromDNS,
   constructor,
 } from '../dns';
 import { Storage, mockAdminContext } from '@massalabs/massa-as-sdk';
@@ -250,6 +251,43 @@ describe('DNS contract tests', () => {
           .serialize();
         setResolver(setResolverArgs);
       }).toThrow();
+    });
+  });
+  describe('deleteEntriesFromDNS', () => {
+    test('delete a single DNS entry', () => {
+      switchUser(user1Addr);
+
+      // Create a DNS entry for testing
+      const names = ['test-website'];
+      const websiteAddr =
+        'A1qth3jk2Yb5FcP9NYJh8MuFqEsyzRwqWGruL4uxATRrpPhLPVus';
+      const description = 'Test website description';
+
+      const setResolverArgs = new Args()
+        .add(names[0])
+        .add(websiteAddr)
+        .add(description)
+        .serialize();
+
+      setResolver(setResolverArgs);
+
+      // Ensure that the DNS entry has been created
+      const storedEntry = new Args(
+        resolver(new Args().add(names[0]).serialize()),
+      );
+      expect(storedEntry.nextString().unwrap()).toBe(websiteAddr);
+      expect(storedEntry.nextString().unwrap()).toBe(user1Addr);
+      expect(storedEntry.nextString().unwrap()).toBe(description);
+
+      // Delete the DNS entry using deleteEntriesFromDNS
+      switchUser(dnsAdmin);
+      const deleteArgs = new Args().add(names).serialize();
+      deleteEntriesFromDNS(deleteArgs);
+
+      // Ensure that the DNS entry has been deleted by checking the storage directly
+      // Ensure that the DNS entry has been deleted by checking the storage directly
+      // const deletedEntry = Storage.get(new Args().add(name).serialize());
+      expect(Storage.get(new Args().add(names[0]).serialize())).toBeNull();
     });
   });
 });
