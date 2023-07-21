@@ -314,6 +314,7 @@ export function deleteEntriesFromDNS(binaryArgs: StaticArray<u8>): void {
     if (Storage.has(websiteNameBytes)) {
       // Check if the website name exists in the DNS and delete it if found
       Storage.del(websiteNameBytes);
+      // Todo IMPLEMENT removeFromOwnerList ?
       // removeFromOwnerList(Context.caller(), websiteName);
     }
   }

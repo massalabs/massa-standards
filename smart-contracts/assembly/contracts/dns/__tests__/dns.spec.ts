@@ -1,4 +1,4 @@
-import { blackListKey, getBlacklisted, owner } from './../dns';
+import { blackListKey, getBlacklisted } from './../dns';
 import {
   setResolver,
   isDescriptionValid,
@@ -284,9 +284,7 @@ describe('DNS contract tests', () => {
       const deleteArgs = new Args().add(names).serialize();
       deleteEntriesFromDNS(deleteArgs);
 
-      // Ensure that the DNS entry has been deleted by checking the storage directly
-      // Ensure that the DNS entry has been deleted by checking the storage directly
-      // const deletedEntry = Storage.get(new Args().add(name).serialize());
+      // Ensure that the DNS entry has been deleted
       expect(Storage.get(new Args().add(names[0]).serialize())).toBeNull();
     });
   });
