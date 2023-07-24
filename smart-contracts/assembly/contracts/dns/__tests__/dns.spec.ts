@@ -284,8 +284,10 @@ describe('DNS contract tests', () => {
       const deleteArgs = new Args().add(names).serialize();
       deleteEntriesFromDNS(deleteArgs);
 
+      const stored = new Args(resolver(new Args().add(names[0]).serialize()));
+
       // Ensure that the DNS entry has been deleted
-      expect(Storage.get(new Args().add(names[0]).serialize())).toBeNull();
+      expect(stored.nextString().unwrap()).toBeNull;
     });
   });
 });
