@@ -196,7 +196,7 @@ export function owner(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  * @param owner - The address of the owner.
  * @returns The owner's list of websites as a string.
  */
-function getOwnerWebsiteList(owner: Address): string {
+export function getOwnerWebsiteList(owner: Address): string {
   const ownerListKey = ownerKey(owner);
 
   if (!Storage.has(ownerListKey)) {
@@ -351,7 +351,7 @@ export function isBlacklisted(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  *
  * @param binaryArgs - Website name in a binary format using Args.
  */
-function deleteEntryFromDNS(binaryArgs: StaticArray<u8>): void {
+export function deleteEntryFromDNS(binaryArgs: StaticArray<u8>): void {
   // Ensure that the caller is the contract owner
   onlyOwner();
 
@@ -381,16 +381,13 @@ export function deleteEntriesFromDNS(binaryArgs: StaticArray<u8>): void {
   onlyOwner();
 
   // Extract the website names from binaryArgs and unwrap them into an array
-  const websiteNamesToDelete = new Args(binaryArgs).nextStringArray().unwrap();
+  const websiteNamesToDelete = new Args(binaryArgs)
+    .nextStringArray()
+    .expect('website name list is missing or invalid');
 
   // Loop through the list of website names to delete and remove them from the DNS
   for (let i = 0; i < websiteNamesToDelete.length; i++) {
     const websiteName = websiteNamesToDelete[i];
     deleteEntryFromDNS(new Args().add(websiteName).serialize());
   }
-
-  // Generate an event with the website names that were deleted from the DNS
-  generateEvent(
-    `Domain names deleted from DNS: ${websiteNamesToDelete.join(', ')}`,
-  );
 }

@@ -7,9 +7,10 @@ import {
   addWebsitesToBlackList,
   isBlacklisted,
   deleteEntriesFromDNS,
+  getOwnerWebsiteList,
   constructor,
 } from '../dns';
-import { Storage, mockAdminContext } from '@massalabs/massa-as-sdk';
+import { Storage, mockAdminContext, Address } from '@massalabs/massa-as-sdk';
 import { Args, byteToBool, stringToBytes } from '@massalabs/as-types';
 import {
   changeCallStack,
@@ -279,6 +280,11 @@ describe('DNS contract tests', () => {
       expect(storedEntry.nextString().unwrap()).toBe(user1Addr);
       expect(storedEntry.nextString().unwrap()).toBe(description);
 
+      // The owner's list should contains only 3 entries 2 from previous tests + 'test-website'
+      expect(getOwnerWebsiteList(new Address(user1Addr))).toBe(
+        'test,backlisted,test-website',
+      );
+
       // Delete the DNS entry using deleteEntriesFromDNS
       switchUser(dnsAdmin);
       const deleteArgs = new Args().add(names).serialize();
@@ -288,6 +294,10 @@ describe('DNS contract tests', () => {
 
       // Ensure that the DNS entry has been deleted
       expect(stored.nextString().unwrap()).toBeNull;
+      // The owner's list should contains only 2 entries since 'test-website' has been deleted
+      expect(getOwnerWebsiteList(new Address(user1Addr))).toBe(
+        'test,backlisted',
+      ); // The owner's list should contains only 2 entries
     });
   });
 });
