@@ -189,36 +189,38 @@ export function owner(binaryArgs: StaticArray<u8>): Address {
 }
 
 /**
- * Appends a new website name to the list of the given owner.
+ * Get the owner's list of websites as a string.
  *
- * @param owner -
- * @param websiteName -
+ * @param owner - The address of the owner.
+ * @returns The owner's list of websites as a string.
  */
-function addToOwnerList(owner: Address, websiteName: string): void {
+function getOwnerWebsiteList(owner: Address): string {
   const ownerListKey = ownerKey(owner);
 
   if (!Storage.has(ownerListKey)) {
-    Storage.set(ownerListKey, new Args().add(websiteName).serialize());
-    generateEvent(
-      `Domain name ${websiteName} added to owner address ${owner.toString()}`,
-    );
+    return ''; // Return an empty string if the owner's list is not found.
+  }
+
+  return new Args(Storage.get(ownerListKey)).nextString().unwrap();
+}
+
+/**
+ * Appends a new website name to the list of the given owner.
+ *
+ * @param owner - The address of the owner.
+ * @param websiteName - The name of the website to add.
+ */
+function addToOwnerList(owner: Address, websiteName: string): void {
+  const oldList = getOwnerWebsiteList(owner);
+
+  if (oldList.split(',').includes(websiteName)) {
+    triggerError('ALREADY_RESERVED'); // It's not possible with the current implementation.
     return;
   }
 
-  const oldList = new Args(Storage.get(ownerListKey)).nextString().unwrap();
-
-  if (oldList.split(',').includes(websiteName)) {
-    triggerError('ALREADY_RESERVED'); // it's not possible with the current implementation.
-  }
-
-  let newList = '';
-
-  if (oldList.length == 0) {
-    // needed if we implement a removeFromOwnerList function
-    newList = websiteName;
-  } else {
-    newList = oldList + ',' + websiteName;
-  }
+  const newList =
+    oldList.length === 0 ? websiteName : oldList + ',' + websiteName;
+  const ownerListKey = ownerKey(owner);
 
   Storage.set(ownerListKey, new Args().add(newList).serialize());
   generateEvent(
@@ -229,13 +231,10 @@ function addToOwnerList(owner: Address, websiteName: string): void {
 /**
  * Deletes a website name from the list of the given owner.
  *
- * @param owner - The address of the owner.
- * @param websiteName - The website name to delete.
+ * @param websiteName - The name of the website to delete.
  */
 function deleteFromOwnerList(websiteName: string): void {
   const ownerAddr = owner(new Args().add(websiteName).serialize());
-
-  generateEvent(ownerAddr.toString());
   const ownerListKey = ownerKey(ownerAddr);
 
   // Check if the owner has a list of website names
@@ -244,20 +243,11 @@ function deleteFromOwnerList(websiteName: string): void {
     return;
   }
 
-  // Retrieve the owner's list of website names
-  const oldList = new Args(Storage.get(ownerListKey)).nextString().unwrap();
-  generateEvent(oldList);
-  // Split the old list to an array of website names
+  const oldList = getOwnerWebsiteList(ownerAddr);
   const oldListArray = oldList.split(',');
 
   // Find the index of the websiteName in the old list array
-  let index = -1;
-  for (let i = 0; i < oldListArray.length; i++) {
-    if (oldListArray[i] === websiteName) {
-      index = i;
-      break;
-    }
-  }
+  const index = oldListArray.indexOf(websiteName);
 
   // Check if the websiteName exists in the owner's list
   if (index === -1) {
