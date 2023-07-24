@@ -177,17 +177,15 @@ export function resolver(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  * @example
  * owner(new Args().add("my-website").serialize())
  */
-export function owner(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+export function owner(binaryArgs: StaticArray<u8>): Address {
   if (Storage.has(binaryArgs)) {
     const entry = new Args(Storage.get(binaryArgs));
     // skip the website address
     entry.nextString().unwrap();
-    const ownerAddress = entry.nextString().unwrap();
-
-    return new Args().add(ownerAddress).serialize();
+    const ownerAddress = new Address(entry.nextString().unwrap());
+    return ownerAddress;
   }
-
-  return [];
+  return new Address('');
 }
 
 /**
@@ -225,6 +223,60 @@ function addToOwnerList(owner: Address, websiteName: string): void {
   Storage.set(ownerListKey, new Args().add(newList).serialize());
   generateEvent(
     `Domain name ${websiteName} added to owner address ${owner.toString()}`,
+  );
+}
+
+/**
+ * Deletes a website name from the list of the given owner.
+ *
+ * @param owner - The address of the owner.
+ * @param websiteName - The website name to delete.
+ */
+function deleteFromOwnerList(websiteName: string): void {
+  const ownerAddr = owner(new Args().add(websiteName).serialize());
+
+  generateEvent(ownerAddr.toString());
+  const ownerListKey = ownerKey(ownerAddr);
+
+  // Check if the owner has a list of website names
+  if (!Storage.has(ownerListKey)) {
+    triggerError('OWNER_LIST_NOT_FOUND');
+    return;
+  }
+
+  // Retrieve the owner's list of website names
+  const oldList = new Args(Storage.get(ownerListKey)).nextString().unwrap();
+  generateEvent(oldList);
+  // Split the old list to an array of website names
+  const oldListArray = oldList.split(',');
+
+  // Find the index of the websiteName in the old list array
+  let index = -1;
+  for (let i = 0; i < oldListArray.length; i++) {
+    if (oldListArray[i] === websiteName) {
+      index = i;
+      break;
+    }
+  }
+
+  // Check if the websiteName exists in the owner's list
+  if (index === -1) {
+    triggerError('WEBSITE_NOT_FOUND');
+    return;
+  }
+
+  // Remove the websiteName from the old list array
+  oldListArray.splice(index, 1);
+
+  // Join the updated list array back into a string
+  const newList = oldListArray.join(',');
+
+  // Update the owner's list with the updated list
+  Storage.set(ownerListKey, new Args().add(newList).serialize());
+
+  // Emit an event to indicate the website name has been deleted from the owner's list
+  generateEvent(
+    `Domain name ${websiteName} deleted from owner address ${ownerAddr.toString()}`,
   );
 }
 
@@ -313,9 +365,9 @@ export function deleteEntriesFromDNS(binaryArgs: StaticArray<u8>): void {
 
     if (Storage.has(websiteNameBytes)) {
       // Check if the website name exists in the DNS and delete it if found
+      deleteFromOwnerList(websiteName);
+
       Storage.del(websiteNameBytes);
-      // Todo IMPLEMENT removeFromOwnerList ?
-      // removeFromOwnerList(Context.caller(), websiteName);
     }
   }
 
