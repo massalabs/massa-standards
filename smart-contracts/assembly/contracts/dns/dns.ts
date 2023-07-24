@@ -32,6 +32,7 @@ import { Args, byteToBool } from '@massalabs/as-types';
 import { onlyOwner, setOwner, triggerError } from '../utils';
 
 export const blackListKey = new Args().add('blackList').serialize();
+export const OWNER_KEY = 'OWNER';
 
 export function isDnsValid(input: string): bool {
   for (let i = 0; i < input.length; i++) {
@@ -188,6 +189,26 @@ export function owner(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   }
 
   return [];
+}
+
+/**
+ * Checks if the given address is the owner of the website.
+ *
+ * @param websiteName - The name of the website.
+ * @param potentialOwner - The address of the potential owner.
+ * @returns `true` if the potential owner is the actual owner of the website, `false` otherwise.
+ */
+export function isOwnerOfWebsite(
+  websiteName: string,
+  potentialOwner: Address,
+): boolean {
+  const websiteArgs = new Args().add(websiteName).serialize();
+  const ownerAddressArray = owner(websiteArgs);
+
+  // Convert the owner address array to a string for comparison
+  const ownerAddress = new Args(ownerAddressArray).nextString().unwrap();
+
+  return ownerAddress === potentialOwner.toString();
 }
 
 /**
@@ -352,13 +373,12 @@ export function isBlacklisted(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  * @param binaryArgs - Website name in a binary format using Args.
  */
 export function deleteEntryFromDNS(binaryArgs: StaticArray<u8>): void {
-  // Ensure that the caller is the contract owner
-  onlyOwner();
-
   const websiteName = new Args(binaryArgs).nextString().unwrap();
 
-  const websiteNameBytes = new Args().add(websiteName);
+  // Ensure that the caller is the contract owner
+  onlyOwnerOrWebsiteOwner(websiteName);
 
+  const websiteNameBytes = new Args().add(websiteName);
   if (Storage.has(websiteNameBytes)) {
     // Check if the website name exists in the DNS and delete it if found
     deleteFromOwnerList(websiteName);
@@ -377,9 +397,6 @@ export function deleteEntryFromDNS(binaryArgs: StaticArray<u8>): void {
  * @param binaryArgs - Website names in a binary format using Args.
  */
 export function deleteEntriesFromDNS(binaryArgs: StaticArray<u8>): void {
-  // Ensure that the caller is the contract owner
-  onlyOwner();
-
   // Extract the website names from binaryArgs and unwrap them into an array
   const websiteNamesToDelete = new Args(binaryArgs)
     .nextStringArray()
@@ -390,4 +407,26 @@ export function deleteEntriesFromDNS(binaryArgs: StaticArray<u8>): void {
     const websiteName = websiteNamesToDelete[i];
     deleteEntryFromDNS(new Args().add(websiteName).serialize());
   }
+}
+
+/**
+ * Ensures that the caller is either the contract owner or the owner of the specific website.
+ *
+ * @param websiteName - The name of the website to check ownership (optional).
+ */
+export function onlyOwnerOrWebsiteOwner(websiteName: string): void {
+  // Get the address of the caller
+  const callerAddress = Context.caller();
+
+  // Check if the caller is the owner of the specified website
+  const isWebsiteOwner = isOwnerOfWebsite(websiteName, callerAddress);
+
+  // Get the address of the contract owner from storage
+  const contractOwnerAddress = Storage.get(OWNER_KEY);
+
+  // Ensure that the caller is either the contract owner or the owner of the website
+  assert(
+    isWebsiteOwner || callerAddress.toString() === contractOwnerAddress,
+    'Caller is not the owner of the contract or the owner of the website',
+  );
 }

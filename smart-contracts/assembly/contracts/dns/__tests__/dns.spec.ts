@@ -6,6 +6,7 @@ import {
   isDnsValid,
   addWebsitesToBlackList,
   isBlacklisted,
+  deleteEntryFromDNS,
   deleteEntriesFromDNS,
   getOwnerWebsiteList,
   constructor,
@@ -26,6 +27,8 @@ const contractAddr = 'AS12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT';
 const websiteAddr = 'A12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
 
 const dnsAdmin = 'AU1qDAxGJ387ETi9JRQzZWSPKYq4YPXrFvdiE4VoXUaiAt38JFEC';
+
+const randomUser = 'AU1qDAxGJ387ETi9JRQzZWSPKYq4YPXrFvdiE4VoXUllAt38JFEC';
 
 const user1Addr = 'AU125TiSrnD2YatYfEyRAWnBdD7TEuVbvGFkFgDuaYc2bdKyqKtb';
 
@@ -255,6 +258,14 @@ describe('DNS contract tests', () => {
     });
   });
   describe('deleteEntriesFromDNS', () => {
+    test('delete a single DNS entry not being neither dns admin neither website owner', () => {
+      switchUser(randomUser);
+      expect(() => {
+        const args = new Args().add('test').serialize();
+        deleteEntryFromDNS(args);
+      }).toThrow();
+    });
+
     test('delete a single DNS entry', () => {
       switchUser(user1Addr);
 
@@ -286,7 +297,7 @@ describe('DNS contract tests', () => {
       );
 
       // Delete the DNS entry using deleteEntriesFromDNS
-      switchUser(dnsAdmin);
+      switchUser(user1Addr);
       const deleteArgs = new Args().add(names).serialize();
       deleteEntriesFromDNS(deleteArgs);
 
@@ -298,6 +309,18 @@ describe('DNS contract tests', () => {
       expect(getOwnerWebsiteList(new Address(user1Addr))).toBe(
         'test,backlisted',
       ); // The owner's list should contains only 2 entries
+
+      // switch to dnsAdmin
+      switchUser(dnsAdmin);
+      const deleteArgs2 = new Args().add('test').serialize();
+      deleteEntryFromDNS(deleteArgs2);
+
+      const stored2 = new Args(resolver(new Args().add('test').serialize()));
+
+      // Ensure that the DNS entry has been deleted
+      expect(stored2.nextString().unwrap()).toBeNull;
+      // The owner's list should contains only 1 entry
+      expect(getOwnerWebsiteList(new Address(user1Addr))).toBe('backlisted');
     });
   });
 });
