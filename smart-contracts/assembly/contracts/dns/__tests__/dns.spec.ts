@@ -291,7 +291,6 @@ describe('DNS contract tests', () => {
       expect(storedEntry.nextString().unwrap()).toBe(user1Addr);
       expect(storedEntry.nextString().unwrap()).toBe(description);
 
-      // The owner's list should contains only 3 entries 2 from previous tests + 'test-website'
       expect(getOwnerWebsiteList(new Address(user1Addr))).toBe(
         'test,backlisted,test-website',
       );
