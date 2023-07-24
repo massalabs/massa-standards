@@ -177,16 +177,28 @@ export function resolver(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  * @example
  * owner(new Args().add("my-website").serialize())
  */
-export function owner(binaryArgs: StaticArray<u8>): Address {
+export function owner(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   if (Storage.has(binaryArgs)) {
     const entry = new Args(Storage.get(binaryArgs));
     // skip the website address
     entry.nextString().unwrap();
-    const ownerAddress = new Address(entry.nextString().unwrap());
-    return ownerAddress;
+    const ownerAddress = entry.nextString().unwrap();
+
+    return new Args().add(ownerAddress).serialize();
   }
-  return new Address('');
+
+  return [];
 }
+// export function owner(binaryArgs: StaticArray<u8>): Address {
+//  if (Storage.has(binaryArgs)) {
+//    const entry = new Args(Storage.get(binaryArgs));
+//    // skip the website address
+//    entry.nextString().unwrap();
+//    const ownerAddress = new Address(entry.nextString().unwrap());
+//    return ownerAddress;
+//  }
+//  return new Address('');
+// }
 
 /**
  * Get the owner's list of websites as a string.
@@ -234,14 +246,15 @@ function addToOwnerList(owner: Address, websiteName: string): void {
  * @param websiteName - The name of the website to delete.
  */
 function deleteFromOwnerList(websiteName: string): void {
-  const ownerAddr = owner(new Args().add(websiteName).serialize());
+  const ownerbinary = owner(new Args().add(websiteName).serialize());
+  const ownerAddr = new Address(new Args(ownerbinary).nextString().unwrap());
   const ownerListKey = ownerKey(ownerAddr);
 
   // Check if the owner has a list of website names
-  if (!Storage.has(ownerListKey)) {
-    triggerError('OWNER_LIST_NOT_FOUND');
-    return;
-  }
+  // if (!Storage.has(ownerListKey)) {
+  //  triggerError('OWNER_LIST_NOT_FOUND');
+  //  return;
+  // }
 
   const oldList = getOwnerWebsiteList(ownerAddr);
   const oldListArray = oldList.split(',');
