@@ -258,7 +258,7 @@ describe('DNS contract tests', () => {
     });
   });
   describe('deleteEntriesFromDNS', () => {
-    test('delete a single DNS entry not being neither dns admin neither website owner', () => {
+    test('delete a single DNS entry when neither DNS admin nor website owner', () => {
       switchUser(randomUser);
       expect(() => {
         const args = new Args().add('test').serialize();
