@@ -209,20 +209,34 @@ function getOwnerWebsiteList(owner: Address): string {
 /**
  * Appends a new website name to the list of the given owner.
  *
- * @param owner - The address of the owner.
- * @param websiteName - The name of the website to add.
+ * @param owner -
+ * @param websiteName -
  */
 function addToOwnerList(owner: Address, websiteName: string): void {
-  const oldList = getOwnerWebsiteList(owner);
+  const ownerListKey = ownerKey(owner);
 
-  if (oldList.split(',').includes(websiteName)) {
-    triggerError('ALREADY_RESERVED'); // It's not possible with the current implementation.
+  if (!Storage.has(ownerListKey)) {
+    Storage.set(ownerListKey, new Args().add(websiteName).serialize());
+    generateEvent(
+      `Domain name ${websiteName} added to owner address ${owner.toString()}`,
+    );
     return;
   }
 
-  const newList =
-    oldList.length === 0 ? websiteName : oldList + ',' + websiteName;
-  const ownerListKey = ownerKey(owner);
+  const oldList = new Args(Storage.get(ownerListKey)).nextString().unwrap();
+
+  if (oldList.split(',').includes(websiteName)) {
+    triggerError('ALREADY_RESERVED'); // it's not possible with the current implementation.
+  }
+
+  let newList = '';
+
+  if (oldList.length == 0) {
+    // needed if we implement a removeFromOwnerList function
+    newList = websiteName;
+  } else {
+    newList = oldList + ',' + websiteName;
+  }
 
   Storage.set(ownerListKey, new Args().add(newList).serialize());
   generateEvent(
