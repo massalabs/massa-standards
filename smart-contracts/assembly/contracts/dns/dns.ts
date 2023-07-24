@@ -347,6 +347,31 @@ export function isBlacklisted(binaryArgs: StaticArray<u8>): StaticArray<u8> {
 }
 
 /**
+ * Delete a single entry from the DNS based on the given website name.
+ *
+ * @param binaryArgs - Website name in a binary format using Args.
+ */
+function deleteEntryFromDNS(binaryArgs: StaticArray<u8>): void {
+  // Ensure that the caller is the contract owner
+  onlyOwner();
+
+  const websiteName = new Args(binaryArgs).nextString().unwrap();
+
+  const websiteNameBytes = new Args().add(websiteName);
+
+  if (Storage.has(websiteNameBytes)) {
+    // Check if the website name exists in the DNS and delete it if found
+    deleteFromOwnerList(websiteName);
+    Storage.del(websiteNameBytes);
+
+    // Generate an event with the website name that was deleted from the DNS
+    generateEvent(`Domain name deleted from DNS: ${websiteName}`);
+  } else {
+    triggerError('WEBSITE_NOT_FOUND');
+  }
+}
+
+/**
  * Deletes entries from the DNS based on the given website names.
  *
  * @param binaryArgs - Website names in a binary format using Args.
@@ -361,14 +386,7 @@ export function deleteEntriesFromDNS(binaryArgs: StaticArray<u8>): void {
   // Loop through the list of website names to delete and remove them from the DNS
   for (let i = 0; i < websiteNamesToDelete.length; i++) {
     const websiteName = websiteNamesToDelete[i];
-    const websiteNameBytes = new Args().add(websiteName);
-
-    if (Storage.has(websiteNameBytes)) {
-      // Check if the website name exists in the DNS and delete it if found
-      deleteFromOwnerList(websiteName);
-
-      Storage.del(websiteNameBytes);
-    }
+    deleteEntryFromDNS(new Args().add(websiteName).serialize());
   }
 
   // Generate an event with the website names that were deleted from the DNS
