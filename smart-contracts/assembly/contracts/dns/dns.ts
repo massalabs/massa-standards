@@ -392,11 +392,10 @@ export function deleteEntryFromDNS(binaryArgs: StaticArray<u8>): void {
   // Ensure that the caller is the owner of the website
   onlyWebsiteOwner(websiteName);
 
-  const websiteNameBytes = new Args().add(websiteName);
-  if (Storage.has(websiteNameBytes)) {
+  if (Storage.has(binaryArgs)) {
     // Check if the website name exists in the DNS and delete it if found
     deleteFromOwnerList(websiteName);
-    Storage.del(websiteNameBytes);
+    Storage.del(binaryArgs);
 
     // Generate an event with the website name that was deleted from the DNS
     generateEvent(`Domain name deleted from DNS: ${websiteName}`);
