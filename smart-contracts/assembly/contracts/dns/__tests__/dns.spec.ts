@@ -264,7 +264,7 @@ describe('DNS contract tests', () => {
       }).toThrow();
     });
 
-    test('delete DNS entry as not website owner', () => {
+    test('delete DNS entry as website owner', () => {
       switchUser(user1Addr);
 
       // Create a DNS entry for testing

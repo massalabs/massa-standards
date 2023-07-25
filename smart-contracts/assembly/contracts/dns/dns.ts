@@ -213,9 +213,9 @@ export function isOwnerOfWebsite(
 /**
  * Ensures that the caller is the owner of the specific website.
  *
- * @param websiteName - The name of the website to check ownership (optional).
+ * @param websiteName - The name of the website to check ownership.
  */
-export function onlyWebsiteOwner(websiteName: string): void {
+function onlyWebsiteOwner(websiteName: string): void {
   // Get the address of the caller
   const callerAddress = Context.caller();
 
