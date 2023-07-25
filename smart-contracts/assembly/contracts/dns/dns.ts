@@ -11,7 +11,7 @@
  *
  * The datastore is used to persist all this information in the following way:
  * - The DNS owner address
- *   the key is 'owner'
+ *   the key is 'OWNER'
  *   the value is the address
  * - the list of all the web-site names
  * The key (web-site name) and the values (address and owner) are encoded using args.
