@@ -199,7 +199,7 @@ export function owner(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  */
 export function isOwnerOfWebsite(
   websiteName: string,
-  potentialOwner: Address,
+  potentialOwner: string,
 ): boolean {
   const websiteArgs = new Args().add(websiteName).serialize();
   const ownerAddressArray = owner(websiteArgs);
@@ -207,7 +207,7 @@ export function isOwnerOfWebsite(
   // Convert the owner address array to a string for comparison
   const ownerAddress = new Args(ownerAddressArray).nextString().unwrap();
 
-  return ownerAddress === potentialOwner.toString();
+  return ownerAddress === potentialOwner;
 }
 
 /**
@@ -217,7 +217,7 @@ export function isOwnerOfWebsite(
  */
 function onlyWebsiteOwner(websiteName: string): void {
   // Get the address of the caller
-  const callerAddress = Context.caller();
+  const callerAddress = Context.caller().toString();
 
   const isWebsiteOwner = isOwnerOfWebsite(websiteName, callerAddress);
 
