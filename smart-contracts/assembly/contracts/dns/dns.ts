@@ -29,7 +29,7 @@ import {
   callerHasWriteAccess,
 } from '@massalabs/massa-as-sdk';
 import { Args, byteToBool } from '@massalabs/as-types';
-import { onlyOwner, setOwner, triggerError, OWNER_KEY } from '../utils';
+import { onlyOwner, setOwner, triggerError } from '../utils';
 
 export const blackListKey = new Args().add('blackList').serialize();
 
@@ -211,6 +211,21 @@ export function isOwnerOfWebsite(
 }
 
 /**
+ * Ensures that the caller is the owner of the specific website.
+ *
+ * @param websiteName - The name of the website to check ownership (optional).
+ */
+export function onlyWebsiteOwner(websiteName: string): void {
+  // Get the address of the caller
+  const callerAddress = Context.caller();
+
+  const isWebsiteOwner = isOwnerOfWebsite(websiteName, callerAddress);
+
+  // Ensure that the caller is the owner of the website
+  assert(isWebsiteOwner, 'Caller is not the the owner of the website');
+}
+
+/**
  * Get the owner's list of websites as a string.
  *
  * @param owner - The address of the owner.
@@ -374,8 +389,8 @@ export function isBlacklisted(binaryArgs: StaticArray<u8>): StaticArray<u8> {
 export function deleteEntryFromDNS(binaryArgs: StaticArray<u8>): void {
   const websiteName = new Args(binaryArgs).nextString().unwrap();
 
-  // Ensure that the caller is the contract owner
-  onlyOwnerOrWebsiteOwner(websiteName);
+  // Ensure that the caller is the owner of the website
+  onlyWebsiteOwner(websiteName);
 
   const websiteNameBytes = new Args().add(websiteName);
   if (Storage.has(websiteNameBytes)) {
@@ -406,26 +421,4 @@ export function deleteEntriesFromDNS(binaryArgs: StaticArray<u8>): void {
     const websiteName = websiteNamesToDelete[i];
     deleteEntryFromDNS(new Args().add(websiteName).serialize());
   }
-}
-
-/**
- * Ensures that the caller is either the contract owner or the owner of the specific website.
- *
- * @param websiteName - The name of the website to check ownership (optional).
- */
-export function onlyOwnerOrWebsiteOwner(websiteName: string): void {
-  // Get the address of the caller
-  const callerAddress = Context.caller();
-
-  // Check if the caller is the owner of the specified website
-  const isWebsiteOwner = isOwnerOfWebsite(websiteName, callerAddress);
-
-  // Get the address of the contract owner from storage
-  const contractOwnerAddress = Storage.get(OWNER_KEY);
-
-  // Ensure that the caller is either the contract owner or the owner of the website
-  assert(
-    isWebsiteOwner || callerAddress.toString() === contractOwnerAddress,
-    'Caller is not the owner of the contract or the owner of the website',
-  );
 }

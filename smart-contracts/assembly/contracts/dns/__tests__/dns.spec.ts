@@ -28,8 +28,6 @@ const websiteAddr = 'A12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
 
 const dnsAdmin = 'AU1qDAxGJ387ETi9JRQzZWSPKYq4YPXrFvdiE4VoXUaiAt38JFEC';
 
-const randomUser = 'AU1qDAxGJ387ETi9JRQzZWSPKYq4YPXrFvdiE4VoXUllAt38JFEC';
-
 const user1Addr = 'AU125TiSrnD2YatYfEyRAWnBdD7TEuVbvGFkFgDuaYc2bdKyqKtb';
 
 function switchUser(user: string): void {
@@ -258,15 +256,15 @@ describe('DNS contract tests', () => {
     });
   });
   describe('deleteEntriesFromDNS', () => {
-    test('delete a single DNS entry when neither DNS admin nor website owner', () => {
-      switchUser(randomUser);
+    test('delete a single DNS entry as not website owner', () => {
+      switchUser(dnsAdmin);
       expect(() => {
         const args = new Args().add('test').serialize();
         deleteEntryFromDNS(args);
       }).toThrow();
     });
 
-    test('delete a single DNS entry', () => {
+    test('delete DNS entry as not website owner', () => {
       switchUser(user1Addr);
 
       // Create a DNS entry for testing
@@ -308,18 +306,6 @@ describe('DNS contract tests', () => {
       expect(getOwnerWebsiteList(new Address(user1Addr))).toBe(
         'test,backlisted',
       ); // The owner's list should contains only 2 entries
-
-      // switch to dnsAdmin
-      switchUser(dnsAdmin);
-      const deleteArgs2 = new Args().add('test').serialize();
-      deleteEntryFromDNS(deleteArgs2);
-
-      const stored2 = new Args(resolver(new Args().add('test').serialize()));
-
-      // Ensure that the DNS entry has been deleted
-      expect(stored2.nextString().unwrap()).toBeNull;
-      // The owner's list should contains only 1 entry
-      expect(getOwnerWebsiteList(new Address(user1Addr))).toBe('backlisted');
     });
   });
 });
