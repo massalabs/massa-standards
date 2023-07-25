@@ -29,10 +29,9 @@ import {
   callerHasWriteAccess,
 } from '@massalabs/massa-as-sdk';
 import { Args, byteToBool } from '@massalabs/as-types';
-import { onlyOwner, setOwner, triggerError } from '../utils';
+import { onlyOwner, setOwner, triggerError, OWNER_KEY } from '../utils';
 
 export const blackListKey = new Args().add('blackList').serialize();
-export const OWNER_KEY = 'OWNER';
 
 export function isDnsValid(input: string): bool {
   for (let i = 0; i < input.length; i++) {
