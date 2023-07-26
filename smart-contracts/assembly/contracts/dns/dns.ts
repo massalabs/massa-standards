@@ -192,22 +192,27 @@ export function owner(binaryArgs: StaticArray<u8>): StaticArray<u8> {
 
 /**
  * Checks if the given address is the owner of the website.
- *
- * @param websiteName - The name of the website.
- * @param potentialOwner - The address of the potential owner.
- * @returns `true` if the potential owner is the actual owner of the website, `false` otherwise.
+ * @param binaryArgs - Website name and the address of potential owner in a binary format using Args.
+ * @returns A serialized boolean indicating if the potential owner is the actual owner of the website.
  */
-export function isOwnerOfWebsite(
-  websiteName: string,
-  potentialOwner: string,
-): boolean {
+export function isOwnerOfWebsite(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+  const args = new Args(binaryArgs);
+
+  const websiteName = args
+    .nextString()
+    .expect('website name is missing or invalid');
+
+  const potentialOwner = args
+    .nextString()
+    .expect('potential owner address is missing or invalid');
+
   const websiteArgs = new Args().add(websiteName).serialize();
   const ownerAddressArray = owner(websiteArgs);
 
   // Convert the owner address array to a string for comparison
   const ownerAddress = new Args(ownerAddressArray).nextString().unwrap();
 
-  return ownerAddress === potentialOwner;
+  return new Args().add(ownerAddress === potentialOwner).serialize();
 }
 
 /**
@@ -219,7 +224,12 @@ function onlyWebsiteOwner(websiteName: string): void {
   // Get the address of the caller
   const callerAddress = Context.caller().toString();
 
-  const isWebsiteOwner = isOwnerOfWebsite(websiteName, callerAddress);
+  const argsWebsiteOwner = new Args()
+    .add(websiteName)
+    .add(callerAddress)
+    .serialize();
+
+  const isWebsiteOwner = byteToBool(isOwnerOfWebsite(argsWebsiteOwner));
 
   // Ensure that the caller is the owner of the website
   assert(isWebsiteOwner, 'Caller is not the the owner of the website');
