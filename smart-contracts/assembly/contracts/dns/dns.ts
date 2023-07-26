@@ -11,7 +11,7 @@
  *
  * The datastore is used to persist all this information in the following way:
  * - The DNS owner address
- *   the key is 'owner'
+ *   the key is 'OWNER'
  *   the value is the address
  * - the list of all the web-site names
  * The key (web-site name) and the values (address and owner) are encoded using args.
@@ -191,6 +191,75 @@ export function owner(binaryArgs: StaticArray<u8>): StaticArray<u8> {
 }
 
 /**
+ * Checks if the given address is the owner of the website.
+ * @param binaryArgs - Website name and the address of potential owner in a binary format using Args.
+ * @returns A serialized boolean indicating if the potential owner is the actual owner of the website.
+ */
+export function isOwnerOfWebsite(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+  const args = new Args(binaryArgs);
+
+  const websiteName = args
+    .nextString()
+    .expect('website name is missing or invalid');
+
+  const potentialOwner = args
+    .nextString()
+    .expect('potential owner address is missing or invalid');
+
+  const websiteArgs = new Args().add(websiteName).serialize();
+  const ownerAddressArray = owner(websiteArgs);
+
+  // Convert the owner address array to a string for comparison
+  const ownerAddress = new Args(ownerAddressArray).nextString().unwrap();
+
+  return new Args().add(ownerAddress === potentialOwner).serialize();
+}
+
+/**
+ * Ensures that the caller is the owner of the specific website.
+ *
+ * @param websiteName - The name of the website to check ownership.
+ */
+function onlyWebsiteOwner(websiteName: string): void {
+  // Get the address of the caller
+  const callerAddress = Context.caller().toString();
+
+  const argsWebsiteOwner = new Args()
+    .add(websiteName)
+    .add(callerAddress)
+    .serialize();
+
+  const isWebsiteOwner = byteToBool(isOwnerOfWebsite(argsWebsiteOwner));
+
+  // Ensure that the caller is the owner of the website
+  assert(isWebsiteOwner, 'Caller is not the the owner of the website');
+}
+
+/**
+ * Get the owner's list of websites as a string.
+ *
+ * @param binaryArgs - The address of the owner in a binary format using Args.
+ * @returns The owner's list of websites or an empty serialized string.
+ */
+export function getOwnerWebsiteList(
+  binaryArgs: StaticArray<u8>,
+): StaticArray<u8> {
+  const args = new Args(binaryArgs);
+
+  const owner = args
+    .nextString()
+    .expect('address of the owner is missing or invalid');
+
+  const ownerListKey = ownerKey(new Address(owner));
+
+  if (!Storage.has(ownerListKey)) {
+    return new Args().add('').serialize(); // Return an empty string if the owner's list is not found.
+  }
+
+  return Storage.get(ownerListKey);
+}
+
+/**
  * Appends a new website name to the list of the given owner.
  *
  * @param owner -
@@ -225,6 +294,44 @@ function addToOwnerList(owner: Address, websiteName: string): void {
   Storage.set(ownerListKey, new Args().add(newList).serialize());
   generateEvent(
     `Domain name ${websiteName} added to owner address ${owner.toString()}`,
+  );
+}
+
+/**
+ * Deletes a website name from the list of the given owner.
+ *
+ * @param websiteName - The name of the website to delete.
+ */
+function deleteFromOwnerList(websiteName: string): void {
+  const ownerbinary = owner(new Args().add(websiteName).serialize());
+  const ownerAddr = new Address(new Args(ownerbinary).nextString().unwrap());
+  const ownerListKey = ownerKey(ownerAddr);
+  const oldList = new Args(getOwnerWebsiteList(ownerbinary))
+    .nextString()
+    .unwrap();
+  const oldListArray = oldList.split(',');
+
+  // Find the index of the websiteName in the old list array
+  const index = oldListArray.indexOf(websiteName);
+
+  // Check if the websiteName exists in the owner's list
+  if (index === -1) {
+    triggerError('WEBSITE_NOT_FOUND');
+    return;
+  }
+
+  // Remove the websiteName from the old list array
+  oldListArray.splice(index, 1);
+
+  // Join the updated list array back into a string
+  const newList = oldListArray.join(',');
+
+  // Update the owner's list with the updated list
+  Storage.set(ownerListKey, new Args().add(newList).serialize());
+
+  // Emit an event to indicate the website name has been deleted from the owner's list
+  generateEvent(
+    `Domain name ${websiteName} deleted from owner address ${ownerAddr.toString()}`,
   );
 }
 
@@ -292,4 +399,45 @@ export function isBlacklisted(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   const isBlacklisted = blacklistedKeys.includes(websiteName);
 
   return new Args().add(isBlacklisted).serialize();
+}
+
+/**
+ * Delete a single entry from the DNS based on the given website name.
+ *
+ * @param binaryArgs - Website name in a binary format using Args.
+ */
+export function deleteEntryFromDNS(binaryArgs: StaticArray<u8>): void {
+  const websiteName = new Args(binaryArgs).nextString().unwrap();
+
+  // Ensure that the caller is the owner of the website
+  onlyWebsiteOwner(websiteName);
+
+  if (Storage.has(binaryArgs)) {
+    // Check if the website name exists in the DNS and delete it if found
+    deleteFromOwnerList(websiteName);
+    Storage.del(binaryArgs);
+
+    // Generate an event with the website name that was deleted from the DNS
+    generateEvent(`Domain name deleted from DNS: ${websiteName}`);
+  } else {
+    triggerError('WEBSITE_NOT_FOUND');
+  }
+}
+
+/**
+ * Deletes entries from the DNS based on the given website names.
+ *
+ * @param binaryArgs - Website names in a binary format using Args.
+ */
+export function deleteEntriesFromDNS(binaryArgs: StaticArray<u8>): void {
+  // Extract the website names from binaryArgs and unwrap them into an array
+  const websiteNamesToDelete = new Args(binaryArgs)
+    .nextStringArray()
+    .expect('website name list is missing or invalid');
+
+  // Loop through the list of website names to delete and remove them from the DNS
+  for (let i = 0; i < websiteNamesToDelete.length; i++) {
+    const websiteName = websiteNamesToDelete[i];
+    deleteEntryFromDNS(new Args().add(websiteName).serialize());
+  }
 }

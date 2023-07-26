@@ -6,6 +6,9 @@ import {
   isDnsValid,
   addWebsitesToBlackList,
   isBlacklisted,
+  deleteEntryFromDNS,
+  deleteEntriesFromDNS,
+  getOwnerWebsiteList,
   constructor,
 } from '../dns';
 import { Storage, mockAdminContext } from '@massalabs/massa-as-sdk';
@@ -250,6 +253,66 @@ describe('DNS contract tests', () => {
           .serialize();
         setResolver(setResolverArgs);
       }).toThrow();
+    });
+  });
+  describe('deleteEntriesFromDNS', () => {
+    test('delete a single DNS entry as not website owner', () => {
+      switchUser(dnsAdmin);
+      expect(() => {
+        const args = new Args().add('test').serialize();
+        deleteEntryFromDNS(args);
+      }).toThrow();
+    });
+
+    test('delete DNS entry as website owner', () => {
+      switchUser(user1Addr);
+
+      // Create a DNS entry for testing
+      const names = ['test-website'];
+      const websiteAddr =
+        'A1qth3jk2Yb5FcP9NYJh8MuFqEsyzRwqWGruL4uxATRrpPhLPVus';
+      const description = 'Test website description';
+
+      const setResolverArgs = new Args()
+        .add(names[0])
+        .add(websiteAddr)
+        .add(description)
+        .serialize();
+
+      setResolver(setResolverArgs);
+
+      // Ensure that the DNS entry has been created
+      const storedEntry = new Args(
+        resolver(new Args().add(names[0]).serialize()),
+      );
+      expect(storedEntry.nextString().unwrap()).toBe(websiteAddr);
+      expect(storedEntry.nextString().unwrap()).toBe(user1Addr);
+      expect(storedEntry.nextString().unwrap()).toBe(description);
+
+      const currentList = new Args(
+        getOwnerWebsiteList(new Args().add(user1Addr).serialize()),
+      )
+        .nextString()
+        .unwrap();
+
+      expect(currentList).toBe('test,backlisted,test-website');
+
+      // Delete the DNS entry using deleteEntriesFromDNS
+      switchUser(user1Addr);
+      const deleteArgs = new Args().add(names).serialize();
+      deleteEntriesFromDNS(deleteArgs);
+
+      const stored = new Args(resolver(new Args().add(names[0]).serialize()));
+
+      // Ensure that the DNS entry has been deleted
+      expect(stored.nextString().unwrap()).toBeNull;
+      // The owner's list should contains only 2 entries since 'test-website' has been deleted
+      const newList = new Args(
+        getOwnerWebsiteList(new Args().add(user1Addr).serialize()),
+      )
+        .nextString()
+        .unwrap();
+      expect(newList).toBe('test,backlisted'); // The owner's list should contains only 2 entries
     });
   });
 });
