@@ -11,7 +11,7 @@ import {
   getOwnerWebsiteList,
   constructor,
 } from '../dns';
-import { Storage, mockAdminContext, Address } from '@massalabs/massa-as-sdk';
+import { Storage, mockAdminContext } from '@massalabs/massa-as-sdk';
 import { Args, byteToBool, stringToBytes } from '@massalabs/as-types';
 import {
   changeCallStack,
@@ -289,9 +289,13 @@ describe('DNS contract tests', () => {
       expect(storedEntry.nextString().unwrap()).toBe(user1Addr);
       expect(storedEntry.nextString().unwrap()).toBe(description);
 
-      expect(getOwnerWebsiteList(new Address(user1Addr))).toBe(
-        'test,backlisted,test-website',
-      );
+      const currentList = new Args(
+        getOwnerWebsiteList(new Args().add(user1Addr).serialize()),
+      )
+        .nextString()
+        .unwrap();
+
+      expect(currentList).toBe('test,backlisted,test-website');
 
       // Delete the DNS entry using deleteEntriesFromDNS
       switchUser(user1Addr);
@@ -303,9 +307,12 @@ describe('DNS contract tests', () => {
       // Ensure that the DNS entry has been deleted
       expect(stored.nextString().unwrap()).toBeNull;
       // The owner's list should contains only 2 entries since 'test-website' has been deleted
-      expect(getOwnerWebsiteList(new Address(user1Addr))).toBe(
-        'test,backlisted',
-      ); // The owner's list should contains only 2 entries
+      const newList = new Args(
+        getOwnerWebsiteList(new Args().add(user1Addr).serialize()),
+      )
+        .nextString()
+        .unwrap();
+      expect(newList).toBe('test,backlisted'); // The owner's list should contains only 2 entries
     });
   });
 });

@@ -241,14 +241,22 @@ function onlyWebsiteOwner(websiteName: string): void {
  * @param owner - The address of the owner.
  * @returns The owner's list of websites as a string.
  */
-export function getOwnerWebsiteList(owner: Address): string {
-  const ownerListKey = ownerKey(owner);
+export function getOwnerWebsiteList(
+  binaryArgs: StaticArray<u8>,
+): StaticArray<u8> {
+  const args = new Args(binaryArgs);
+
+  const owner = args
+    .nextString()
+    .expect('address of the owner is missing or invalid');
+
+  const ownerListKey = ownerKey(new Address(owner));
 
   if (!Storage.has(ownerListKey)) {
-    return ''; // Return an empty string if the owner's list is not found.
+    return new Args().add('').serialize(); // Return an empty string if the owner's list is not found.
   }
 
-  return new Args(Storage.get(ownerListKey)).nextString().unwrap();
+  return Storage.get(ownerListKey);
 }
 
 /**
@@ -298,7 +306,9 @@ function deleteFromOwnerList(websiteName: string): void {
   const ownerbinary = owner(new Args().add(websiteName).serialize());
   const ownerAddr = new Address(new Args(ownerbinary).nextString().unwrap());
   const ownerListKey = ownerKey(ownerAddr);
-  const oldList = getOwnerWebsiteList(ownerAddr);
+  const oldList = new Args(getOwnerWebsiteList(ownerbinary))
+    .nextString()
+    .unwrap();
   const oldListArray = oldList.split(',');
 
   // Find the index of the websiteName in the old list array
