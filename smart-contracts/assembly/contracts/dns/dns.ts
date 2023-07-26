@@ -238,8 +238,8 @@ function onlyWebsiteOwner(websiteName: string): void {
 /**
  * Get the owner's list of websites as a string.
  *
- * @param owner - The address of the owner.
- * @returns The owner's list of websites as a string.
+ * @param binaryArgs - The address of the owner in a binary format using Args.
+ * @returns The owner's list of websites or an empty serialized string.
  */
 export function getOwnerWebsiteList(
   binaryArgs: StaticArray<u8>,
