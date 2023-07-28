@@ -71,7 +71,7 @@ The size of the authentication tag is 16 bytes (128 bits).
 
 ### Serialization
 
-An account, in a serialized form, consists of various components, including the account's private and public keys, a salt, a nonce, a version, and optionally, an address and nickname to aid in wallet recognition.
+An account, in a serialized form, consists of various components, including the account's private and public keys, a salt, a nonce, a version, a nickname, and optionally, an address to aid in wallet recognition.
 The account should be serialized using YAML to enable human readability of the file's contents, particularly the address and nickname.
 
 The following table summarize the format:
