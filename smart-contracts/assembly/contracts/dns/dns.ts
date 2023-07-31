@@ -195,7 +195,9 @@ export function DNS1_owner(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  * @param binaryArgs - Website name and the address of potential owner in a binary format using Args.
  * @returns A serialized boolean indicating if the potential owner is the actual owner of the website.
  */
-export function DNS1_isOwnerOfWebsite(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+export function DNS1_isOwnerOfWebsite(
+  binaryArgs: StaticArray<u8>,
+): StaticArray<u8> {
   const args = new Args(binaryArgs);
 
   const websiteName = args
@@ -392,10 +394,14 @@ export function DNS1_addWebsitesToBlackList(binaryArgs: StaticArray<u8>): void {
  * @param binaryArgs - Website name in a binary format using Args.
  * @returns A serialized boolean indicating whether the website name is blacklisted.
  */
-export function DNS1_isBlacklisted(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+export function DNS1_isBlacklisted(
+  binaryArgs: StaticArray<u8>,
+): StaticArray<u8> {
   const websiteName = new Args(binaryArgs).nextString().unwrap();
 
-  const blacklistedKeys = new Args(DNS1_getBlacklisted()).nextStringArray().unwrap();
+  const blacklistedKeys = new Args(DNS1_getBlacklisted())
+    .nextStringArray()
+    .unwrap();
   const isBlacklisted = blacklistedKeys.includes(websiteName);
 
   return new Args().add(isBlacklisted).serialize();

@@ -70,7 +70,7 @@ describe('DNS contract tests', () => {
         .add('invalid dns entry')
         .add(deployerAddress)
         .serialize();
-        DNS1_setResolver(setResolverArgs);
+      DNS1_setResolver(setResolverArgs);
     }).toThrow();
   });
 
@@ -121,7 +121,7 @@ describe('DNS contract tests', () => {
       .add(desc)
       .serialize();
 
-      DNS1_setResolver(setResolverArgs);
+    DNS1_setResolver(setResolverArgs);
 
     const stored = new Args(DNS1_resolver(new Args().add(name).serialize()));
 
@@ -141,7 +141,7 @@ describe('DNS contract tests', () => {
       .add(desc)
       .serialize();
 
-      DNS1_setResolver(setResolverArgs);
+    DNS1_setResolver(setResolverArgs);
 
     const stored = new Args(DNS1_resolver(new Args().add(name).serialize()));
 
@@ -156,7 +156,7 @@ describe('DNS contract tests', () => {
         .add('test')
         .add(deployerAddress)
         .serialize();
-        DNS1_setResolver(setResolverArgs);
+      DNS1_setResolver(setResolverArgs);
     }).toThrow();
   });
 
@@ -172,7 +172,7 @@ describe('DNS contract tests', () => {
         .add(websiteAddr)
         .add(desc)
         .serialize();
-        DNS1_setResolver(setResolverArgs);
+      DNS1_setResolver(setResolverArgs);
     });
 
     test('blacklist name not being admin', () => {
@@ -220,7 +220,9 @@ describe('DNS contract tests', () => {
 
       // Expect the isBlacklisted return to be true since 'example' is blacklisted
       expect(
-        byteToBool(DNS1_isBlacklisted(new Args().add(blacklistedName).serialize())),
+        byteToBool(
+          DNS1_isBlacklisted(new Args().add(blacklistedName).serialize()),
+        ),
       ).toBe(true);
 
       // Test the isBlacklisted function for a non-blacklisted website name
@@ -251,7 +253,7 @@ describe('DNS contract tests', () => {
           .add(deployerAddress)
           .add('')
           .serialize();
-          DNS1_setResolver(setResolverArgs);
+        DNS1_setResolver(setResolverArgs);
       }).toThrow();
     });
   });
@@ -279,7 +281,7 @@ describe('DNS contract tests', () => {
         .add(description)
         .serialize();
 
-        DNS1_setResolver(setResolverArgs);
+      DNS1_setResolver(setResolverArgs);
 
       // Ensure that the DNS entry has been created
       const storedEntry = new Args(
@@ -302,7 +304,9 @@ describe('DNS contract tests', () => {
       const deleteArgs = new Args().add(names).serialize();
       DNS1_deleteEntriesFromDNS(deleteArgs);
 
-      const stored = new Args(DNS1_resolver(new Args().add(names[0]).serialize()));
+      const stored = new Args(
+        DNS1_resolver(new Args().add(names[0]).serialize()),
+      );
 
       // Ensure that the DNS entry has been deleted
       expect(stored.nextString().unwrap()).toBeNull;
