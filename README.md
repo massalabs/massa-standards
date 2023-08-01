@@ -21,6 +21,12 @@ The [Non-Fungible Token standard implementation](smart-contracts/assembly/contra
 
 This is MassaLabs implementation of [the ERC721](https://ethereum.org/en/developers/docs/standards/tokens/erc-721/).
 
+## Massa Domain Name Service
+
+The [Massa Domain Name Service standard](smart-contracts/assembly/contracts/dns/dns.ts) defines a common set of rules for creating and managing Massa-based domain names.
+
+This is MassaLabs implementation of [the ENS](https://docs.ens.domains/).
+
 ## Massa Units
 
 The [Massa Units standard](units.md) defines a set of common units of measurement for use on the Massa blockchain.
