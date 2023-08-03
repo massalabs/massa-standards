@@ -4,5 +4,6 @@ module.exports = {
   ],
   rules: {
     'new-cap': ['error', { newIsCap: false }],
+    "camelcase": [2, {"allow": ["_"]}],
   }
 };

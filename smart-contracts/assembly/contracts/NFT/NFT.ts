@@ -79,7 +79,7 @@ export function constructor(binaryArgs: StaticArray<u8>): void {
  * Change the base URI, can be only called by the contract Owner
  * @param binaryArgs - Serialized URI String with `Args`
  */
-export function setURI(binaryArgs: StaticArray<u8>): void {
+export function nft1_setURI(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
   const newBaseURI = args
     .nextString()
@@ -100,7 +100,7 @@ export function setURI(binaryArgs: StaticArray<u8>): void {
  * Returns the NFT's name
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
  */
-export function name(
+export function nft1_name(
   _: StaticArray<u8> = new StaticArray<u8>(0),
 ): StaticArray<u8> {
   return stringToBytes(Storage.get(nameKey));
@@ -110,7 +110,7 @@ export function name(
  * Returns the NFT's symbol
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
  */
-export function symbol(
+export function nft1_symbol(
   _: StaticArray<u8> = new StaticArray<u8>(0),
 ): StaticArray<u8> {
   return stringToBytes(Storage.get(symbolKey));
@@ -120,7 +120,7 @@ export function symbol(
  * Returns the token URI (external link written in NFT where pictures or others are stored)
  * @param binaryArgs - U64 serialized tokenID with `Args`
  */
-export function tokenURI(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+export function nft1_tokenURI(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   const args = new Args(binaryArgs);
   const tokenId = args
     .nextU64()
@@ -133,7 +133,7 @@ export function tokenURI(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  * Returns the base URI
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
  */
-export function baseURI(
+export function nft1_baseURI(
   _: StaticArray<u8> = new StaticArray<u8>(0),
 ): StaticArray<u8> {
   return stringToBytes(Storage.get(baseURIKey));
@@ -144,7 +144,7 @@ export function baseURI(
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
  * @returns the u64 max supply
  */
-export function totalSupply(
+export function nft1_totalSupply(
   _: StaticArray<u8> = new StaticArray<u8>(0),
 ): StaticArray<u8> {
   return Storage.get(totalSupplyKey);
@@ -155,7 +155,7 @@ export function totalSupply(
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
  * @returns the u64 current counter
  */
-export function currentSupply(
+export function nft1_currentSupply(
   _: StaticArray<u8> = new StaticArray<u8>(0),
 ): StaticArray<u8> {
   return Storage.get(counterKey);
@@ -166,7 +166,7 @@ export function currentSupply(
  * @param _args - tokenId serialized with `Args` as u64
  * @returns serialized Address as string
  */
-export function ownerOf(_args: StaticArray<u8>): StaticArray<u8> {
+export function nft1_ownerOf(_args: StaticArray<u8>): StaticArray<u8> {
   const args = new Args(_args);
   const tokenId = args
     .nextU64()
@@ -188,7 +188,7 @@ export function ownerOf(_args: StaticArray<u8>): StaticArray<u8> {
  * Check if max supply is not reached
  * @param _args - Address as string serialized with `Args`
  */
-export function mint(_args: StaticArray<u8>): void {
+export function nft1_mint(_args: StaticArray<u8>): void {
   assert(
     bytesToU64(Storage.get(totalSupplyKey)) > _currentSupply(),
     'Max supply reached',
@@ -227,7 +227,7 @@ function _onlyOwner(): bool {
 function _onlyTokenOwner(tokenId: u64): bool {
   // as we need to compare two byteArrays, we need to compare the pointers
   // we transform our byte array to their pointers and we compare them
-  const left = ownerOf(u64ToBytes(tokenId));
+  const left = nft1_ownerOf(u64ToBytes(tokenId));
   return (
     memory.compare(
       changetype<usize>(left),
@@ -264,7 +264,7 @@ function _currentSupply(): u64 {
  * - the recipient's account (address)
  * - the tokenID (u64).
  */
-export function transfer(binaryArgs: StaticArray<u8>): void {
+export function nft1_transfer(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
   const toAddress = args
     .nextString()
@@ -294,7 +294,7 @@ export function transfer(binaryArgs: StaticArray<u8>): void {
  * - the tokenID (u64).
  * @throws if the token is not minted or if the caller is not allowed to transfer the token
  */
-export function transferFrom(binaryArgs: StaticArray<u8>): void {
+export function nft1_transferFrom(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
   const from = args
     .nextString()
@@ -321,7 +321,7 @@ export function transferFrom(binaryArgs: StaticArray<u8>): void {
  * - the spenderAddress - spender address
  * - the tokenID (u64)
  */
-export function approve(binaryArgs: StaticArray<u8>): void {
+export function nft1_approve(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
 
   const callerAddress = Context.caller();
@@ -343,7 +343,7 @@ export function approve(binaryArgs: StaticArray<u8>): void {
   );
 
   assert(
-    !isApproved(new Args().add(callerAddress).add(tokenId).serialize()),
+    !nft1_isApproved(new Args().add(callerAddress).add(tokenId).serialize()),
     `You are already allowed to transfer ${tokenId.toString()}`,
   );
 
@@ -376,7 +376,7 @@ function _approve(tokenId: u64, spenderAddress: Address): void {
  * - the tokenID (u64)
  * @returns string containing the authorized addresses separated by a comma
  */
-export function getApproved(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+export function nft1_getApproved(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   const args = new Args(binaryArgs);
   const tokenId = args
     .nextU64()
@@ -407,7 +407,7 @@ function _removeApprovals(tokenId: u64): void {
  * - the tokenID (u64)
  * @returns true if the address is approved to transfer the tokenId, false otherwise
  */
-export function isApproved(binaryArgs: StaticArray<u8>): bool {
+export function nft1_isApproved(binaryArgs: StaticArray<u8>): bool {
   const args = new Args(binaryArgs);
   const address = args
     .nextString()
@@ -446,7 +446,7 @@ function assertOnlyOwner(tokenId: u64): void {
 
 function assertOnlyApproved(from: string, tokenId: u64): void {
   assert(
-    isApproved(new Args().add(from).add(tokenId).serialize()),
+    nft1_isApproved(new Args().add(from).add(tokenId).serialize()),
     'You are not allowed to transfer this token',
   );
 }
