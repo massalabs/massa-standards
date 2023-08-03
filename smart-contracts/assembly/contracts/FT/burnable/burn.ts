@@ -18,7 +18,7 @@ const BURN_EVENT = 'BURN';
  * @param binaryArgs - byte string with the following format:
  * - the amount of tokens to burn obn the caller address (u256).
  */
-export function burn(binaryArgs: StaticArray<u8>): void {
+export function ft1_burn(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
   const amount = args
     .nextU256()
@@ -41,7 +41,7 @@ export function burn(binaryArgs: StaticArray<u8>): void {
  * - the amount of tokens to burn on the caller address (u256).
  *
  */
-export function burnFrom(binaryArgs: StaticArray<u8>): void {
+export function ft1_burnFrom(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
   const owner = new Address(
     args.nextString().expect('owner argument is missing or invalid'),
