@@ -1,14 +1,14 @@
-import { blackListKey, DNS1_getBlacklisted } from './../dns';
+import { blackListKey, dns1_getBlacklisted } from './../dns';
 import {
-  DNS1_setResolver,
-  DNS1_isDescriptionValid,
-  DNS1_resolver,
-  DNS1_isDnsValid,
-  DNS1_addWebsitesToBlackList,
-  DNS1_isBlacklisted,
-  DNS1_deleteEntryFromDNS,
-  DNS1_deleteEntriesFromDNS,
-  DNS1_getOwnerWebsiteList,
+  dns1_setResolver,
+  dns1_isDescriptionValid,
+  dns1_resolver,
+  dns1_isDnsValid,
+  dns1_addWebsitesToBlackList,
+  dns1_isBlacklisted,
+  dns1_deleteEntryFromDNS,
+  dns1_deleteEntriesFromDNS,
+  dns1_getOwnerWebsiteList,
   constructor,
 } from '../dns';
 import { Storage, mockAdminContext } from '@massalabs/massa-as-sdk';
@@ -59,9 +59,9 @@ describe('DNS contract tests', () => {
       'x'.repeat(300);
     const validDescriptionExactly280 = 'x'.repeat(280);
 
-    expect(DNS1_isDescriptionValid(validDescriptionLessThan280)).toBe(true);
-    expect(DNS1_isDescriptionValid(invalidDescriptionMoreThan280)).toBe(false);
-    expect(DNS1_isDescriptionValid(validDescriptionExactly280)).toBe(true);
+    expect(dns1_isDescriptionValid(validDescriptionLessThan280)).toBe(true);
+    expect(dns1_isDescriptionValid(invalidDescriptionMoreThan280)).toBe(false);
+    expect(dns1_isDescriptionValid(validDescriptionExactly280)).toBe(true);
   });
 
   test('invalid dns entry', () => {
@@ -70,7 +70,7 @@ describe('DNS contract tests', () => {
         .add('invalid dns entry')
         .add(deployerAddress)
         .serialize();
-      DNS1_setResolver(setResolverArgs);
+      dns1_setResolver(setResolverArgs);
     }).toThrow();
   });
 
@@ -85,7 +85,7 @@ describe('DNS contract tests', () => {
       ];
 
       validDnsEntries.forEach((entry) => {
-        expect(DNS1_isDnsValid(entry)).toBe(true);
+        expect(dns1_isDnsValid(entry)).toBe(true);
       });
     });
 
@@ -104,7 +104,7 @@ describe('DNS contract tests', () => {
       ];
 
       invalidDnsEntries.forEach((entry) => {
-        expect(DNS1_isDnsValid(entry)).toBe(false);
+        expect(dns1_isDnsValid(entry)).toBe(false);
       });
     });
   });
@@ -121,9 +121,9 @@ describe('DNS contract tests', () => {
       .add(desc)
       .serialize();
 
-    DNS1_setResolver(setResolverArgs);
+    dns1_setResolver(setResolverArgs);
 
-    const stored = new Args(DNS1_resolver(new Args().add(name).serialize()));
+    const stored = new Args(dns1_resolver(new Args().add(name).serialize()));
 
     expect(stored.nextString().unwrap()).toBe(websiteAddr, 'wrong websiteAddr');
     expect(stored.nextString().unwrap()).toBe(user1Addr, 'wrong owner address');
@@ -141,9 +141,9 @@ describe('DNS contract tests', () => {
       .add(desc)
       .serialize();
 
-    DNS1_setResolver(setResolverArgs);
+    dns1_setResolver(setResolverArgs);
 
-    const stored = new Args(DNS1_resolver(new Args().add(name).serialize()));
+    const stored = new Args(dns1_resolver(new Args().add(name).serialize()));
 
     expect(stored.nextString().unwrap()).toBe(websiteAddr);
     expect(stored.nextString().unwrap()).toBe(deployerAddress);
@@ -156,7 +156,7 @@ describe('DNS contract tests', () => {
         .add('test')
         .add(deployerAddress)
         .serialize();
-      DNS1_setResolver(setResolverArgs);
+      dns1_setResolver(setResolverArgs);
     }).toThrow();
   });
 
@@ -172,14 +172,14 @@ describe('DNS contract tests', () => {
         .add(websiteAddr)
         .add(desc)
         .serialize();
-      DNS1_setResolver(setResolverArgs);
+      dns1_setResolver(setResolverArgs);
     });
 
     test('blacklist name not being admin', () => {
       switchUser(user1Addr);
       expect(() => {
         const blacklistArgs = new Args().add(['blacklist1']).serialize();
-        DNS1_addWebsitesToBlackList(blacklistArgs);
+        dns1_addWebsitesToBlackList(blacklistArgs);
       }).toThrow();
     });
 
@@ -193,10 +193,10 @@ describe('DNS contract tests', () => {
       Storage.set(blackListKey, new Args().add([] as string[]).serialize());
 
       // Call the addWebsitesToBlackList function with the list of website names
-      DNS1_addWebsitesToBlackList(websiteNamesBinary);
+      dns1_addWebsitesToBlackList(websiteNamesBinary);
 
       // Retrieve the updated blacklist from storage
-      const updatedBlacklist = new Args(DNS1_getBlacklisted())
+      const updatedBlacklist = new Args(dns1_getBlacklisted())
         .nextStringArray()
         .unwrap();
 
@@ -205,10 +205,10 @@ describe('DNS contract tests', () => {
 
       // Call again the addWebsitesToBlackList function with the same list of website names
       // To check that we don't blacklist twice
-      DNS1_addWebsitesToBlackList(websiteNamesBinary);
+      dns1_addWebsitesToBlackList(websiteNamesBinary);
 
       // Retrieve the updated blacklist from storage
-      const finalBlacklist = new Args(DNS1_getBlacklisted())
+      const finalBlacklist = new Args(dns1_getBlacklisted())
         .nextStringArray()
         .unwrap();
 
@@ -221,7 +221,7 @@ describe('DNS contract tests', () => {
       // Expect the isBlacklisted return to be true since 'example' is blacklisted
       expect(
         byteToBool(
-          DNS1_isBlacklisted(new Args().add(blacklistedName).serialize()),
+          dns1_isBlacklisted(new Args().add(blacklistedName).serialize()),
         ),
       ).toBe(true);
 
@@ -231,7 +231,7 @@ describe('DNS contract tests', () => {
       // Expect the isBlacklisted return to be false since 'example2' is non blacklisted
       expect(
         byteToBool(
-          DNS1_isBlacklisted(new Args().add(nonblacklistedName).serialize()),
+          dns1_isBlacklisted(new Args().add(nonblacklistedName).serialize()),
         ),
       ).toBe(false);
     });
@@ -242,7 +242,7 @@ describe('DNS contract tests', () => {
       const blacklistNames = ['blacklist1', 'blacklist2', 'blacklist3'];
       const blacklistArgs = new Args().add(blacklistNames);
       const blacklistArgsBinary = blacklistArgs.serialize();
-      DNS1_addWebsitesToBlackList(blacklistArgsBinary);
+      dns1_addWebsitesToBlackList(blacklistArgsBinary);
 
       // Try to set resolver with a blacklisted name
       const blacklistedName = 'blacklist1';
@@ -253,7 +253,7 @@ describe('DNS contract tests', () => {
           .add(deployerAddress)
           .add('')
           .serialize();
-        DNS1_setResolver(setResolverArgs);
+        dns1_setResolver(setResolverArgs);
       }).toThrow();
     });
   });
@@ -262,7 +262,7 @@ describe('DNS contract tests', () => {
       switchUser(dnsAdmin);
       expect(() => {
         const args = new Args().add('test').serialize();
-        DNS1_deleteEntryFromDNS(args);
+        dns1_deleteEntryFromDNS(args);
       }).toThrow();
     });
 
@@ -281,18 +281,18 @@ describe('DNS contract tests', () => {
         .add(description)
         .serialize();
 
-      DNS1_setResolver(setResolverArgs);
+      dns1_setResolver(setResolverArgs);
 
       // Ensure that the DNS entry has been created
       const storedEntry = new Args(
-        DNS1_resolver(new Args().add(names[0]).serialize()),
+        dns1_resolver(new Args().add(names[0]).serialize()),
       );
       expect(storedEntry.nextString().unwrap()).toBe(websiteAddr);
       expect(storedEntry.nextString().unwrap()).toBe(user1Addr);
       expect(storedEntry.nextString().unwrap()).toBe(description);
 
       const currentList = new Args(
-        DNS1_getOwnerWebsiteList(new Args().add(user1Addr).serialize()),
+        dns1_getOwnerWebsiteList(new Args().add(user1Addr).serialize()),
       )
         .nextString()
         .unwrap();
@@ -302,17 +302,17 @@ describe('DNS contract tests', () => {
       // Delete the DNS entry using deleteEntriesFromDNS
       switchUser(user1Addr);
       const deleteArgs = new Args().add(names).serialize();
-      DNS1_deleteEntriesFromDNS(deleteArgs);
+      dns1_deleteEntriesFromDNS(deleteArgs);
 
       const stored = new Args(
-        DNS1_resolver(new Args().add(names[0]).serialize()),
+        dns1_resolver(new Args().add(names[0]).serialize()),
       );
 
       // Ensure that the DNS entry has been deleted
       expect(stored.nextString().unwrap()).toBeNull;
       // The owner's list should contains only 2 entries since 'test-website' has been deleted
       const newList = new Args(
-        DNS1_getOwnerWebsiteList(new Args().add(user1Addr).serialize()),
+        dns1_getOwnerWebsiteList(new Args().add(user1Addr).serialize()),
       )
         .nextString()
         .unwrap();

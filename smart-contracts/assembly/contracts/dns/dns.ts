@@ -33,7 +33,7 @@ import { onlyOwner, setOwner, triggerError } from '../utils';
 
 export const blackListKey = new Args().add('blackList').serialize();
 
-export function DNS1_isDnsValid(input: string): bool {
+export function dns1_isDnsValid(input: string): bool {
   for (let i = 0; i < input.length; i++) {
     const charCode = input.charCodeAt(i);
 
@@ -54,7 +54,7 @@ export function DNS1_isDnsValid(input: string): bool {
   return true;
 }
 
-export function DNS1_isDescriptionValid(description: string): boolean {
+export function dns1_isDescriptionValid(description: string): boolean {
   // Check if the length exceeds the maximum limit of 280 characters
   if (description.length > 280) {
     return false;
@@ -78,7 +78,7 @@ export function constructor(_: StaticArray<u8>): StaticArray<u8> {
   return [];
 }
 
-function DNS1_ownerKey(address: Address): StaticArray<u8> {
+function dns1_ownerKey(address: Address): StaticArray<u8> {
   return new Args().add('owned' + address.toString()).serialize();
 }
 
@@ -93,14 +93,14 @@ function DNS1_ownerKey(address: Address): StaticArray<u8> {
  * @example
  * setResolver(new Args().add("my-website").add(myWebSiteAddress)
  */
-export function DNS1_setResolver(binaryArgs: StaticArray<u8>): void {
+export function dns1_setResolver(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
 
   const websiteName = args
     .nextString()
     .expect('website name is missing or invalid');
 
-  if (!DNS1_isDnsValid(websiteName)) {
+  if (!dns1_isDnsValid(websiteName)) {
     triggerError('INVALID_DNS_ENTRY');
   }
 
@@ -114,7 +114,7 @@ export function DNS1_setResolver(binaryArgs: StaticArray<u8>): void {
     .nextString()
     .expect('website description is missing or invalid');
 
-  if (!DNS1_isDescriptionValid(description)) {
+  if (!dns1_isDescriptionValid(description)) {
     triggerError('INVALID_DESCRIPTION_ENTRY');
   }
 
@@ -124,7 +124,7 @@ export function DNS1_setResolver(binaryArgs: StaticArray<u8>): void {
 
   // Check if the website name is blacklisted
   const isBlacklistedValue = byteToBool(
-    DNS1_isBlacklisted(new Args().add(websiteName).serialize()),
+    dns1_isBlacklisted(new Args().add(websiteName).serialize()),
   );
 
   if (isBlacklistedValue) {
@@ -139,7 +139,7 @@ export function DNS1_setResolver(binaryArgs: StaticArray<u8>): void {
       .add(description),
   );
 
-  DNS1_addToOwnerList(Context.caller(), websiteName);
+  dns1_addToOwnerList(Context.caller(), websiteName);
 
   // this event should not be changed without changing the event listener in Thyra
   generateEvent(
@@ -158,7 +158,7 @@ export function DNS1_setResolver(binaryArgs: StaticArray<u8>): void {
  * @example
  * resolver(new Args().add("my-website").serialize())
  */
-export function DNS1_resolver(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+export function dns1_resolver(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   if (Storage.has(binaryArgs)) {
     return Storage.get(binaryArgs);
   }
@@ -177,7 +177,7 @@ export function DNS1_resolver(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  * @example
  * owner(new Args().add("my-website").serialize())
  */
-export function DNS1_owner(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+export function dns1_owner(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   if (Storage.has(binaryArgs)) {
     const entry = new Args(Storage.get(binaryArgs));
     // skip the website address
@@ -195,7 +195,7 @@ export function DNS1_owner(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  * @param binaryArgs - Website name and the address of potential owner in a binary format using Args.
  * @returns A serialized boolean indicating if the potential owner is the actual owner of the website.
  */
-export function DNS1_isOwnerOfWebsite(
+export function dns1_isOwnerOfWebsite(
   binaryArgs: StaticArray<u8>,
 ): StaticArray<u8> {
   const args = new Args(binaryArgs);
@@ -209,7 +209,7 @@ export function DNS1_isOwnerOfWebsite(
     .expect('potential owner address is missing or invalid');
 
   const websiteArgs = new Args().add(websiteName).serialize();
-  const ownerAddressArray = DNS1_owner(websiteArgs);
+  const ownerAddressArray = dns1_owner(websiteArgs);
 
   // Convert the owner address array to a string for comparison
   const ownerAddress = new Args(ownerAddressArray).nextString().unwrap();
@@ -222,7 +222,7 @@ export function DNS1_isOwnerOfWebsite(
  *
  * @param websiteName - The name of the website to check ownership.
  */
-function DNS1_onlyWebsiteOwner(websiteName: string): void {
+function dns1_onlyWebsiteOwner(websiteName: string): void {
   // Get the address of the caller
   const callerAddress = Context.caller().toString();
 
@@ -231,7 +231,7 @@ function DNS1_onlyWebsiteOwner(websiteName: string): void {
     .add(callerAddress)
     .serialize();
 
-  const isWebsiteOwner = byteToBool(DNS1_isOwnerOfWebsite(argsWebsiteOwner));
+  const isWebsiteOwner = byteToBool(dns1_isOwnerOfWebsite(argsWebsiteOwner));
 
   // Ensure that the caller is the owner of the website
   assert(isWebsiteOwner, 'Caller is not the the owner of the website');
@@ -243,7 +243,7 @@ function DNS1_onlyWebsiteOwner(websiteName: string): void {
  * @param binaryArgs - The address of the owner in a binary format using Args.
  * @returns The owner's list of websites or an empty serialized string.
  */
-export function DNS1_getOwnerWebsiteList(
+export function dns1_getOwnerWebsiteList(
   binaryArgs: StaticArray<u8>,
 ): StaticArray<u8> {
   const args = new Args(binaryArgs);
@@ -252,7 +252,7 @@ export function DNS1_getOwnerWebsiteList(
     .nextString()
     .expect('address of the owner is missing or invalid');
 
-  const ownerListKey = DNS1_ownerKey(new Address(owner));
+  const ownerListKey = dns1_ownerKey(new Address(owner));
 
   if (!Storage.has(ownerListKey)) {
     return new Args().add('').serialize(); // Return an empty string if the owner's list is not found.
@@ -267,8 +267,8 @@ export function DNS1_getOwnerWebsiteList(
  * @param owner -
  * @param websiteName -
  */
-function DNS1_addToOwnerList(owner: Address, websiteName: string): void {
-  const ownerListKey = DNS1_ownerKey(owner);
+function dns1_addToOwnerList(owner: Address, websiteName: string): void {
+  const ownerListKey = dns1_ownerKey(owner);
 
   if (!Storage.has(ownerListKey)) {
     Storage.set(ownerListKey, new Args().add(websiteName).serialize());
@@ -304,11 +304,11 @@ function DNS1_addToOwnerList(owner: Address, websiteName: string): void {
  *
  * @param websiteName - The name of the website to delete.
  */
-function DNS1_deleteFromOwnerList(websiteName: string): void {
-  const ownerbinary = DNS1_owner(new Args().add(websiteName).serialize());
+function dns1_deleteFromOwnerList(websiteName: string): void {
+  const ownerbinary = dns1_owner(new Args().add(websiteName).serialize());
   const ownerAddr = new Address(new Args(ownerbinary).nextString().unwrap());
-  const ownerListKey = DNS1_ownerKey(ownerAddr);
-  const oldList = new Args(DNS1_getOwnerWebsiteList(ownerbinary))
+  const ownerListKey = dns1_ownerKey(ownerAddr);
+  const oldList = new Args(dns1_getOwnerWebsiteList(ownerbinary))
     .nextString()
     .unwrap();
   const oldListArray = oldList.split(',');
@@ -342,7 +342,7 @@ function DNS1_deleteFromOwnerList(websiteName: string): void {
  *
  * @returns The array of blacklisted keys as a StaticArray<u8>.
  */
-export function DNS1_getBlacklisted(): StaticArray<u8> {
+export function dns1_getBlacklisted(): StaticArray<u8> {
   // Deserialize the blacklisted keys from storage, if it exists
   return Storage.has(blackListKey) ? Storage.get(blackListKey) : [0, 0, 0, 0];
 }
@@ -352,7 +352,7 @@ export function DNS1_getBlacklisted(): StaticArray<u8> {
  *
  * @param binaryArgs - Website names in a binary format using Args.
  */
-export function DNS1_addWebsitesToBlackList(binaryArgs: StaticArray<u8>): void {
+export function dns1_addWebsitesToBlackList(binaryArgs: StaticArray<u8>): void {
   // Ensure that the caller is the contract owner
   onlyOwner();
 
@@ -360,7 +360,7 @@ export function DNS1_addWebsitesToBlackList(binaryArgs: StaticArray<u8>): void {
   const websiteNames = new Args(binaryArgs).nextStringArray().unwrap();
 
   // Retrieve the current blacklisted keys
-  const existingBlacklist = new Args(DNS1_getBlacklisted())
+  const existingBlacklist = new Args(dns1_getBlacklisted())
     .nextStringArray()
     .unwrap();
 
@@ -394,12 +394,12 @@ export function DNS1_addWebsitesToBlackList(binaryArgs: StaticArray<u8>): void {
  * @param binaryArgs - Website name in a binary format using Args.
  * @returns A serialized boolean indicating whether the website name is blacklisted.
  */
-export function DNS1_isBlacklisted(
+export function dns1_isBlacklisted(
   binaryArgs: StaticArray<u8>,
 ): StaticArray<u8> {
   const websiteName = new Args(binaryArgs).nextString().unwrap();
 
-  const blacklistedKeys = new Args(DNS1_getBlacklisted())
+  const blacklistedKeys = new Args(dns1_getBlacklisted())
     .nextStringArray()
     .unwrap();
   const isBlacklisted = blacklistedKeys.includes(websiteName);
@@ -412,15 +412,15 @@ export function DNS1_isBlacklisted(
  *
  * @param binaryArgs - Website name in a binary format using Args.
  */
-export function DNS1_deleteEntryFromDNS(binaryArgs: StaticArray<u8>): void {
+export function dns1_deleteEntryFromDNS(binaryArgs: StaticArray<u8>): void {
   const websiteName = new Args(binaryArgs).nextString().unwrap();
 
   // Ensure that the caller is the owner of the website
-  DNS1_onlyWebsiteOwner(websiteName);
+  dns1_onlyWebsiteOwner(websiteName);
 
   if (Storage.has(binaryArgs)) {
     // Check if the website name exists in the DNS and delete it if found
-    DNS1_deleteFromOwnerList(websiteName);
+    dns1_deleteFromOwnerList(websiteName);
     Storage.del(binaryArgs);
 
     // Generate an event with the website name that was deleted from the DNS
@@ -435,7 +435,7 @@ export function DNS1_deleteEntryFromDNS(binaryArgs: StaticArray<u8>): void {
  *
  * @param binaryArgs - Website names in a binary format using Args.
  */
-export function DNS1_deleteEntriesFromDNS(binaryArgs: StaticArray<u8>): void {
+export function dns1_deleteEntriesFromDNS(binaryArgs: StaticArray<u8>): void {
   // Extract the website names from binaryArgs and unwrap them into an array
   const websiteNamesToDelete = new Args(binaryArgs)
     .nextStringArray()
@@ -444,6 +444,6 @@ export function DNS1_deleteEntriesFromDNS(binaryArgs: StaticArray<u8>): void {
   // Loop through the list of website names to delete and remove them from the DNS
   for (let i = 0; i < websiteNamesToDelete.length; i++) {
     const websiteName = websiteNamesToDelete[i];
-    DNS1_deleteEntryFromDNS(new Args().add(websiteName).serialize());
+    dns1_deleteEntryFromDNS(new Args().add(websiteName).serialize());
   }
 }
