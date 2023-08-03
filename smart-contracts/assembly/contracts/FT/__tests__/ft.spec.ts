@@ -12,17 +12,17 @@ import {
   u256ToBytes,
 } from '@massalabs/as-types';
 import {
-  transfer,
-  balanceOf,
-  totalSupply,
-  name,
-  symbol,
-  decimals,
-  version,
-  transferFrom,
-  allowance,
-  increaseAllowance,
-  decreaseAllowance,
+  ft1_transfer,
+  ft1_balanceOf,
+  ft1_totalSupply,
+  ft1_name,
+  ft1_symbol,
+  ft1_decimals,
+  ft1_version,
+  ft1_transferFrom,
+  ft1_allowance,
+  ft1_increaseAllowance,
+  ft1_decreaseAllowance,
   constructor,
 } from '../token';
 import { u256 } from 'as-bignum/assembly';
@@ -60,36 +60,36 @@ beforeAll(() => {
 
 describe('Initialization', () => {
   test('total supply is properly initialized', () =>
-    expect(totalSupply([])).toStrictEqual(u256ToBytes(TOTAL_SUPPLY)));
+    expect(ft1_totalSupply([])).toStrictEqual(u256ToBytes(TOTAL_SUPPLY)));
 
   test('token name is properly initialized', () =>
-    expect(name([])).toStrictEqual(stringToBytes(TOKEN_NAME)));
+    expect(ft1_name([])).toStrictEqual(stringToBytes(TOKEN_NAME)));
 
   test('symbol is properly initialized', () =>
-    expect(symbol([])).toStrictEqual(stringToBytes(TOKEN_SYMBOL)));
+    expect(ft1_symbol([])).toStrictEqual(stringToBytes(TOKEN_SYMBOL)));
 
   test('decimals is properly initialized', () =>
-    expect(decimals([])).toStrictEqual(u8toByte(DECIMALS)));
+    expect(ft1_decimals([])).toStrictEqual(u8toByte(DECIMALS)));
 
   test('version is properly initialized', () =>
-    expect(version([])).toStrictEqual(stringToBytes('0.0.0')));
+    expect(ft1_version([])).toStrictEqual(stringToBytes('0.0.0')));
 });
 
 describe('BalanceOf', () => {
   test('Check an empty balance', () =>
-    expect(balanceOf(new Args().add(contractAddr).serialize())).toStrictEqual(
-      u256ToBytes(u256.Zero),
-    ));
+    expect(
+      ft1_balanceOf(new Args().add(contractAddr).serialize()),
+    ).toStrictEqual(u256ToBytes(u256.Zero)));
 
   test('Check a non empty balance', () =>
     expect(
-      bytesToU256(balanceOf(new Args().add(user1Address).serialize())),
+      bytesToU256(ft1_balanceOf(new Args().add(user1Address).serialize())),
     ).toBe(TOTAL_SUPPLY));
 
   test('Check balance of invalid address', () => {
     const invalidAddress = new Address('A12AZDefef');
     expect(
-      balanceOf(new Args().add(invalidAddress.toString()).serialize()),
+      ft1_balanceOf(new Args().add(invalidAddress.toString()).serialize()),
     ).toStrictEqual(u256ToBytes(u256.Zero));
   });
 });
@@ -98,28 +98,28 @@ describe('Transfer', () => {
   test('Transfer from U1 => U2', () => {
     const transferAmount = new u256(10, 10);
 
-    transfer(new Args().add(user2Address).add(transferAmount).serialize());
+    ft1_transfer(new Args().add(user2Address).add(transferAmount).serialize());
 
     // Check user1 balance
     expect(
-      balanceOf(new Args().add(user1Address).serialize()),
+      ft1_balanceOf(new Args().add(user1Address).serialize()),
       // @ts-ignore
     ).toStrictEqual(u256ToBytes(TOTAL_SUPPLY - transferAmount));
 
     // Check user2 balance
-    expect(balanceOf(new Args().add(user2Address).serialize())).toStrictEqual(
-      u256ToBytes(transferAmount),
-    );
+    expect(
+      ft1_balanceOf(new Args().add(user2Address).serialize()),
+    ).toStrictEqual(u256ToBytes(transferAmount));
   });
 
   throws('Insuficient balance to transfer from U1 => U2', () => {
     // @ts-ignore
     const invalidAmount = TOTAL_SUPPLY + u256.One;
-    transfer(new Args().add(user2Address).add(invalidAmount).serialize());
+    ft1_transfer(new Args().add(user2Address).add(invalidAmount).serialize());
   });
 
   throws('Overflow', () =>
-    transfer(new Args().add(user2Address).add(u256.Max).serialize()),
+    ft1_transfer(new Args().add(user2Address).add(u256.Max).serialize()),
   );
 });
 
@@ -127,44 +127,48 @@ let u1u2AllowAmount = new u256(20, 20);
 
 describe('Allowance', () => {
   test('Increase user1 allowance for user2 to spend', () => {
-    increaseAllowance(
+    ft1_increaseAllowance(
       new Args().add(user2Address).add(u1u2AllowAmount).serialize(),
     );
 
     // check new allowance
     expect(
-      allowance(new Args().add(user1Address).add(user2Address).serialize()),
+      ft1_allowance(new Args().add(user1Address).add(user2Address).serialize()),
     ).toStrictEqual(u256ToBytes(u1u2AllowAmount));
   });
 
   test('Increase user1 allowance to max amount for user2 to spend', () => {
-    increaseAllowance(new Args().add(user2Address).add(u256.Max).serialize());
+    ft1_increaseAllowance(
+      new Args().add(user2Address).add(u256.Max).serialize(),
+    );
 
     // check new allowance
     expect(
-      allowance(new Args().add(user1Address).add(user2Address).serialize()),
+      ft1_allowance(new Args().add(user1Address).add(user2Address).serialize()),
     ).toStrictEqual(u256ToBytes(u256.Max));
   });
 
   test('Decreases allowance U1 => U2', () => {
     const decreaseAmount = u256.fromU64(666);
-    decreaseAllowance(
+    ft1_decreaseAllowance(
       new Args().add(user2Address).add(decreaseAmount).serialize(),
     );
 
     // check new allowance
     expect(
-      allowance(new Args().add(user1Address).add(user2Address).serialize()),
+      ft1_allowance(new Args().add(user1Address).add(user2Address).serialize()),
       // @ts-ignore
     ).toStrictEqual(u256ToBytes(u256.Max - decreaseAmount));
   });
 
   test('Decrease user1 allowance to 0 for user2', () =>
-    decreaseAllowance(new Args().add(user2Address).add(u256.Max).serialize()));
+    ft1_decreaseAllowance(
+      new Args().add(user2Address).add(u256.Max).serialize(),
+    ));
 
   test('check allowance is set to 0', () =>
     expect(
-      allowance(new Args().add(user1Address).add(user2Address).serialize()),
+      ft1_allowance(new Args().add(user1Address).add(user2Address).serialize()),
     ).toStrictEqual(u256ToBytes(u256.Zero)));
 });
 
@@ -175,7 +179,7 @@ describe('transferFrom', () => {
     switchUser(user3Address);
 
     // Increase allowance for U1 to spend U3 tokens
-    increaseAllowance(
+    ft1_increaseAllowance(
       new Args().add(user1Address).add(allowAmount).serialize(),
     );
 
@@ -183,7 +187,7 @@ describe('transferFrom', () => {
   });
 
   throws('Fails because not enough allowance U3 => U1 ', () => {
-    transferFrom(
+    ft1_transferFrom(
       new Args()
         .add(user3Address)
         .add(user2Address)
@@ -194,7 +198,7 @@ describe('transferFrom', () => {
   });
 
   throws('Fails because not enough token on U3', () =>
-    transferFrom(
+    ft1_transferFrom(
       new Args()
         .add(user3Address)
         .add(user2Address)
@@ -204,13 +208,19 @@ describe('transferFrom', () => {
   );
 
   test('u1  send tokens to u3 then transfer tokens from u3 to u2 ', () => {
-    const u1balanceBefore = balanceOf(new Args().add(user1Address).serialize());
-    const u2balanceBefore = balanceOf(new Args().add(user2Address).serialize());
-    const u3balanceBefore = balanceOf(new Args().add(user3Address).serialize());
+    const u1balanceBefore = ft1_balanceOf(
+      new Args().add(user1Address).serialize(),
+    );
+    const u2balanceBefore = ft1_balanceOf(
+      new Args().add(user2Address).serialize(),
+    );
+    const u3balanceBefore = ft1_balanceOf(
+      new Args().add(user3Address).serialize(),
+    );
 
-    transfer(new Args().add(user3Address).add(allowAmount).serialize());
+    ft1_transfer(new Args().add(user3Address).add(allowAmount).serialize());
 
-    transferFrom(
+    ft1_transferFrom(
       new Args()
         .add(user3Address)
         .add(user2Address)
@@ -219,23 +229,27 @@ describe('transferFrom', () => {
     );
 
     // Check balance changes
-    expect(balanceOf(new Args().add(user1Address).serialize())).toStrictEqual(
+    expect(
+      ft1_balanceOf(new Args().add(user1Address).serialize()),
+    ).toStrictEqual(
       // @ts-ignore
       u256ToBytes(bytesToU256(u1balanceBefore) - allowAmount),
     );
 
-    expect(balanceOf(new Args().add(user2Address).serialize())).toStrictEqual(
+    expect(
+      ft1_balanceOf(new Args().add(user2Address).serialize()),
+    ).toStrictEqual(
       // @ts-ignore
 
       u256ToBytes(bytesToU256(u2balanceBefore) + allowAmount),
     );
-    expect(balanceOf(new Args().add(user3Address).serialize())).toStrictEqual(
-      u3balanceBefore,
-    );
+    expect(
+      ft1_balanceOf(new Args().add(user3Address).serialize()),
+    ).toStrictEqual(u3balanceBefore);
 
     // Verify allowances after transferFrom
     expect(
-      allowance(new Args().add(user1Address).add(user3Address).serialize()),
+      ft1_allowance(new Args().add(user1Address).add(user3Address).serialize()),
     ).toStrictEqual(u256ToBytes(u256.Zero));
   });
 });

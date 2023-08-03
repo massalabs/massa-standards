@@ -35,7 +35,7 @@ export class TokenWrapper {
    * @returns
    */
   version(): string {
-    return bytesToString(call(this._origin, 'version', NoArg, 0));
+    return bytesToString(call(this._origin, 'ft1_version', NoArg, 0));
   }
 
   /**
@@ -44,7 +44,7 @@ export class TokenWrapper {
    * @returns name of the token.
    */
   name(): string {
-    return bytesToString(call(this._origin, 'name', NoArg, 0));
+    return bytesToString(call(this._origin, 'ft1_name', NoArg, 0));
   }
 
   /** Returns the symbol of the token.
@@ -52,7 +52,7 @@ export class TokenWrapper {
    * @returns token symbol.
    */
   symbol(): string {
-    return bytesToString(call(this._origin, 'symbol', NoArg, 0));
+    return bytesToString(call(this._origin, 'ft1_symbol', NoArg, 0));
   }
 
   /**
@@ -63,7 +63,7 @@ export class TokenWrapper {
    * @returns number of minted tokens.
    */
   totalSupply(): u256 {
-    return bytesToU256(call(this._origin, 'totalSupply', NoArg, 0));
+    return bytesToU256(call(this._origin, 'ft1_totalSupply', NoArg, 0));
   }
 
   /**
@@ -73,7 +73,7 @@ export class TokenWrapper {
    */
   balanceOf(account: Address): u256 {
     return bytesToU256(
-      call(this._origin, 'balanceOf', new Args().add(account), 0),
+      call(this._origin, 'ft1_balanceOf', new Args().add(account), 0),
     );
   }
 
@@ -84,7 +84,12 @@ export class TokenWrapper {
    * @param nbTokens -
    */
   transfer(toAccount: Address, nbTokens: u256): void {
-    call(this._origin, 'transfer', new Args().add(toAccount).add(nbTokens), 0);
+    call(
+      this._origin,
+      'ft1_transfer',
+      new Args().add(toAccount).add(nbTokens),
+      0,
+    );
   }
 
   /**
@@ -97,7 +102,7 @@ export class TokenWrapper {
     return bytesToU256(
       call(
         this._origin,
-        'allowance',
+        'ft1_allowance',
         new Args().add(ownerAccount).add(spenderAccount),
         0,
       ),
@@ -116,7 +121,7 @@ export class TokenWrapper {
   increaseAllowance(spenderAccount: Address, nbTokens: u256): void {
     call(
       this._origin,
-      'increaseAllowance',
+      'ft1_increaseAllowance',
       new Args().add(spenderAccount).add(nbTokens),
       0,
     );
@@ -134,7 +139,7 @@ export class TokenWrapper {
   decreaseAllowance(spenderAccount: Address, nbTokens: u256): void {
     call(
       this._origin,
-      'decreaseAllowance',
+      'ft1_decreaseAllowance',
       new Args().add(spenderAccount).add(nbTokens),
       0,
     );
@@ -160,7 +165,7 @@ export class TokenWrapper {
   ): void {
     call(
       this._origin,
-      'transferFrom',
+      'ft1_transferFrom',
       new Args().add(ownerAccount).add(recipientAccount).add(nbTokens),
       0,
     );
@@ -173,7 +178,7 @@ export class TokenWrapper {
    * @param nbTokens -
    */
   mint(toAccount: Address, nbTokens: u64): void {
-    call(this._origin, 'mint', new Args().add(toAccount).add(nbTokens), 0);
+    call(this._origin, 'ft1_mint', new Args().add(toAccount).add(nbTokens), 0);
   }
 
   /**
@@ -182,6 +187,6 @@ export class TokenWrapper {
    * @param nbTokens -
    */
   burn(nbTokens: u64): void {
-    call(this._origin, 'burn', new Args().add(nbTokens), 0);
+    call(this._origin, 'ft1_burn', new Args().add(nbTokens), 0);
   }
 }

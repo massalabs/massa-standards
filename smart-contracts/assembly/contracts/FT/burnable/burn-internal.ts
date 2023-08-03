@@ -2,7 +2,7 @@ import { Address, Storage } from '@massalabs/massa-as-sdk';
 import { _balance, _setBalance } from '../token-internals';
 import { u256 } from 'as-bignum/assembly';
 import { bytesToU256, u256ToBytes } from '@massalabs/as-types';
-import { TOTAL_SUPPLY_KEY, totalSupply } from '../token';
+import { TOTAL_SUPPLY_KEY, ft1_totalSupply } from '../token';
 
 /**
  * Theses function are internal to the burnable token.
@@ -39,7 +39,7 @@ export function _burn(addressToBurn: Address, amount: u256): void {
  * @returns true if the total supply has been decreased
  */
 export function _decreaseTotalSupply(amount: u256): void {
-  const oldTotalSupply = bytesToU256(totalSupply([]));
+  const oldTotalSupply = bytesToU256(ft1_totalSupply([]));
   // @ts-ignore
   const newTotalSupply: u256 = oldTotalSupply - amount;
 
