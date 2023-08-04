@@ -224,14 +224,14 @@ function _onlyOwner(): bool {
  * @param tokenId - the tokenID
  * @returns true if the caller is token's owner
  */
-function _onlyTokenOwner(tokenId: u64): bool {
+function _isTokenOwner(address: string, tokenId: u64): bool {
   // as we need to compare two byteArrays, we need to compare the pointers
   // we transform our byte array to their pointers and we compare them
   const left = nft1_ownerOf(u64ToBytes(tokenId));
   return (
     memory.compare(
       changetype<usize>(left),
-      changetype<usize>(stringToBytes(Context.caller().toString())),
+      changetype<usize>(stringToBytes(address)),
       left.length,
     ) == 0
   );
@@ -257,6 +257,17 @@ function _currentSupply(): u64 {
 // ====                 TRANSFER                   ==== //
 // ==================================================== //
 
+function _transfer(from: string, to: string, tokenId: u64): void {
+  assertIsMinted(tokenId);
+  assertIsOwner(from, tokenId);
+  assert(from !== to, 'You cannot transfer to yourself');
+
+  _removeApprovals(tokenId);
+  Storage.set(ownerTokenKey + tokenId.toString(), to);
+
+  generateEvent(`token ${tokenId.toString()} sent from ${from} to ${to}`);
+}
+
 /**
  * Transfer a chosen token from the caller to the to Address.
  * First check that the token is minted and that the caller owns the token.
@@ -273,16 +284,7 @@ export function nft1_transfer(binaryArgs: StaticArray<u8>): void {
     .nextU64()
     .expect('tokenId argument is missing or invalid');
 
-  assertIsMinted(tokenId);
-  assertOnlyOwner(tokenId);
-
-  _removeApprovals(tokenId);
-
-  Storage.set(ownerTokenKey + tokenId.toString(), toAddress);
-
-  generateEvent(
-    `token ${tokenId.toString()} sent from ${Context.caller().toString()} to ${toAddress}`,
-  );
+  _transfer(Context.caller().toString(), toAddress, tokenId);
 }
 
 /**
@@ -306,12 +308,9 @@ export function nft1_transferFrom(binaryArgs: StaticArray<u8>): void {
     .nextU64()
     .expect('tokenId argument is missing or invalid');
 
-  assertIsMinted(tokenId);
-  assertOnlyApproved(from, tokenId);
+  assertIsApproved(Context.caller().toString(), tokenId);
 
-  _removeApprovals(tokenId);
-
-  Storage.set(ownerTokenKey + tokenId.toString(), to);
+  _transfer(from, to, tokenId);
 }
 
 /**
@@ -331,7 +330,7 @@ export function nft1_approve(binaryArgs: StaticArray<u8>): void {
     .expect('tokenId argument is missing or invalid');
 
   assertIsMinted(tokenId);
-  assertOnlyOwner(tokenId);
+  assertIsOwner(callerAddress.toString(), tokenId);
 
   const toAddress = new Address(
     args.nextString().expect('toAddress argument is missing or invalid'),
@@ -437,14 +436,14 @@ function assertIsMinted(tokenId: u64): void {
   assert(_onlyMinted(tokenId), `Token ${tokenId.toString()} not yet minted`);
 }
 
-function assertOnlyOwner(tokenId: u64): void {
+function assertIsOwner(address: string, tokenId: u64): void {
   assert(
-    _onlyTokenOwner(tokenId),
+    _isTokenOwner(address, tokenId),
     `You are not the owner of ${tokenId.toString()}`,
   );
 }
 
-function assertOnlyApproved(from: string, tokenId: u64): void {
+function assertIsApproved(from: string, tokenId: u64): void {
   assert(
     nft1_isApproved(new Args().add(from).add(tokenId).serialize()),
     'You are not allowed to transfer this token',
