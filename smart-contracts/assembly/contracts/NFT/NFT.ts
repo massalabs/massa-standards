@@ -265,22 +265,22 @@ function _currentSupply(): u64 {
 // ==================================================== //
 
 function _transfer(
-  sender: string,
+  caller: string,
   owner: string,
-  receiver: string,
+  recipient: string,
   tokenId: u64,
 ): void {
   assertIsMinted(tokenId.toString());
   assertIsOwner(owner, tokenId);
-  assertNotSelfTransfer(owner, receiver);
-  assertIsApproved(owner, sender, tokenId);
+  assertNotSelfTransfer(owner, recipient);
+  assertIsApproved(owner, caller, tokenId);
 
   _removeApproval(tokenId);
 
-  Storage.set(ownerTokenKey + tokenId.toString(), receiver);
+  Storage.set(ownerTokenKey + tokenId.toString(), recipient);
 
   generateEvent(
-    `token ${tokenId.toString()} sent from ${owner} to ${receiver}`,
+    `token ${tokenId.toString()} sent from ${owner} to ${recipient}`,
   );
 }
 
@@ -288,24 +288,25 @@ function _transfer(
  * Transfer a chosen token from the from Address to the to Address.
  * First check that the token is minted and that the caller is allowed to transfer the token.
  * @param binaryArgs - arguments serialized with `Args` containing the following data in this order :
- * - the sender's account (address)
+ * - the owner's account (address)
  * - the recipient's account (address)
  * - the tokenID (u64).
  * @throws if the token is not minted or if the caller is not allowed to transfer the token
  */
 export function nft1_transferFrom(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
-  const from = args
+  const caller = Context.caller().toString();
+  const owner = args
     .nextString()
     .expect('fromAddress argument is missing or invalid');
-  const to = args
+  const recipient = args
     .nextString()
     .expect('toAddress argument is missing or invalid');
   const tokenId = args
     .nextU64()
     .expect('tokenId argument is missing or invalid');
 
-  _transfer(Context.caller().toString(), from, to, tokenId);
+  _transfer(caller, owner, recipient, tokenId);
 }
 
 /**
@@ -455,7 +456,7 @@ function _isApprovedForAll(owner: string, operator: string): bool {
 // ==================================================== //
 
 function assertIsMinted(tokenId: string): void {
-  assert(_onlyMinted(tokenId), `Token ${tokenId.toString()} not yet minted`);
+  assert(_onlyMinted(tokenId), `Token ${tokenId.toString()} is not minted`);
 }
 
 function assertIsOwner(address: string, tokenId: u64): void {
@@ -465,15 +466,18 @@ function assertIsOwner(address: string, tokenId: u64): void {
   );
 }
 
-function assertIsApproved(owner: string, sender: string, tokenId: u64): void {
+function assertIsApproved(owner: string, caller: string, tokenId: u64): void {
   assert(
-    _isApproved(sender, tokenId.toString()) ||
-      _isApprovedForAll(owner, sender) ||
-      owner === sender,
-    'You are not allowed to transfer this token',
+    _isApproved(caller, tokenId.toString()) ||
+      _isApprovedForAll(owner, caller) ||
+      owner === caller,
+    'This address is not allowed to transfer this token',
   );
 }
 
-function assertNotSelfTransfer(from: string, to: string): void {
-  assert(from != to, 'You are not allowed to send a token to yourself.');
+function assertNotSelfTransfer(owner: string, recipient: string): void {
+  assert(
+    owner != recipient,
+    'The owner and the recipient must be different addresses',
+  );
 }
