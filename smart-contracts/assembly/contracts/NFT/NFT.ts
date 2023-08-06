@@ -344,12 +344,12 @@ export function nft1_approve(binaryArgs: StaticArray<u8>): void {
  * @param tokenId - The token ID to approve
  */
 function _approve(tokenId: u64, owner: string, spenderAddress: string): void {
-  const strTokenId = tokenId.toString();
-  assertIsMinted(strTokenId);
+  const id = tokenId.toString();
+  assertIsMinted(id);
   assertIsOwner(owner, tokenId);
-  assert(!_isApproved(spenderAddress, strTokenId), 'Already approved');
+  assert(!_isApproved(spenderAddress, id), 'Already approved');
 
-  const key = approvedTokenKey + tokenId;
+  const key = approvedTokenKey + id;
   Storage.set(key, spenderAddress);
 }
 
@@ -400,7 +400,6 @@ export function nft1_approveForAll(binaryArgs: StaticArray<u8>): void {
   const operatorAddress = new Address(
     args.nextString().expect('operatorAddress argument is missing or invalid'),
   );
-
   const approved = args
     .nextBool()
     .expect('approved argument is missing or invalid');
