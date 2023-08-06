@@ -20,6 +20,7 @@ export const ownerKey = 'Owner';
 export const counterKey = stringToBytes('Counter');
 export const ownerTokenKey = 'ownerOf_';
 export const approvedTokenKey = 'approved_';
+export const approvedForAllTokenKey = 'approvedForAll_';
 export const initCounter = 0;
 
 /**
@@ -174,7 +175,7 @@ export function nft1_ownerOf(_args: StaticArray<u8>): StaticArray<u8> {
 
   const key = ownerTokenKey + tokenId.toString();
 
-  assertIsMinted(tokenId);
+  assertIsMinted(tokenId.toString());
 
   return stringToBytes(Storage.get(key));
 }
@@ -195,13 +196,19 @@ export function nft1_mint(_args: StaticArray<u8>): void {
   );
 
   const args = new Args(_args);
+
   const mintAddress = args
     .nextString()
     .expect('mintAddress argument is missing or invalid');
+
   _increment();
+
   const tokenToMint = _currentSupply().toString();
+
   const key = ownerTokenKey + tokenToMint;
+
   Storage.set(key, mintAddress);
+
   generateEvent(`tokenId ${tokenToMint} minted to ${mintAddress} `);
 }
 
@@ -241,8 +248,8 @@ function _isTokenOwner(address: string, tokenId: u64): bool {
  * @param tokenId - the tokenID
  * @returns true if the token is minted
  */
-function _onlyMinted(tokenId: u64): bool {
-  return Storage.has(ownerTokenKey + tokenId.toString());
+function _onlyMinted(tokenId: string): bool {
+  return Storage.has(ownerTokenKey + tokenId);
 }
 
 /**
@@ -257,34 +264,24 @@ function _currentSupply(): u64 {
 // ====                 TRANSFER                   ==== //
 // ==================================================== //
 
-function _transfer(from: string, to: string, tokenId: u64): void {
-  assertIsMinted(tokenId);
-  assertIsOwner(from, tokenId);
-  assert(from !== to, 'You cannot transfer to yourself');
+function _transfer(
+  sender: string,
+  owner: string,
+  receiver: string,
+  tokenId: u64,
+): void {
+  assertIsMinted(tokenId.toString());
+  assertIsOwner(owner, tokenId);
+  assertNotSelfTransfer(owner, receiver);
+  assertIsApproved(owner, sender, tokenId);
 
-  _removeApprovals(tokenId);
-  Storage.set(ownerTokenKey + tokenId.toString(), to);
+  _removeApproval(tokenId);
 
-  generateEvent(`token ${tokenId.toString()} sent from ${from} to ${to}`);
-}
+  Storage.set(ownerTokenKey + tokenId.toString(), receiver);
 
-/**
- * Transfer a chosen token from the caller to the to Address.
- * First check that the token is minted and that the caller owns the token.
- * @param binaryArgs - arguments serialized with `Args` containing the following data in this order :
- * - the recipient's account (address)
- * - the tokenID (u64).
- */
-export function nft1_transfer(binaryArgs: StaticArray<u8>): void {
-  const args = new Args(binaryArgs);
-  const toAddress = args
-    .nextString()
-    .expect('toAddress argument is missing or invalid');
-  const tokenId = args
-    .nextU64()
-    .expect('tokenId argument is missing or invalid');
-
-  _transfer(Context.caller().toString(), toAddress, tokenId);
+  generateEvent(
+    `token ${tokenId.toString()} sent from ${owner} to ${receiver}`,
+  );
 }
 
 /**
@@ -308,9 +305,7 @@ export function nft1_transferFrom(binaryArgs: StaticArray<u8>): void {
     .nextU64()
     .expect('tokenId argument is missing or invalid');
 
-  assertIsApproved(Context.caller().toString(), tokenId);
-
-  _transfer(from, to, tokenId);
+  _transfer(Context.caller().toString(), from, to, tokenId);
 }
 
 /**
@@ -323,30 +318,17 @@ export function nft1_transferFrom(binaryArgs: StaticArray<u8>): void {
 export function nft1_approve(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
 
-  const callerAddress = Context.caller();
+  const callerAddress = Context.caller().toString();
 
   const tokenId = args
     .nextU64()
     .expect('tokenId argument is missing or invalid');
 
-  assertIsMinted(tokenId);
-  assertIsOwner(callerAddress.toString(), tokenId);
-
   const toAddress = new Address(
     args.nextString().expect('toAddress argument is missing or invalid'),
   );
 
-  assert(
-    callerAddress.toString() != toAddress.toString(),
-    `You are already the owner of ${tokenId.toString()}`,
-  );
-
-  assert(
-    !nft1_isApproved(new Args().add(callerAddress).add(tokenId).serialize()),
-    `You are already allowed to transfer ${tokenId.toString()}`,
-  );
-
-  _approve(tokenId, toAddress);
+  _approve(tokenId, callerAddress, toAddress.toString());
 
   generateEvent(
     `token ${tokenId.toString()} approved by ${Context.caller().toString()} for ${toAddress}`,
@@ -360,39 +342,21 @@ export function nft1_approve(binaryArgs: StaticArray<u8>): void {
  * @param spenderAddress - spender address
  * @param tokenId - The token ID to approve
  */
-function _approve(tokenId: u64, spenderAddress: Address): void {
-  let value: string = spenderAddress.toString();
+function _approve(tokenId: u64, owner: string, spenderAddress: string): void {
+  const strTokenId = tokenId.toString();
+  assertIsMinted(strTokenId);
+  assertIsOwner(owner, tokenId);
+  assert(!_isApproved(spenderAddress, strTokenId), 'Already approved');
 
-  const key = approvedTokenKey + tokenId.toString();
-
-  if (Storage.has(key)) value = Storage.get(key) + ',' + value;
-
-  Storage.set(key, value);
+  const key = approvedTokenKey + tokenId;
+  Storage.set(key, spenderAddress);
 }
 
 /**
- * @param binaryArgs - arguments serialized with `Args` containing the following data in this order :
- * - the tokenID (u64)
- * @returns string containing the authorized addresses separated by a comma
- */
-export function nft1_getApproved(binaryArgs: StaticArray<u8>): StaticArray<u8> {
-  const args = new Args(binaryArgs);
-  const tokenId = args
-    .nextU64()
-    .expect('tokenId argument is missing or invalid');
-
-  const key = approvedTokenKey + tokenId.toString();
-  if (Storage.has(key)) {
-    return stringToBytes(Storage.get(key));
-  }
-  return [];
-}
-
-/**
- * Removes all the approvals of the token
+ * Removes the approval of the token
  * @param tokenId - the tokenID
  */
-function _removeApprovals(tokenId: u64): void {
+function _removeApproval(tokenId: u64): void {
   const key = approvedTokenKey + tokenId.toString();
   if (Storage.has(key)) {
     Storage.del(key);
@@ -415,37 +379,101 @@ export function nft1_isApproved(binaryArgs: StaticArray<u8>): bool {
     .nextU64()
     .expect('tokenId argument is missing or invalid');
 
-  const key = approvedTokenKey + tokenId.toString();
+  return _isApproved(address, tokenId.toString());
+}
 
-  if (!Storage.has(key)) {
-    return false;
-  }
+function _isApproved(address: string, tokenId: string): bool {
+  const key = approvedTokenKey + tokenId;
 
-  const value = Storage.get(key);
+  if (!Storage.has(key)) return false;
 
-  const addresses: string[] = value.split(',');
+  const approvedAddress = Storage.get(key);
 
-  return addresses.includes(address);
+  return approvedAddress === address;
+}
+
+export function nft1_approveForAll(binaryArgs: StaticArray<u8>): void {
+  const args = new Args(binaryArgs);
+
+  const ownerAddress = Context.caller();
+  const operatorAddress = new Address(
+    args.nextString().expect('operatorAddress argument is missing or invalid'),
+  );
+
+  const approved = args
+    .nextBool()
+    .expect('approved argument is missing or invalid');
+
+  _setApprovalForAll(
+    ownerAddress.toString(),
+    operatorAddress.toString(),
+    approved,
+  );
+
+  generateEvent(
+    `operator ${operatorAddress.toString()} approved for all ${Context.caller().toString()}`,
+  );
+}
+
+function _setApprovalForAll(
+  owner: string,
+  operator: string,
+  approved: bool,
+): void {
+  assert(owner != operator, 'Not allowed to set approval for all for yourself');
+
+  const key = approvedForAllTokenKey + owner + operator;
+
+  Storage.set(key, approved.toString());
+}
+
+export function nft1_isApprovedForAll(binaryArgs: StaticArray<u8>): bool {
+  const args = new Args(binaryArgs);
+
+  const ownerAddress = args
+    .nextString()
+    .expect('ownerAddress argument is missing or invalid');
+  const operatorAddress = args
+    .nextString()
+    .expect('operatorAddress argument is missing or invalid');
+
+  return _isApprovedForAll(ownerAddress, operatorAddress);
+}
+
+function _isApprovedForAll(owner: string, operator: string): bool {
+  const key = approvedForAllTokenKey + owner + operator;
+
+  if (!Storage.has(key)) return false;
+
+  const approved = Storage.get(key);
+
+  return approved == 'true';
 }
 
 // ==================================================== //
 // ====             General Assertions             ==== //
 // ==================================================== //
 
-function assertIsMinted(tokenId: u64): void {
+function assertIsMinted(tokenId: string): void {
   assert(_onlyMinted(tokenId), `Token ${tokenId.toString()} not yet minted`);
 }
 
 function assertIsOwner(address: string, tokenId: u64): void {
   assert(
     _isTokenOwner(address, tokenId),
-    `You are not the owner of ${tokenId.toString()}`,
+    `The provided address is not the owner of ${tokenId.toString()}`,
   );
 }
 
-function assertIsApproved(from: string, tokenId: u64): void {
+function assertIsApproved(owner: string, sender: string, tokenId: u64): void {
   assert(
-    nft1_isApproved(new Args().add(from).add(tokenId).serialize()),
+    _isApproved(sender, tokenId.toString()) ||
+      _isApprovedForAll(owner, sender) ||
+      owner === sender,
     'You are not allowed to transfer this token',
   );
+}
+
+function assertNotSelfTransfer(from: string, to: string): void {
+  assert(from != to, 'You are not allowed to send a token to yourself.');
 }
