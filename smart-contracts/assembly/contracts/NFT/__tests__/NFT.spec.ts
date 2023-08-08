@@ -19,7 +19,6 @@ import {
   nft1_totalSupply,
   nft1_mint,
   nft1_currentSupply,
-  nft1_transfer,
   nft1_setURI,
   nft1_ownerOf,
   counterKey,
@@ -109,16 +108,16 @@ describe('NFT contract', () => {
     expect(bytesToU64(nft1_currentSupply())).toBe(NFTtotalSupply);
   });
 
-  test('transfer call', () => {
-    const tokenToSend: u64 = 2;
+  // test('transfer call', () => {
+  //   const tokenToSend: u64 = 2;
 
-    nft1_transfer(new Args().add(userAddress).add(tokenToSend).serialize());
+  //   nft1_transfer(new Args().add(userAddress).add(tokenToSend).serialize());
 
-    expect(nft1_ownerOf(u64ToBytes(tokenToSend))).toStrictEqual(
-      stringToBytes(userAddress),
-    );
-    expect(isAllowanceCleared(tokenToSend)).toBeTruthy();
-  });
+  //   expect(nft1_ownerOf(u64ToBytes(tokenToSend))).toStrictEqual(
+  //     stringToBytes(userAddress),
+  //   );
+  //   expect(isAllowanceCleared(tokenToSend)).toBeTruthy();
+  // });
 
   test('approval', () => {
     const tokenId: u64 = 1;

@@ -85,21 +85,10 @@ export class NFTWrapper {
    * The addressTo becomes the owner of the next token (if current tokenID = 10, will mint 11 )
    * Check if max supply is not reached
    *
-   * @param addressTo - address that will receive the minted token
+   * @param address - address that will receive the minted token
    */
-  mint(addressTo: string): void {
-    call(this._origin, 'mint', new Args().add(addressTo), 0);
-  }
-
-  /**
-   * Transfer a chosen token from the caller to the toAddress.
-   * Check first the caller owns the token.
-   *
-   * @param toAddress - recipient address
-   * @param tokenId - Token ID
-   */
-  transfer(toAddress: string, tokenId: u64): void {
-    call(this._origin, 'transfer', new Args().add(toAddress).add(tokenId), 0);
+  mint(address: string): void {
+    call(this._origin, 'mint', new Args().add(address), 0);
   }
 
   /**
@@ -116,18 +105,18 @@ export class NFTWrapper {
   /**
    * Transfer a chosen token from the fromAddress to the toAddress.
    *
-   * @param fromAddress - address of the owner
-   * @param toAddress - address of the recipient
+   * @param owner - address of the owner
+   * @param recipient - address of the recipient
    * @param tokenId - Token ID
    *
    * @remarks caller must be an approved address
    *
    */
-  transferFrom(fromAddress: string, toAddress: string, tokenId: u64): void {
+  transferFrom(owner: string, recipient: string, tokenId: u64): void {
     call(
       this._origin,
       'transferFrom',
-      new Args().add(fromAddress).add(toAddress).add(tokenId),
+      new Args().add(owner).add(recipient).add(tokenId),
       0,
     );
   }

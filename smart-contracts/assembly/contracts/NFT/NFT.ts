@@ -347,7 +347,7 @@ function _approve(tokenId: u64, owner: string, spenderAddress: string): void {
   const id = tokenId.toString();
   assertIsMinted(id);
   assertIsOwner(owner, tokenId);
-  assert(!_isApproved(spenderAddress, id), 'Already approved');
+  assert(!_isApproved(spenderAddress, tokenId), 'Already approved');
 
   const key = approvedTokenKey + id;
   Storage.set(key, spenderAddress);
@@ -371,7 +371,7 @@ function _removeApproval(tokenId: u64): void {
  * - the tokenID (u64)
  * @returns true if the address is approved to transfer the tokenId, false otherwise
  */
-export function nft1_isApproved(binaryArgs: StaticArray<u8>): bool {
+export function nft1_getApproved(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   const args = new Args(binaryArgs);
   const address = args
     .nextString()
@@ -380,16 +380,20 @@ export function nft1_isApproved(binaryArgs: StaticArray<u8>): bool {
     .nextU64()
     .expect('tokenId argument is missing or invalid');
 
-  return _isApproved(address, tokenId.toString());
+  return stringToBytes(_getApproved(tokenId));
 }
 
-function _isApproved(address: string, tokenId: string): bool {
-  const key = approvedTokenKey + tokenId;
+function _getApproved(tokenId: u64): string {
+  const key = approvedTokenKey + tokenId.toString();
 
-  if (!Storage.has(key)) return false;
+  if (!Storage.has(key)) return '';
 
-  const approvedAddress = Storage.get(key);
+  return Storage.get(key);
+}
 
+function _isApproved(address: string, tokenId: u64): bool {
+  if (address.length === 0) return false;
+  const approvedAddress = _getApproved(tokenId);
   return approvedAddress === address;
 }
 
@@ -467,7 +471,7 @@ function assertIsOwner(address: string, tokenId: u64): void {
 
 function assertIsApproved(owner: string, caller: string, tokenId: u64): void {
   assert(
-    _isApproved(caller, tokenId.toString()) ||
+    _isApproved(caller, tokenId) ||
       _isApprovedForAll(owner, caller) ||
       owner === caller,
     'This address is not allowed to transfer this token',
