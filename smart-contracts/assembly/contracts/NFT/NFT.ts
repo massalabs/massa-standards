@@ -7,10 +7,11 @@ import {
 } from '@massalabs/massa-as-sdk';
 import {
   Args,
-  bytesToU64,
   stringToBytes,
-  u64ToBytes,
+  bytesToU256,
+  u256ToBytes,
 } from '@massalabs/as-types';
+import { u256 } from 'as-bignum/assembly';
 
 export const nameKey = 'name';
 export const symbolKey = 'symbol';
@@ -21,7 +22,7 @@ export const counterKey = stringToBytes('Counter');
 export const ownerTokenKey = 'ownerOf_';
 export const approvedTokenKey = 'approved_';
 export const approvedForAllTokenKey = 'approvedForAll_';
-export const initCounter = 0;
+export const initCounter = new u256(0);
 
 /**
  * Initialize all the properties of the NFT (contract Owner, counter to 0...)
@@ -42,13 +43,13 @@ export const initCounter = 0;
  *   new Args()
  *     .add(NFTName)
  *     .add(NFTSymbol)
- *     .add(u64(NFTtotalSupply))
+ *     .add(u256(NFTtotalSupply))
  *     .add(NFTBaseURI)
  *     .serialize(),
  *   );
  * ```
  *
- * @param binaryArgs - arguments serialized with `Args` containing the name, the symbol, the totalSupply as u64,
+ * @param binaryArgs - arguments serialized with `Args` containing the name, the symbol, the totalSupply as u256,
  * the baseURI
  */
 export function constructor(binaryArgs: StaticArray<u8>): void {
@@ -62,7 +63,7 @@ export function constructor(binaryArgs: StaticArray<u8>): void {
     .nextString()
     .expect('symbol argument is missing or invalid');
   const totalSupply = args
-    .nextU64()
+    .nextU256()
     .expect('totalSupply argument is missing or invalid');
   const baseURI = args
     .nextString()
@@ -70,10 +71,10 @@ export function constructor(binaryArgs: StaticArray<u8>): void {
 
   Storage.set(nameKey, name);
   Storage.set(symbolKey, symbol);
-  Storage.set(totalSupplyKey, u64ToBytes(totalSupply));
+  Storage.set(totalSupplyKey, u256ToBytes(totalSupply));
   Storage.set(baseURIKey, baseURI);
   Storage.set(ownerKey, Context.caller().toString());
-  Storage.set(counterKey, u64ToBytes(initCounter));
+  Storage.set(counterKey, u256ToBytes(initCounter));
 }
 
 /**
@@ -88,7 +89,7 @@ export function nft1_setURI(binaryArgs: StaticArray<u8>): void {
 
   assert(_onlyOwner(), 'The caller is not the owner of the contract');
   Storage.set(baseURIKey, newBaseURI);
-  generateEvent(`new base URI ${newBaseURI} well set`);
+  generateEvent(createEvent('baseURI', [newBaseURI]));
 }
 
 // ======================================================== //
@@ -119,12 +120,12 @@ export function nft1_symbol(
 
 /**
  * Returns the token URI (external link written in NFT where pictures or others are stored)
- * @param binaryArgs - U64 serialized tokenID with `Args`
+ * @param binaryArgs - u256 serialized tokenID with `Args`
  */
 export function nft1_tokenURI(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   const args = new Args(binaryArgs);
   const tokenId = args
-    .nextU64()
+    .nextU256()
     .expect('token id argument is missing or invalid');
 
   return stringToBytes(Storage.get(baseURIKey) + tokenId.toString());
@@ -143,7 +144,7 @@ export function nft1_baseURI(
 /**
  * Returns the max supply possible
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
- * @returns the u64 max supply
+ * @returns the u256 max supply
  */
 export function nft1_totalSupply(
   _: StaticArray<u8> = new StaticArray<u8>(0),
@@ -154,7 +155,7 @@ export function nft1_totalSupply(
 /**
  * Return the current supply.
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
- * @returns the u64 current counter
+ * @returns the u256 current counter
  */
 export function nft1_currentSupply(
   _: StaticArray<u8> = new StaticArray<u8>(0),
@@ -164,13 +165,13 @@ export function nft1_currentSupply(
 
 /**
  * Return the tokenId's owner
- * @param _args - tokenId serialized with `Args` as u64
+ * @param _args - tokenId serialized with `Args` as u256
  * @returns serialized Address as string
  */
 export function nft1_ownerOf(_args: StaticArray<u8>): StaticArray<u8> {
   const args = new Args(_args);
   const tokenId = args
-    .nextU64()
+    .nextU256()
     .expect('tokenId argument is missing or invalid');
 
   const key = ownerTokenKey + tokenId.toString();
@@ -191,7 +192,7 @@ export function nft1_ownerOf(_args: StaticArray<u8>): StaticArray<u8> {
  */
 export function nft1_mint(_args: StaticArray<u8>): void {
   assert(
-    bytesToU64(Storage.get(totalSupplyKey)) > _currentSupply(),
+    bytesToU256(Storage.get(totalSupplyKey)) > _currentSupply(),
     'Max supply reached',
   );
 
@@ -209,15 +210,16 @@ export function nft1_mint(_args: StaticArray<u8>): void {
 
   Storage.set(key, mintAddress);
 
-  generateEvent(`tokenId ${tokenToMint} minted to ${mintAddress} `);
+  generateEvent(createEvent('Mint', [tokenToMint, mintAddress]));
 }
 
 /**
  * Increment the NFT counter
  */
 function _increment(): void {
-  const currentID = bytesToU64(Storage.get(counterKey));
-  Storage.set(counterKey, u64ToBytes(currentID + 1));
+  const currentID = bytesToU256(Storage.get(counterKey));
+  const newID = u256.add(currentID, u256.fromU32(1));
+  Storage.set(counterKey, u256ToBytes(newID));
 }
 
 /**
@@ -231,10 +233,10 @@ function _onlyOwner(): bool {
  * @param tokenId - the tokenID
  * @returns true if the caller is token's owner
  */
-function _isTokenOwner(address: string, tokenId: u64): bool {
+function _isTokenOwner(address: string, tokenId: u256): bool {
   // as we need to compare two byteArrays, we need to compare the pointers
   // we transform our byte array to their pointers and we compare them
-  const left = nft1_ownerOf(u64ToBytes(tokenId));
+  const left = nft1_ownerOf(u256ToBytes(tokenId));
   return (
     memory.compare(
       changetype<usize>(left),
@@ -254,10 +256,10 @@ function _onlyMinted(tokenId: string): bool {
 
 /**
  * Internal function returning the currentSupply
- * @returns u64
+ * @returns u256
  */
-function _currentSupply(): u64 {
-  return bytesToU64(Storage.get(counterKey));
+function _currentSupply(): u256 {
+  return bytesToU256(Storage.get(counterKey));
 }
 
 // ==================================================== //
@@ -268,7 +270,7 @@ function _transfer(
   caller: string,
   owner: string,
   recipient: string,
-  tokenId: u64,
+  tokenId: u256,
 ): void {
   assertIsMinted(tokenId.toString());
   assertIsOwner(owner, tokenId);
@@ -278,10 +280,6 @@ function _transfer(
   _removeApproval(tokenId);
 
   Storage.set(ownerTokenKey + tokenId.toString(), recipient);
-
-  generateEvent(
-    `token ${tokenId.toString()} sent from ${owner} to ${recipient}`,
-  );
 }
 
 /**
@@ -290,7 +288,7 @@ function _transfer(
  * @param binaryArgs - arguments serialized with `Args` containing the following data in this order :
  * - the owner's account (address)
  * - the recipient's account (address)
- * - the tokenID (u64).
+ * - the tokenID (u256).
  * @throws if the token is not minted or if the caller is not allowed to transfer the token
  */
 export function nft1_transferFrom(binaryArgs: StaticArray<u8>): void {
@@ -303,36 +301,13 @@ export function nft1_transferFrom(binaryArgs: StaticArray<u8>): void {
     .nextString()
     .expect('toAddress argument is missing or invalid');
   const tokenId = args
-    .nextU64()
+    .nextU256()
     .expect('tokenId argument is missing or invalid');
 
   _transfer(caller, owner, recipient, tokenId);
-}
-
-/**
- * Approves another address to transfer the given token ID.
- * @param binaryArgs - arguments serialized with `Args` containing the following data in this order:
- * - the owner's - owner address
- * - the spenderAddress - spender address
- * - the tokenID (u64)
- */
-export function nft1_approve(binaryArgs: StaticArray<u8>): void {
-  const args = new Args(binaryArgs);
-
-  const callerAddress = Context.caller().toString();
-
-  const tokenId = args
-    .nextU64()
-    .expect('tokenId argument is missing or invalid');
-
-  const toAddress = new Address(
-    args.nextString().expect('toAddress argument is missing or invalid'),
-  );
-
-  _approve(tokenId, callerAddress, toAddress.toString());
 
   generateEvent(
-    `token ${tokenId.toString()} approved by ${Context.caller().toString()} for ${toAddress}`,
+    createEvent('TransferFrom', [tokenId.toString(), owner, recipient]),
   );
 }
 
@@ -343,7 +318,7 @@ export function nft1_approve(binaryArgs: StaticArray<u8>): void {
  * @param spenderAddress - spender address
  * @param tokenId - The token ID to approve
  */
-function _approve(tokenId: u64, owner: string, spenderAddress: string): void {
+function _approve(tokenId: u256, owner: string, spenderAddress: string): void {
   const id = tokenId.toString();
   assertIsMinted(id);
   assertIsOwner(owner, tokenId);
@@ -354,10 +329,41 @@ function _approve(tokenId: u64, owner: string, spenderAddress: string): void {
 }
 
 /**
+ * Approves another address to transfer the given token ID.
+ * @param binaryArgs - arguments serialized with `Args` containing the following data in this order:
+ * - the owner's - owner address
+ * - the spenderAddress - spender address
+ * - the tokenID (u256)
+ */
+export function nft1_approve(binaryArgs: StaticArray<u8>): void {
+  const args = new Args(binaryArgs);
+
+  const callerAddress = Context.caller().toString();
+
+  const tokenId = args
+    .nextU256()
+    .expect('tokenId argument is missing or invalid');
+
+  const toAddress = new Address(
+    args.nextString().expect('toAddress argument is missing or invalid'),
+  );
+
+  _approve(tokenId, callerAddress, toAddress.toString());
+
+  generateEvent(
+    createEvent('Approve', [
+      tokenId.toString(),
+      callerAddress,
+      toAddress.toString(),
+    ]),
+  );
+}
+
+/**
  * Removes the approval of the token
  * @param tokenId - the tokenID
  */
-function _removeApproval(tokenId: u64): void {
+function _removeApproval(tokenId: u256): void {
   const key = approvedTokenKey + tokenId.toString();
   if (Storage.has(key)) {
     Storage.del(key);
@@ -368,7 +374,7 @@ function _removeApproval(tokenId: u64): void {
  * Return if the address is approved to transfer the tokenId
  * @param binaryArgs - arguments serialized with `Args` containing the following data in this order :
  * - the address (string)
- * - the tokenID (u64)
+ * - the tokenID (u256)
  * @returns true if the address is approved to transfer the tokenId, false otherwise
  */
 export function nft1_getApproved(binaryArgs: StaticArray<u8>): StaticArray<u8> {
@@ -377,13 +383,13 @@ export function nft1_getApproved(binaryArgs: StaticArray<u8>): StaticArray<u8> {
     .nextString()
     .expect('address argument is missing or invalid');
   const tokenId = args
-    .nextU64()
+    .nextU256()
     .expect('tokenId argument is missing or invalid');
 
   return stringToBytes(_getApproved(tokenId));
 }
 
-function _getApproved(tokenId: u64): string {
+function _getApproved(tokenId: u256): string {
   const key = approvedTokenKey + tokenId.toString();
 
   if (!Storage.has(key)) return '';
@@ -391,7 +397,7 @@ function _getApproved(tokenId: u64): string {
   return Storage.get(key);
 }
 
-function _isApproved(address: string, tokenId: u64): bool {
+function _isApproved(address: string, tokenId: u256): bool {
   if (address.length === 0) return false;
   const approvedAddress = _getApproved(tokenId);
   return approvedAddress === address;
@@ -415,7 +421,11 @@ export function nft1_approveForAll(binaryArgs: StaticArray<u8>): void {
   );
 
   generateEvent(
-    `operator ${operatorAddress.toString()} approved for all ${Context.caller().toString()}`,
+    createEvent('approveForAll', [
+      ownerAddress.toString(),
+      operatorAddress.toString(),
+      approved.toString(),
+    ]),
   );
 }
 
@@ -462,14 +472,14 @@ function assertIsMinted(tokenId: string): void {
   assert(_onlyMinted(tokenId), `Token ${tokenId.toString()} is not minted`);
 }
 
-function assertIsOwner(address: string, tokenId: u64): void {
+function assertIsOwner(address: string, tokenId: u256): void {
   assert(
     _isTokenOwner(address, tokenId),
     `The provided address is not the owner of ${tokenId.toString()}`,
   );
 }
 
-function assertIsApproved(owner: string, caller: string, tokenId: u64): void {
+function assertIsApproved(owner: string, caller: string, tokenId: u256): void {
   assert(
     _isApproved(caller, tokenId) ||
       _isApprovedForAll(owner, caller) ||
@@ -483,4 +493,22 @@ function assertNotSelfTransfer(owner: string, recipient: string): void {
     owner != recipient,
     'The owner and the recipient must be different addresses',
   );
+}
+
+/**
+ * Constructs a pretty formatted event with given key and arguments.
+ *
+ * @remarks
+ * The result is meant to be used with the {@link generateEvent} function.
+ * It is useful to generate events from an array.
+ *
+ * @param key - the string event key.
+ *
+ * @param args - the string array arguments.
+ *
+ * @returns the stringified event.
+ *
+ */
+export function createEvent(key: string, args: Array<string>): string {
+  return `${key}:`.concat(args.join(','));
 }
