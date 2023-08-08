@@ -379,9 +379,6 @@ function _removeApproval(tokenId: u256): void {
  */
 export function nft1_getApproved(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   const args = new Args(binaryArgs);
-  const address = args
-    .nextString()
-    .expect('address argument is missing or invalid');
   const tokenId = args
     .nextU256()
     .expect('tokenId argument is missing or invalid');
