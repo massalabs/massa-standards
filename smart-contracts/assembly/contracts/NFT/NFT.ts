@@ -4,6 +4,7 @@ import {
   generateEvent,
   callerHasWriteAccess,
   Address,
+  createEvent,
 } from '@massalabs/massa-as-sdk';
 import {
   Args,
@@ -12,6 +13,17 @@ import {
   u256ToBytes,
 } from '@massalabs/as-types';
 import { u256 } from 'as-bignum/assembly';
+import {
+  assertIsMinted,
+  _onlyOwner,
+  _currentSupply,
+  _increment,
+  _transfer,
+  _approve,
+  _getApproved,
+  _setApprovalForAll,
+  _isApprovedForAll,
+} from './NFT-internals';
 
 export const nameKey = 'name';
 export const symbolKey = 'symbol';
@@ -174,9 +186,9 @@ export function nft1_ownerOf(_args: StaticArray<u8>): StaticArray<u8> {
     .nextU256()
     .expect('tokenId argument is missing or invalid');
 
-  const key = ownerTokenKey + tokenId.toString();
-
   assertIsMinted(tokenId.toString());
+
+  const key = ownerTokenKey + tokenId.toString();
 
   return stringToBytes(Storage.get(key));
 }
@@ -213,74 +225,9 @@ export function nft1_mint(_args: StaticArray<u8>): void {
   generateEvent(createEvent('Mint', [tokenToMint, mintAddress]));
 }
 
-/**
- * Increment the NFT counter
- */
-function _increment(): void {
-  const currentID = bytesToU256(Storage.get(counterKey));
-  const newID = u256.add(currentID, u256.fromU32(1));
-  Storage.set(counterKey, u256ToBytes(newID));
-}
-
-/**
- * @returns true if the caller is the creator of the SC
- */
-function _onlyOwner(): bool {
-  return Context.caller().toString() == Storage.get(ownerKey);
-}
-
-/**
- * @param tokenId - the tokenID
- * @returns true if the caller is token's owner
- */
-function _isTokenOwner(address: string, tokenId: u256): bool {
-  // as we need to compare two byteArrays, we need to compare the pointers
-  // we transform our byte array to their pointers and we compare them
-  const left = nft1_ownerOf(u256ToBytes(tokenId));
-  return (
-    memory.compare(
-      changetype<usize>(left),
-      changetype<usize>(stringToBytes(address)),
-      left.length,
-    ) == 0
-  );
-}
-
-/**
- * @param tokenId - the tokenID
- * @returns true if the token is minted
- */
-function _onlyMinted(tokenId: string): bool {
-  return Storage.has(ownerTokenKey + tokenId);
-}
-
-/**
- * Internal function returning the currentSupply
- * @returns u256
- */
-function _currentSupply(): u256 {
-  return bytesToU256(Storage.get(counterKey));
-}
-
 // ==================================================== //
 // ====                 TRANSFER                   ==== //
 // ==================================================== //
-
-function _transfer(
-  caller: string,
-  owner: string,
-  recipient: string,
-  tokenId: u256,
-): void {
-  assertIsMinted(tokenId.toString());
-  assertIsOwner(owner, tokenId);
-  assertNotSelfTransfer(owner, recipient);
-  assertIsApproved(owner, caller, tokenId);
-
-  _removeApproval(tokenId);
-
-  Storage.set(ownerTokenKey + tokenId.toString(), recipient);
-}
 
 /**
  * Transfer a chosen token from the from Address to the to Address.
@@ -311,22 +258,9 @@ export function nft1_transferFrom(binaryArgs: StaticArray<u8>): void {
   );
 }
 
-/**
- * Store the approved address for a token
- *
- * @param owner - owner address
- * @param spenderAddress - spender address
- * @param tokenId - The token ID to approve
- */
-function _approve(tokenId: u256, owner: string, spenderAddress: string): void {
-  const id = tokenId.toString();
-  assertIsMinted(id);
-  assertIsOwner(owner, tokenId);
-  assert(!_isApproved(spenderAddress, tokenId), 'Already approved');
-
-  const key = approvedTokenKey + id;
-  Storage.set(key, spenderAddress);
-}
+// ==================================================== //
+// ====                 APPROVAL                   ==== //
+// ==================================================== //
 
 /**
  * Approves another address to transfer the given token ID.
@@ -360,17 +294,6 @@ export function nft1_approve(binaryArgs: StaticArray<u8>): void {
 }
 
 /**
- * Removes the approval of the token
- * @param tokenId - the tokenID
- */
-function _removeApproval(tokenId: u256): void {
-  const key = approvedTokenKey + tokenId.toString();
-  if (Storage.has(key)) {
-    Storage.del(key);
-  }
-}
-
-/**
  * Return if the address is approved to transfer the tokenId
  * @param binaryArgs - arguments serialized with `Args` containing the following data in this order :
  * - the address (string)
@@ -386,21 +309,7 @@ export function nft1_getApproved(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   return stringToBytes(_getApproved(tokenId));
 }
 
-function _getApproved(tokenId: u256): string {
-  const key = approvedTokenKey + tokenId.toString();
-
-  if (!Storage.has(key)) return '';
-
-  return Storage.get(key);
-}
-
-function _isApproved(address: string, tokenId: u256): bool {
-  if (address.length === 0) return false;
-  const approvedAddress = _getApproved(tokenId);
-  return approvedAddress === address;
-}
-
-export function nft1_approveForAll(binaryArgs: StaticArray<u8>): void {
+export function nft1_setApprovalForAll(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
 
   const ownerAddress = Context.caller();
@@ -426,18 +335,6 @@ export function nft1_approveForAll(binaryArgs: StaticArray<u8>): void {
   );
 }
 
-function _setApprovalForAll(
-  owner: string,
-  operator: string,
-  approved: bool,
-): void {
-  assert(owner != operator, 'Not allowed to set approval for all for yourself');
-
-  const key = approvedForAllTokenKey + owner + operator;
-
-  Storage.set(key, approved.toString());
-}
-
 export function nft1_isApprovedForAll(binaryArgs: StaticArray<u8>): bool {
   const args = new Args(binaryArgs);
 
@@ -449,63 +346,4 @@ export function nft1_isApprovedForAll(binaryArgs: StaticArray<u8>): bool {
     .expect('operatorAddress argument is missing or invalid');
 
   return _isApprovedForAll(ownerAddress, operatorAddress);
-}
-
-function _isApprovedForAll(owner: string, operator: string): bool {
-  const key = approvedForAllTokenKey + owner + operator;
-
-  if (!Storage.has(key)) return false;
-
-  const approved = Storage.get(key);
-
-  return approved == 'true';
-}
-
-// ==================================================== //
-// ====             General Assertions             ==== //
-// ==================================================== //
-
-function assertIsMinted(tokenId: string): void {
-  assert(_onlyMinted(tokenId), `Token ${tokenId.toString()} is not minted`);
-}
-
-function assertIsOwner(address: string, tokenId: u256): void {
-  assert(
-    _isTokenOwner(address, tokenId),
-    `The provided address is not the owner of ${tokenId.toString()}`,
-  );
-}
-
-function assertIsApproved(owner: string, caller: string, tokenId: u256): void {
-  assert(
-    _isApproved(caller, tokenId) ||
-      _isApprovedForAll(owner, caller) ||
-      owner === caller,
-    'This address is not allowed to transfer this token',
-  );
-}
-
-function assertNotSelfTransfer(owner: string, recipient: string): void {
-  assert(
-    owner != recipient,
-    'The owner and the recipient must be different addresses',
-  );
-}
-
-/**
- * Constructs a pretty formatted event with given key and arguments.
- *
- * @remarks
- * The result is meant to be used with the {@link generateEvent} function.
- * It is useful to generate events from an array.
- *
- * @param key - the string event key.
- *
- * @param args - the string array arguments.
- *
- * @returns the stringified event.
- *
- */
-export function createEvent(key: string, args: Array<string>): string {
-  return `${key}:`.concat(args.join(','));
 }

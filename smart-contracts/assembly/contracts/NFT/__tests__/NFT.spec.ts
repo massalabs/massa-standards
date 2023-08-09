@@ -6,11 +6,9 @@ import {
 import {
   Args,
   bytesToString,
-  bytesToU256,
-  bytesToU64,
   stringToBytes,
+  bytesToU256,
   u256ToBytes,
-  u64ToBytes,
 } from '@massalabs/as-types';
 import {
   constructor,
@@ -28,6 +26,8 @@ import {
   nft1_getApproved,
   nft1_approve,
   nft1_transferFrom,
+  nft1_setApprovalForAll,
+  nft1_isApprovedForAll,
 } from '../NFT';
 import { u256 } from 'as-bignum/assembly';
 
@@ -123,6 +123,30 @@ describe('NFT contract', () => {
     approveAddress(tokenId, address);
     approvedAddress = getAllowedAddress(tokenId);
     expect(approvedAddress).toStrictEqual(address);
+  });
+
+  test('approval for all', () => {
+    const address = '2x';
+    const recipient = '3x';
+    const isApprovedForAll = true;
+
+    nft1_setApprovalForAll(
+      new Args().add(address).add(isApprovedForAll).serialize(),
+    );
+
+    expect(
+      nft1_isApprovedForAll(
+        new Args().add(callerAddress).add(address).serialize(),
+      ),
+    ).toBe(isApprovedForAll);
+
+    nft1_transferFrom(
+      new Args().add(callerAddress).add(recipient).add(new u256(1)).serialize(),
+    );
+
+    expect(
+      nft1_ownerOf(new Args().add<u256>(u256.fromU64(1)).serialize()),
+    ).toStrictEqual(stringToBytes(recipient));
   });
 
   test('transferFrom', () => {

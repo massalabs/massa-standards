@@ -103,6 +103,26 @@ export class NFTWrapper {
     call(this._origin, 'approve', new Args().add(tokenId).add(address), 0);
   }
 
+  // Approve for all
+
+  /**
+   * Approve an address to transfer all tokens
+   *
+   * @param address - address to approve
+   * @param approved - true or false
+   *
+   * @remarks
+   * This function is used to approve an address to transfer all tokens
+   */
+  setApprovalForAll(address: string, approved: bool): void {
+    call(
+      this._origin,
+      'setApprovalForAll',
+      new Args().add(address).add(approved),
+      0,
+    );
+  }
+
   /**
    * Transfer a chosen token from the fromAddress to the toAddress.
    *
