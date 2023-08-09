@@ -1,5 +1,6 @@
 import { Address, call } from '@massalabs/massa-as-sdk';
-import { Args, NoArg, bytesToString, bytesToU64 } from '@massalabs/as-types';
+import { Args, NoArg, bytesToString, bytesToU256 } from '@massalabs/as-types';
+import { u256 } from 'as-bignum/assembly';
 
 /**
  * The Massa's standard NFT implementation wrapper.
@@ -44,7 +45,7 @@ export class NFTWrapper {
    * generate an event with the token URI (external link written in NFT where pictures or others are stored)
    * @param tokenId - Token ID
    */
-  tokenURI(tokenId: u64): string {
+  tokenURI(tokenId: u256): string {
     return bytesToString(
       call(this._origin, 'tokenURI', new Args().add(tokenId), 0),
     );
@@ -60,22 +61,22 @@ export class NFTWrapper {
   /**
    * Generate an event with  the max supply
    */
-  totalSupply(): u64 {
-    return bytesToU64(call(this._origin, 'totalSupply', NoArg, 0));
+  totalSupply(): u256 {
+    return bytesToU256(call(this._origin, 'totalSupply', NoArg, 0));
   }
 
   /**
    * Generate an event with the current counter, if 10 NFT minted, returns 10.
    */
-  currentSupply(): u64 {
-    return bytesToU64(call(this._origin, 'currentSupply', NoArg, 0));
+  currentSupply(): u256 {
+    return bytesToU256(call(this._origin, 'currentSupply', NoArg, 0));
   }
 
   /**
    * Generate an event with the owner of a tokenID
    * @param tokenId - Token ID
    */
-  ownerOf(tokenId: u64): Address {
+  ownerOf(tokenId: u256): Address {
     return new Address(
       bytesToString(call(this._origin, 'ownerOf', new Args().add(tokenId), 0)),
     );
@@ -98,7 +99,7 @@ export class NFTWrapper {
    * @param address - address to approve
    *
    */
-  approve(tokenId: u64, address: string): void {
+  approve(tokenId: u256, address: string): void {
     call(this._origin, 'approve', new Args().add(tokenId).add(address), 0);
   }
 
@@ -112,7 +113,7 @@ export class NFTWrapper {
    * @remarks caller must be an approved address
    *
    */
-  transferFrom(owner: string, recipient: string, tokenId: u64): void {
+  transferFrom(owner: string, recipient: string, tokenId: u256): void {
     call(
       this._origin,
       'transferFrom',
@@ -129,11 +130,9 @@ export class NFTWrapper {
    * @returns an array of the approved address(es)
    *
    */
-  getApproved(tokenId: u64): string[] {
-    const addresses = bytesToString(
+  getApproved(tokenId: u256): string {
+    return bytesToString(
       call(this._origin, 'getApproved', new Args().add(tokenId), 0),
     );
-    if (addresses == '') return [];
-    return addresses.split(',');
   }
 }
