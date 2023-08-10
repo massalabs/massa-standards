@@ -6,7 +6,7 @@ Initial meta issue: <https://github.com/massalabs/massa-standards/issues/15>
 
 **Status:** Review
 
-**Version:** 1.0
+**Version:** 2.0
 
 ## Introduction
 
@@ -81,7 +81,7 @@ The following table summarize the format:
 | Version | Mandatory | Integer | Entire part of this specification version | 1 |
 | Nickname | Mandatory | String || "Savings" |
 | Address | Optional | String || "AU12..." |
-| Salt | Mandatory | Byte array | Salt for PBKDF2 (16 Bytes) | [57, 125, 102, 235, 118, 62, 21, 145, 126, 197, 242, 54, 145, 50, 178, 98] |
+| Salt | Mandatory | String | Salt for PBKDF2 (16 Bytes, base 64 encoded) | "iad1ELW64ouX5HfCUCglig==" |
 | Nonce | Mandatory | Byte array | Initialization Vector (12 Bytes) for AES-GCM | [119, 196, 31, 33, 211, 243, 26, 58, 102, 180, 47, 57] |
 | CipheredData | Mandatory | Byte array | Ciphered Private Key Bytes (using AES-GCM) followed by Authentication Tag (16 Bytes) | [17, 42 ...] |
 | PublicKey | Mandatory | Byte array | Public key prepended by its version | [0, 21, 126 ...] |
@@ -95,7 +95,7 @@ Here is an example of YAML serialization:
 Version: 1
 Nickname: Savings
 Address: AU12...
-Salt: [57, 125, 102, 235, 118, 62, 21, 145, 126, 197, 242, 54, 145, 50, 178, 98]
+Salt: iad1ELW64ouX5HfCUCglig==
 Nonce: [119, 196, 31, 33, 211, 243, 26, 58, 102, 180, 47, 57]
 CipheredData: [17, 42, ...]
 PublicKey: [0, 21, 126, ...]
@@ -107,9 +107,10 @@ In order to decrypt the private key, following steps are followed:
 
 1. User inputs a password.
 2. Password is converted to bytes (utf-8 encoding).
-3. Symmetric key is derived using PBKDF2 with this password (bytes) and the salt (bytes) as input.
-4. This derived symmetric key is then used as AES-GCM Key along with the nonce (IV) to decrypt the ciphered private key.
-5. The authentication tag at the end of ciphered data checks if the derived symmetric key used in point 4. is right.
+3. Salt is decoded from base64 to bytes.
+4. Symmetric key is derived using PBKDF2 with this password (bytes) and the salt (bytes) as input.
+5. This derived symmetric key is then used as AES-GCM Key along with the nonce (IV) to decrypt the ciphered private key.
+6. The authentication tag at the end of ciphered data checks if the derived symmetric key used in point 5. is right.
 
 ## Security Concerns
 
