@@ -25,6 +25,7 @@ import { Args,
          u8toByte,
          u64ToBytes,
          stringToBytes,
+         bytesToString,
          bytesToU64,
          byteToU8,
          bytesToSerializableObjectArray,
@@ -38,6 +39,9 @@ const REVOKE_TRANSACTION_EVENT_NAME = 'REVOKE_TRANSACTION';
 const RETRIEVE_TRANSACTION_EVENT_NAME = 'RETRIEVE_TRANSACTION';
 const GET_OWNERS_EVENT_NAME = 'GET_OWNERS';
 
+export const TRANSACTION_INDEX_PREFIX_KEY = '00';
+export const OWNER_PREFIX_KEY = '01';
+
 export const NB_CONFIRMATIONS_REQUIRED_KEY = stringToBytes('NB CONFIRMATIONS REQUIRED');
 export const OWNERS_ADDRESSES_KEY = stringToBytes('OWNERS ADDRESSES');
 export const TRANSACTION_INDEX_KEY = stringToBytes('TRANSACTION INDEX');
@@ -46,6 +50,18 @@ export const TRANSACTION_INDEX_KEY = stringToBytes('TRANSACTION INDEX');
 // ======================================================== //
 // ====             HELPER FUNCTIONS & TYPES           ==== //
 // ======================================================== //
+
+function makeTransactionKey(txIndex: u64) : StaticArray<u8> {
+
+    return stringToBytes(TRANSACTION_INDEX_PREFIX_KEY +
+                         bytesToString(u64ToBytes(txIndex)));
+}
+
+function makeOwnerKey(address: Address) : StaticArray<u8> {
+
+    return stringToBytes(OWNER_PREFIX_KEY +
+                         bytesToString(address.serialize()));
+}
 
 class Transaction {
     toAddress: Address; // the destination address
@@ -124,12 +140,12 @@ function storeTransaction(txIndex: u64,
                           transaction: Transaction): void {
 
   // we simply use the transaction index as a key to store it
-  Storage.set(u64ToBytes(txIndex), transaction.serialize());
+  Storage.set(makeTransactionKey(txIndex), transaction.serialize());
 }
 
 function retrieveTransaction(txIndex: u64): Result<Transaction> {
 
-  const transactionKey = u64ToBytes(txIndex);
+  const transactionKey = makeTransactionKey(txIndex);
 
   if (Storage.has(transactionKey)) {
       let transaction = new Transaction();
@@ -142,7 +158,7 @@ function retrieveTransaction(txIndex: u64): Result<Transaction> {
 
 function deleteTransaction(txIndex: u64): void {
 
-  const transactionKey = u64ToBytes(txIndex);
+  const transactionKey = makeTransactionKey(txIndex);
   Storage.del(transactionKey);
 }
 
@@ -207,14 +223,16 @@ export function constructor(stringifyArgs: StaticArray<u8>): void {
   for (let i = 0; i < ownerAddresses.length; i++) {
       let address = ownerAddresses[i];
       assert(address.toString(), "null address is not a valid owner");
-      const currentWeight = ownerWeight.get(address) || 0; // returns 0 if the key is not present
+      let currentWeight : u8 = 0;
+      if (ownerWeight.has(address))
+        currentWeight = ownerWeight.get(address);
       ownerWeight.set(address, currentWeight + 1);
   }
 
   for (let i = 0; i < ownerAddresses.length; i++) {
       let address = ownerAddresses[i];
       // we store directly each address weight in the Storage
-      Storage.set(address.serialize(), u8toByte(ownerWeight.get(address)));
+      Storage.set(makeOwnerKey(address), u8toByte(ownerWeight.get(address)));
   }
 
   // We store the list of owners to be queries later if needed
@@ -339,7 +357,7 @@ export function confirmTransaction(stringifyArgs: StaticArray<u8>): void {
   let owner = Context.caller();
 
   // check owner is legit and retrieve the weight
-  let ownerKey = owner.serialize();
+  let ownerKey = makeOwnerKey(owner);
   assert(Storage.has(ownerKey), "Caller address is not an owner");
   let weight = byteToU8(Storage.get(ownerKey));
 
@@ -436,7 +454,7 @@ export function revokeConfirmation(stringifyArgs: StaticArray<u8>): void {
   let owner = Context.caller();
 
   // check owner is legit and retrieve the weight
-  let ownerKey = owner.serialize();
+  let ownerKey = makeOwnerKey(owner);
   assert(Storage.has(ownerKey), "Caller address is not an owner");
   let weight = byteToU8(Storage.get(ownerKey));
 
