@@ -160,14 +160,14 @@ function deleteTransaction(txIndex: u64): void {
  *   constructor(
  *   new Args()
  *     .add(3) // nb of confirmations required
- *     .addSerializableObjectArray([Owner1Address, Owner2Address, ..., OwnerNAddress])
+ *     .add<Array<string>>("Owner1Address", "Owner2Address", ..., "OwnerNAddress"])
  *     .serialize(),
  *   );
  * ```
  *
  * @param stringifyArgs - Args object serialized as a string containing:
  * - the number of confirmations required (u8)
- * - the Array of addresses for each owner of the multisig (Array<Address>).
+ * - the Array of addresses for each owner of the multisig (Array<string>).
  */
 export function constructor(stringifyArgs: StaticArray<u8>): void {
   // This line is important. It ensures that this function can't be called in the future.
@@ -188,9 +188,14 @@ export function constructor(stringifyArgs: StaticArray<u8>): void {
   Storage.set(NB_CONFIRMATIONS_REQUIRED_KEY, u8toByte(nbConfirmationsRequired));
 
   // initialize array of owners addresses
-  const ownerAddresses : Array<Address> = args
-    .nextSerializableObjectArray<Address>()
+  const ownerStringAddresses : Array<string> = args
+    .nextStringArray()
     .expect('Error while initializing owners addresses array');
+
+  // convert to actual Addresses
+  const ownerAddresses : Array<Address> = [];
+  for (let i = 0; i < ownerStringAddresses.length; i++)
+    ownerAddresses.push(new Address(ownerStringAddresses[i]));
 
   assert(ownerAddresses.length > 0 && ownerAddresses.length <= MAX_OWNERS,
     'The multisig must have between one and 255 owners');
