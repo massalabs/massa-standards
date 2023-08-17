@@ -11,6 +11,8 @@ import {
   stringToBytes,
   bytesToU256,
   u256ToBytes,
+  boolToByte,
+  u32ToBytes,
 } from '@massalabs/as-types';
 import { u256 } from 'as-bignum/assembly';
 import {
@@ -336,7 +338,9 @@ export function nft1_setApprovalForAll(binaryArgs: StaticArray<u8>): void {
   );
 }
 
-export function nft1_isApprovedForAll(binaryArgs: StaticArray<u8>): bool {
+export function nft1_isApprovedForAll(
+  binaryArgs: StaticArray<u8>,
+): StaticArray<u8> {
   const args = new Args(binaryArgs);
 
   const ownerAddress = args
@@ -346,5 +350,7 @@ export function nft1_isApprovedForAll(binaryArgs: StaticArray<u8>): bool {
     .nextString()
     .expect('operatorAddress argument is missing or invalid');
 
-  return _isApprovedForAll(ownerAddress, operatorAddress);
+  return _isApprovedForAll(ownerAddress, operatorAddress)
+    ? u32ToBytes(1)
+    : u32ToBytes(0);
 }
