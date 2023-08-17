@@ -27,6 +27,10 @@ The [Massa Domain Name Service standard](smart-contracts/assembly/contracts/dns/
 
 This is MassaLabs implementation of [the ENS](https://docs.ens.domains/).
 
+## Multisig
+
+The [Multisig standard implementation](smart-contracts/assembly/contracts/multisig) defines a simple multisig contract able to store funds and release them in a weighted multisig schema (multiple declaration of an owner will increase its weight).
+
 ## Massa Units
 
 The [Massa Units standard](units.md) defines a set of common units of measurement for use on the Massa blockchain.

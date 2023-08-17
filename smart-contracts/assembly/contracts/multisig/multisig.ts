@@ -249,7 +249,7 @@ export function constructor(stringifyArgs: StaticArray<u8>): void {
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
  * @returns contract version
  */
-export function version(_: StaticArray<u8>): StaticArray<u8> {
+export function ms1_version(_: StaticArray<u8>): StaticArray<u8> {
   return stringToBytes('0.0.0');
 }
 
@@ -263,7 +263,7 @@ export function version(_: StaticArray<u8>): StaticArray<u8> {
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
  * @returns token name.
  */
-export function deposit(_: StaticArray<u8>): void {
+export function ms1_deposit(_: StaticArray<u8>): void {
 
   generateEvent(
     createEvent(DEPOSIT_EVENT_NAME, [
@@ -283,7 +283,7 @@ export function deposit(_: StaticArray<u8>): void {
  *
  * @example
  * ```typescript
- *   submitTransaction(
+ *   ms1_submitTransaction(
  *   new Args()
  *     .add<Address>(Address("...")) // destination address
  *     .add(150000) // amount
@@ -296,7 +296,7 @@ export function deposit(_: StaticArray<u8>): void {
  * - the amount of the transaction (u64).
  * @returns transaction index.
  */
-export function submitTransaction(stringifyArgs: StaticArray<u8>): u64 {
+export function ms1_submitTransaction(stringifyArgs: StaticArray<u8>): u64 {
 
   const args = new Args(stringifyArgs);
 
@@ -335,7 +335,7 @@ export function submitTransaction(stringifyArgs: StaticArray<u8>): u64 {
  *
  * @example
  * ```typescript
- *   confirmTransaction(
+ *   ms1_confirmTransaction(
  *   new Args()
  *     .add(index) // the transaction index
  *     .serialize(),
@@ -345,7 +345,7 @@ export function submitTransaction(stringifyArgs: StaticArray<u8>): u64 {
  * @param stringifyArgs - Args object serialized as a string containing:
  * - the transaction index (u64)
  */
-export function confirmTransaction(stringifyArgs: StaticArray<u8>): void {
+export function ms1_confirmTransaction(stringifyArgs: StaticArray<u8>): void {
 
   const args = new Args(stringifyArgs);
 
@@ -385,7 +385,7 @@ export function confirmTransaction(stringifyArgs: StaticArray<u8>): void {
  *
  * @example
  * ```typescript
- *   executeTransaction(
+ *   ms1_executeTransaction(
  *   new Args()
  *     .add(index) // the transaction index
  *     .serialize(),
@@ -395,7 +395,7 @@ export function confirmTransaction(stringifyArgs: StaticArray<u8>): void {
  * @param stringifyArgs - Args object serialized as a string containing:
  * - the transaction index (u64)
  */
-export function executeTransaction(stringifyArgs: StaticArray<u8>): void {
+export function ms1_executeTransaction(stringifyArgs: StaticArray<u8>): void {
 
   const args = new Args(stringifyArgs);
 
@@ -432,7 +432,7 @@ export function executeTransaction(stringifyArgs: StaticArray<u8>): void {
  *
  * @example
  * ```typescript
- *   revokeConfirmation(
+ *   ms1_revokeConfirmation(
  *   new Args()
  *     .add(index) // the transaction index
  *     .serialize(),
@@ -442,7 +442,7 @@ export function executeTransaction(stringifyArgs: StaticArray<u8>): void {
  * @param stringifyArgs - Args object serialized as a string containing:
  * - the transaction index (u64)
  */
-export function revokeConfirmation(stringifyArgs: StaticArray<u8>): void {
+export function ms1_revokeConfirmation(stringifyArgs: StaticArray<u8>): void {
 
   const args = new Args(stringifyArgs);
 
@@ -478,15 +478,15 @@ export function revokeConfirmation(stringifyArgs: StaticArray<u8>): void {
 }
 
 /**
- * Retrieve the list of the multisig owners Addresses and emit an event
+ * Retrieve the list of the multisig owners addresses as strings and emit an event
  *
  * @example
  * ```typescript
- *   let owners = bytesToSerializableObjectArray<Address>(getOwners()).unwrap();
+ *   let owners = bytesToSerializableObjectArray<Address>(ms1_getOwners()).unwrap();
  * ```
  *
  */
-export function getOwners(_ : StaticArray<u8>) : StaticArray<u8> {
+export function ms1_getOwners(_ : StaticArray<u8>) : StaticArray<u8> {
 
   let serializedOwnerAddresses = Storage.get(OWNERS_ADDRESSES_KEY)
   let owners = bytesToSerializableObjectArray<Address>(serializedOwnerAddresses).unwrap();
@@ -506,7 +506,7 @@ export function getOwners(_ : StaticArray<u8>) : StaticArray<u8> {
  * @example
  * ```typescript
  *   let transaction = new Transaction();
- *   transaction.deserialize(getTransaction(
+ *   transaction.deserialize(ms1_getTransaction(
  *     new Args()
  *       .add(index) // the transaction index
  *       .serialize()
@@ -516,7 +516,7 @@ export function getOwners(_ : StaticArray<u8>) : StaticArray<u8> {
  * @param stringifyArgs - Args object serialized as a string containing:
  * - the transaction index (u64)
  */
-export function getTransaction(stringifyArgs : StaticArray<u8>) : StaticArray<u8> {
+export function ms1_getTransaction(stringifyArgs : StaticArray<u8>) : StaticArray<u8> {
 
   const args = new Args(stringifyArgs);
 
