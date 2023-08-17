@@ -69,14 +69,15 @@ export function _transfer(
   recipient: string,
   tokenId: u256,
 ): void {
-  assertIsMinted(tokenId.toString());
+  const id = tokenId.toString();
+  assertIsMinted(id);
   assertIsOwner(owner, tokenId);
   assertNotSelfTransfer(owner, recipient);
   assertIsApproved(owner, caller, tokenId);
 
-  _removeApproval(tokenId);
+  _removeApproval(id);
 
-  Storage.set(ownerTokenKey + tokenId.toString(), recipient);
+  Storage.set(ownerTokenKey + id, recipient);
 }
 
 // ==================================================== //
@@ -108,11 +109,9 @@ export function _approve(
  * Removes the approval of the token
  * @param tokenId - the tokenID
  */
-export function _removeApproval(tokenId: u256): void {
-  const key = approvedTokenKey + tokenId.toString();
-  if (Storage.has(key)) {
-    Storage.del(key);
-  }
+function _removeApproval(id: string): void {
+  const key = approvedTokenKey + id;
+  Storage.set(key, '');
 }
 
 export function _getApproved(tokenId: u256): string {

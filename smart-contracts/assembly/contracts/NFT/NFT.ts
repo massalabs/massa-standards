@@ -214,6 +214,7 @@ export function nft1_mint(_args: StaticArray<u8>): void {
     .nextString()
     .expect('mintAddress argument is missing or invalid');
 
+  // TODO:  Check Address validity
   _increment();
 
   const tokenToMint = _currentSupply().toString();

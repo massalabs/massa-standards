@@ -147,6 +147,10 @@ describe('NFT contract', () => {
     expect(
       nft1_ownerOf(new Args().add<u256>(u256.fromU64(1)).serialize()),
     ).toStrictEqual(stringToBytes(recipient));
+
+    expect(
+      nft1_isApprovedForAll(new Args().add(recipient).add(address).serialize()),
+    ).toBe(!isApprovedForAll);
   });
 
   test('transferFrom', () => {
