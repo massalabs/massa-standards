@@ -25,6 +25,8 @@ import {
   _getApproved,
   _setApprovalForAll,
   _isApprovedForAll,
+  _updateBalanceOf,
+  _getBalanceOf,
 } from './NFT-internals';
 
 export const nameKey = 'name';
@@ -195,6 +197,21 @@ export function nft1_ownerOf(_args: StaticArray<u8>): StaticArray<u8> {
   return stringToBytes(Storage.get(key));
 }
 
+/**
+ * Return the balance of the address
+ * @param _args - Address serialized with `Args`
+ * @returns the balance as u256
+ * @throws if the address is invalid
+ */
+export function nft1_balanceOf(_args: StaticArray<u8>): StaticArray<u8> {
+  const args = new Args(_args);
+  const address = args
+    .nextString()
+    .expect('address argument is missing or invalid');
+
+  return u256ToBytes(_getBalanceOf(address));
+}
+
 // ==================================================== //
 // ====                    MINT                    ==== //
 // ==================================================== //
@@ -224,6 +241,8 @@ export function nft1_mint(_args: StaticArray<u8>): void {
   const key = ownerTokenKey + tokenToMint;
 
   Storage.set(key, mintAddress);
+
+  _updateBalanceOf(mintAddress, true);
 
   generateEvent(createEvent('Mint', [tokenToMint, mintAddress]));
 }

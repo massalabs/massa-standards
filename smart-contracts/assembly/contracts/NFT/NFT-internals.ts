@@ -19,6 +19,27 @@ export function _increment(): void {
   Storage.set(counterKey, u256ToBytes(newID));
 }
 
+export function _updateBalanceOf(address: string, increment: boolean): void {
+  const balanceKey = stringToBytes('balanceOf_' + address);
+  const number = increment ? 1 : -1;
+
+  if (Storage.has(balanceKey)) {
+    const balance = bytesToU256(Storage.get(balanceKey));
+    const newBalance = u256.add(balance, u256.fromI32(number));
+    Storage.set(balanceKey, u256ToBytes(newBalance));
+  } else {
+    Storage.set(balanceKey, u256ToBytes(new u256(1)));
+  }
+}
+
+export function _getBalanceOf(address: string): u256 {
+  const balanceKey = stringToBytes('balanceOf_' + address);
+
+  if (!Storage.has(balanceKey)) return new u256(0);
+
+  return bytesToU256(Storage.get(balanceKey));
+}
+
 /**
  * @returns true if the caller is the creator of the SC
  */
@@ -76,6 +97,8 @@ export function _transfer(
   assertIsApproved(owner, caller, tokenId);
 
   _removeApproval(id);
+  _updateBalanceOf(owner, false);
+  _updateBalanceOf(recipient, true);
 
   Storage.set(ownerTokenKey + id, recipient);
 }
