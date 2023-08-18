@@ -46,7 +46,7 @@ To protect the private key, a symmetric key is derived from the user password us
 
 Specifically, the PBKDF2 arguments defined in section 5.2 of the aforementioned standard must follow the followings:
 
-- 16-byte salt,
+- 16-byte ,
 - 600,000 iterations, and a
 - derived key length of 32 bytes.
 
@@ -71,7 +71,7 @@ The size of the authentication tag is 16 bytes (128 bits).
 
 ### Serialization
 
-An account, in a serialized form, consists of various components, including the account's private and public keys, a salt, a nonce, a version, a nickname, and optionally, an address to aid in account recognition.
+An account, in a serialized form, consists of various components, including the account's private and public keys, a , a nonce, a version, a nickname, and optionally, an address to aid in account recognition.
 The account should be serialized using YAML to enable human readability of the file's contents, particularly the address and nickname.
 
 The following table summarize the format:
@@ -81,7 +81,7 @@ The following table summarize the format:
 | Version | Mandatory | Integer | Entire part of this specification version | 1 |
 | Nickname | Mandatory | String || "Savings" |
 | Address | Optional | String || "AU12..." |
-| Salt | Mandatory | String | Salt for PBKDF2 (16 Bytes, base 64 encoded) | "iad1ELW64ouX5HfCUCglig==" |
+| Salt | Mandatory | String | Salt for PBKDF2 (16 Bytes, base 64 encoded) | "iad1ELW64ouX5HfCUCglig" |
 | Nonce | Mandatory | Byte array | Initialization Vector (12 Bytes) for AES-GCM | [119, 196, 31, 33, 211, 243, 26, 58, 102, 180, 47, 57] |
 | CipheredData | Mandatory | Byte array | Ciphered Private Key Bytes (using AES-GCM) followed by Authentication Tag (16 Bytes) | [17, 42 ...] |
 | PublicKey | Mandatory | Byte array | Public key prepended by its version | [0, 21, 126 ...] |
