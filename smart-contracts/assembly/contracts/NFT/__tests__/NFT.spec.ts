@@ -9,6 +9,7 @@ import {
   stringToBytes,
   bytesToU256,
   u256ToBytes,
+  bytesToI32,
 } from '@massalabs/as-types';
 import {
   constructor,
@@ -135,10 +136,12 @@ describe('NFT contract', () => {
     );
 
     expect(
-      nft1_isApprovedForAll(
-        new Args().add(callerAddress).add(address).serialize(),
+      bytesToI32(
+        nft1_isApprovedForAll(
+          new Args().add(callerAddress).add(address).serialize(),
+        ),
       ),
-    ).toBe(isApprovedForAll);
+    ).toBe(1);
 
     nft1_transferFrom(
       new Args().add(callerAddress).add(recipient).add(new u256(1)).serialize(),
@@ -149,8 +152,12 @@ describe('NFT contract', () => {
     ).toStrictEqual(stringToBytes(recipient));
 
     expect(
-      nft1_isApprovedForAll(new Args().add(recipient).add(address).serialize()),
-    ).toBe(!isApprovedForAll);
+      bytesToI32(
+        nft1_isApprovedForAll(
+          new Args().add(recipient).add(address).serialize(),
+        ),
+      ),
+    ).toBe(0);
   });
 
   test('transferFrom', () => {
