@@ -63,7 +63,7 @@ function makeOwnerKey(address: Address) : StaticArray<u8> {
                          bytesToString(address.serialize()));
 }
 
-class Transaction {
+export class Transaction {
     toAddress: Address; // the destination address
     amount: u64; // the amount
     confirmedOwnerList: Array<Address>; // the Array listing the owners who have already signed
@@ -136,14 +136,14 @@ class Transaction {
     }
 }
 
-function storeTransaction(txIndex: u64,
+export function storeTransaction(txIndex: u64,
                           transaction: Transaction): void {
 
   // we simply use the transaction index as a key to store it
   Storage.set(makeTransactionKey(txIndex), transaction.serialize());
 }
 
-function retrieveTransaction(txIndex: u64): Result<Transaction> {
+export function retrieveTransaction(txIndex: u64): Result<Transaction> {
 
   const transactionKey = makeTransactionKey(txIndex);
 
@@ -219,10 +219,10 @@ export function constructor(stringifyArgs: StaticArray<u8>): void {
   assert(nbConfirmationsRequired as i32 <= ownerAddresses.length,
     'The number of confirmations cannot exceed the number of owners of the multisig');
 
-  let ownerWeight = new Map<Address, u8>();
+  let ownerWeight = new Map<string, u8>();
   for (let i = 0; i < ownerAddresses.length; i++) {
-      let address = ownerAddresses[i];
-      assert(address.toString(), "null address is not a valid owner");
+      let address = ownerAddresses[i].toString();
+      assert(address, "null address is not a valid owner");
       let currentWeight : u8 = 0;
       if (ownerWeight.has(address))
         currentWeight = ownerWeight.get(address);
@@ -232,7 +232,7 @@ export function constructor(stringifyArgs: StaticArray<u8>): void {
   for (let i = 0; i < ownerAddresses.length; i++) {
       let address = ownerAddresses[i];
       // we store directly each address weight in the Storage
-      Storage.set(makeOwnerKey(address), u8toByte(ownerWeight.get(address)));
+      Storage.set(makeOwnerKey(address), u8toByte(ownerWeight.get(address.toString())));
   }
 
   // We store the list of owners to be queries later if needed
@@ -285,9 +285,9 @@ export function ms1_deposit(_: StaticArray<u8>): void {
  * ```typescript
  *   ms1_submitTransaction(
  *   new Args()
- *     .add<Address>(Address("...")) // destination address
+ *     .add<Address>(new Address("...")) // destination address
  *     .add(150000) // amount
- *     .serialize(),
+ *     .serialize()
  *   );
  * ```
  *
@@ -323,7 +323,7 @@ export function ms1_submitTransaction(stringifyArgs: StaticArray<u8>): u64 {
       Context.caller().toString(),
       txIndex.toString(),
       toAddress.toString(),
-      amount.toString(),
+      amount.toString()
     ]),
   );
 
