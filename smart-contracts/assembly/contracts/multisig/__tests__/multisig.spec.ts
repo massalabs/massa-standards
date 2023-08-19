@@ -15,6 +15,7 @@ import { Storage,
          mockAdminContext,
          Address,
          createEvent,
+         Coins,
          generateEvent } from '@massalabs/massa-as-sdk';
 
 import {
@@ -190,12 +191,7 @@ describe('Multisig contract tests', () => {
     expect(transaction.isValidated()).toBe(false);
   });
 
-  // indexes here refer to owner number: owner1, owner2, ...
-  //confirmTransaction([0], true, 2);
-  //confirmTransaction([1], false, 3);
-  //confirmTransaction([1, 2], true, 4);
-  //confirmTransaction([2], false, 5);
-
+  // validated transaction
   test('confirm transaction [owners[0]]', () => {
     let confirmingOwnersIndexes : Array<u8>;
     let txIndex : u64;
@@ -233,7 +229,7 @@ describe('Multisig contract tests', () => {
     expect(transaction.isValidated()).toBe(true);
   });
 
-
+  // non validated transaction
   test('confirm transaction [owners[1]]', () => {
     let confirmingOwnersIndexes : Array<u8>;
     let txIndex : u64;
@@ -271,50 +267,14 @@ describe('Multisig contract tests', () => {
     expect(transaction.isValidated()).toBe(false);
   });
 
-  test('confirm transaction [owners[1], owners[2]]', () => {
-    let confirmingOwnersIndexes : Array<u8>;
-    let txIndex : u64;
-    let totalWeight : u8;
-
-    confirmingOwnersIndexes = [1,2];
-    txIndex = 4;
-
-    expect(ms1_submitTransaction(new Args()
-      .add<Address>(new Address(destination))
-      .add(u64(15000))
-      .serialize()
-    )).toBe(txIndex);
-
-    totalWeight = 0;
-    for (let i = 0; i < confirmingOwnersIndexes.length; ++i) {
-        let ownerAddress = owners[confirmingOwnersIndexes[i]];
-        switchUser(ownerAddress);
-        ms1_confirmTransaction(new Args().add(txIndex).serialize());
-        totalWeight += ownerWeight[confirmingOwnersIndexes[i]];
-
-        // retrieve the transaction in its current state in Storage
-        let transaction = retrieveTransaction(txIndex).unwrap();
-
-        expect(transaction.toAddress).toBe(new Address(destination));
-        expect(transaction.amount).toBe(u64(15000));
-        expect(transaction.confirmedOwnerList.length).toBe(i + 1);
-        expect(transaction.confirmationWeightedSum).toBe(totalWeight);
-        expect(transaction.isAlreadyConfirmed(new Address(ownerAddress))).toBe(true);
-    }
-
-    switchUser(deployerAddress);
-    // retrieve the transaction in its final state in Storage
-    let transaction = retrieveTransaction(txIndex).unwrap();
-    expect(transaction.isValidated()).toBe(true);
-  });
-
+  // non validated transaction
   test('confirm transaction [owners[2]]', () => {
     let confirmingOwnersIndexes : Array<u8>;
     let txIndex : u64;
     let totalWeight : u8;
 
     confirmingOwnersIndexes = [2];
-    txIndex = 5;
+    txIndex = 4;
 
     expect(ms1_submitTransaction(new Args()
       .add<Address>(new Address(destination))
@@ -345,4 +305,158 @@ describe('Multisig contract tests', () => {
     expect(transaction.isValidated()).toBe(false);
   });
 
+  // validated transaction
+  test('confirm transaction [owners[1], owners[2]]', () => {
+    let confirmingOwnersIndexes : Array<u8>;
+    let txIndex : u64;
+    let totalWeight : u8;
+
+    confirmingOwnersIndexes = [1,2];
+    txIndex = 5;
+
+    expect(ms1_submitTransaction(new Args()
+      .add<Address>(new Address(destination))
+      .add(u64(15000))
+      .serialize()
+    )).toBe(txIndex);
+
+    totalWeight = 0;
+    for (let i = 0; i < confirmingOwnersIndexes.length; ++i) {
+        let ownerAddress = owners[confirmingOwnersIndexes[i]];
+        switchUser(ownerAddress);
+        ms1_confirmTransaction(new Args().add(txIndex).serialize());
+        totalWeight += ownerWeight[confirmingOwnersIndexes[i]];
+
+        // retrieve the transaction in its current state in Storage
+        let transaction = retrieveTransaction(txIndex).unwrap();
+
+        expect(transaction.toAddress).toBe(new Address(destination));
+        expect(transaction.amount).toBe(u64(15000));
+        expect(transaction.confirmedOwnerList.length).toBe(i + 1);
+        expect(transaction.confirmationWeightedSum).toBe(totalWeight);
+        expect(transaction.isAlreadyConfirmed(new Address(ownerAddress))).toBe(true);
+    }
+
+    switchUser(deployerAddress);
+    // retrieve the transaction in its final state in Storage
+    let transaction = retrieveTransaction(txIndex).unwrap();
+    expect(transaction.isValidated()).toBe(true);
+  });
+
+  // transaction 5 is validated, let's execute it
+  test('execute transaction with success', () => {
+    let destinationBalance = Coins.balanceOf(destination);
+    let contractBalance = Coins.balanceOf(contractAddr);
+    let initDestinationBalance = destinationBalance;
+    let initContractBalance = contractBalance;
+
+    generateEvent(
+      createEvent("BALANCES BEFORE",
+        [initDestinationBalance.toString(), initContractBalance.toString()]
+    ));
+
+    expect(() => {
+        ms1_executeTransaction(new Args().add(u64(5)).serialize());
+      }).not.toThrow();
+
+    // once executed, the transaction is deleted
+    expect(() => {
+        ms1_getTransaction(new Args().add(u64(5)).serialize())
+      }).toThrow();
+
+    destinationBalance = Coins.balanceOf(destination);
+    contractBalance = Coins.balanceOf(contractAddr);
+    generateEvent(
+      createEvent("BALANCES AFTER",
+        [destinationBalance.toString(), contractBalance.toString()]
+    ));
+
+    // check that the transfer has been done
+    expect(destinationBalance).toBe(initDestinationBalance + 15000);
+    expect(contractBalance + 15000).toBe(initContractBalance);
+  });
+
+  // transaction 4 is not validated, let's try to execute it
+  test('execute transaction with failure', () => {
+    let destinationBalance = Coins.balanceOf(destination);
+    let contractBalance = Coins.balanceOf(contractAddr);
+    let initDestinationBalance = destinationBalance;
+    let initContractBalance = contractBalance;
+
+    generateEvent(
+      createEvent("BALANCES BEFORE",
+        [initDestinationBalance.toString(), initContractBalance.toString()]
+    ));
+
+    expect(() => {
+        ms1_executeTransaction(new Args().add(u64(4)).serialize());
+      }).toThrow();
+
+    // the transaction is not supposed to be deleted
+    expect(() => {
+        ms1_getTransaction(new Args().add(u64(4)).serialize())
+      }).not.toThrow();
+
+    destinationBalance = Coins.balanceOf(destination);
+    contractBalance = Coins.balanceOf(contractAddr);
+    generateEvent(
+      createEvent("BALANCES AFTER",
+        [destinationBalance.toString(), contractBalance.toString()]
+    ));
+
+    // check that the transfer has not been done
+    expect(destinationBalance).toBe(initDestinationBalance);
+    expect(contractBalance).toBe(initContractBalance);
+  });
+
+  // transaction 2 is validated by owners[0].
+  // now owners[0] will revoke it and we will try to execute it.
+  test('revoke transaction', () => {
+    let destinationBalance = Coins.balanceOf(destination);
+    let contractBalance = Coins.balanceOf(contractAddr);
+    let initDestinationBalance = destinationBalance;
+    let initContractBalance = contractBalance;
+
+    switchUser(owners[0]);
+    expect(() => {
+      ms1_revokeConfirmation(new Args().add(u64(2)).serialize());
+    }).not.toThrow();
+
+    switchUser(deployerAddress);
+    generateEvent(
+      createEvent("BALANCES BEFORE",
+        [initDestinationBalance.toString(), initContractBalance.toString()]
+    ));
+
+    expect(() => {
+        ms1_executeTransaction(new Args().add(u64(2)).serialize());
+      }).toThrow();
+
+    // the transaction should not have been deleted
+    expect(() => {
+        ms1_getTransaction(new Args().add(u64(2)).serialize())
+      }).not.toThrow();
+
+
+    // retrieve the transaction in its current state in Storage
+    let transaction = retrieveTransaction(u64(2)).unwrap();
+
+    expect(transaction.toAddress).toBe(new Address(destination));
+    expect(transaction.amount).toBe(u64(15000));
+    expect(transaction.confirmedOwnerList.length).toBe(0);
+    expect(transaction.confirmationWeightedSum).toBe(0);
+    expect(transaction.isAlreadyConfirmed(new Address(owners[0]))).toBe(false);
+    expect(transaction.isValidated()).toBe(false);
+
+    destinationBalance = Coins.balanceOf(destination);
+    contractBalance = Coins.balanceOf(contractAddr);
+    generateEvent(
+      createEvent("BALANCES AFTER",
+        [destinationBalance.toString(), contractBalance.toString()]
+    ));
+
+    // check that the transfer has not been done
+    expect(destinationBalance).toBe(initDestinationBalance);
+    expect(contractBalance).toBe(initContractBalance);
+  });
 });

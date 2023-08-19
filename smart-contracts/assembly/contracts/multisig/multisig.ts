@@ -410,7 +410,7 @@ export function ms1_executeTransaction(stringifyArgs: StaticArray<u8>): void {
   // if the transaction is sufficiently confirmed, execute it
   assert(transaction.isValidated(),
     "The transaction is unsufficiently confirmed, cannot execute");
-  Coins.transferCoins(transaction.toAddress, transaction.amount);
+  Coins.transferCoinsOf(Context.callee(), transaction.toAddress, transaction.amount);
 
   // clean up Storage and remove executed transaction
   // NB: we could decide to keep it for archive purposes but then the
