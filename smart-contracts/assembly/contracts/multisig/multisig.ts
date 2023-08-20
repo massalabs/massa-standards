@@ -13,6 +13,7 @@
 import {
   Address,
   Context,
+  Contract,
   Coins,
   generateEvent,
   Storage,
@@ -33,7 +34,8 @@ import { Args,
          serializableObjectsArrayToBytes } from '@massalabs/as-types';
 
 const DEPOSIT_EVENT_NAME = 'DEPOSIT';
-const SUBMIT_OPERATION_EVENT_NAME = 'SUBMIT_OPERATION';
+const SUBMIT_TRANSACTION_EVENT_NAME = 'SUBMIT_TRANSACTION';
+const SUBMIT_CALL_EVENT_NAME = 'SUBMIT_CALL';
 const CONFIRM_OPERATION_EVENT_NAME = 'CONFIRM_OPERATION';
 const EXECUTE_OPERATION_EVENT_NAME = 'EXECUTE_OPERATION';
 const REVOKE_OPERATION_EVENT_NAME = 'REVOKE_OPERATION';
@@ -64,15 +66,36 @@ function makeOwnerKey(address: Address) : StaticArray<u8> {
                          bytesToString(address.serialize()));
 }
 
+
+/**
+ * Operation represent either a transfer of coins to a given address (a "transaction"),
+ * or a call to a smart contract.
+ *
+ * When the name is empty, the operation is a simple transaction. The amount is
+ * credited to the given address.
+ *
+ * When the name is not empty, the operation is a call to the function of that
+ * name, from the smart contract at the given address. Amount can be used to
+ * transfer coin as part of the call. The list of arguments to the call can be
+ * specified in 'args'
+ *
+ */
 export class Operation {
-    address: Address; // the destination address
+    address: Address; // the destination address (the recipient of coins or the smart contract to call)
     amount: u64; // the amount
+    name: string; // the function call name, if any ("" means the operation is a simple coin transfer)
+    args: Args; // the args of the function call, if any
     confirmedOwnerList: Array<Address>; // the Array listing the owners who have already signed
     confirmationWeightedSum: u8; // the confirmation total weight sum, for easy check
 
-    constructor(address: Address = new Address(), amount: u64 = 0) {
+    constructor(address: Address = new Address(),
+                amount: u64 = 0,
+                name: string = "",
+                args: Args = new Args()) {
         this.address = address;
         this.amount = amount;
+        this.name = name;
+        this.args = args;
         this.confirmedOwnerList = new Array<Address>();
         this.confirmationWeightedSum = 0;
     }
@@ -86,6 +109,8 @@ export class Operation {
         const argOperation = new Args()
           .add<Address>(this.address)
           .add<u64>(this.amount)
+          .add<string>(this.name)
+          .add<StaticArray<u8>>(this.args.serialize())
           .addSerializableObjectArray<Array<Address>>(this.confirmedOwnerList)
           .add<u8>(this.confirmationWeightedSum);
         return argOperation.serialize();
@@ -101,6 +126,13 @@ export class Operation {
         this.amount = args
           .nextU64()
           .expect('Error while deserializing Operation amount');
+        this.name = args
+          .nextString()
+          .expect('Error while deserializing Operation name');
+        let argData = args
+          .nextBytes()
+          .expect('Error while deserializing Operation args');
+        this.args = new Args(argData);
         this.confirmedOwnerList = args
           .nextSerializableObjectArray<Address>()
           .expect('Error while deserializing Operation confirmedOwnerList');
@@ -134,6 +166,15 @@ export class Operation {
     isValidated() : bool {
         let nbConfirmationsRequired = byteToU8(Storage.get(NB_CONFIRMATIONS_REQUIRED_KEY));
         return this.confirmationWeightedSum >= nbConfirmationsRequired;
+    }
+
+    execute(callee: Address) : void {
+        if (this.name.length == 0)
+            // we have a transaction
+            Coins.transferCoinsOf(Context.callee(), this.address, this.amount);
+        else
+            // We have a call operation
+            Contract.call(this.address, this.name, this.args, this.amount);
     }
 }
 
@@ -285,11 +326,11 @@ export function ms1_deposit(_: StaticArray<u8>): void {
 // ======================================================== //
 
 /**
- * Submit an operation and generate an event with its index number
+ * Submit a transaction operation and generate an event with its index number
  *
  * @example
  * ```typescript
- *   ms1_submitOperation(
+ *   ms1_submitTransaction(
  *   new Args()
  *     .add<Address>(new Address("...")) // destination address
  *     .add(150000) // amount
@@ -302,19 +343,19 @@ export function ms1_deposit(_: StaticArray<u8>): void {
  * - the amount of the operation (u64).
  * @returns operation index.
  */
-export function ms1_submitOperation(stringifyArgs: StaticArray<u8>): u64 {
+export function ms1_submitTransaction(stringifyArgs: StaticArray<u8>): u64 {
 
   const args = new Args(stringifyArgs);
 
   // initialize address
   const address = args
     .nextSerializable<Address>()
-    .expect('Error while initializing operation address');
+    .expect('Error while initializing transaction operation address');
 
   // initialize amount
   const amount = args
     .nextU64()
-    .expect('Error while initializing operation amount');
+    .expect('Error while initializing transaction operation amount');
 
   let opIndex = bytesToU64(Storage.get(OPERATION_INDEX_KEY));
   opIndex++;
@@ -325,11 +366,79 @@ export function ms1_submitOperation(stringifyArgs: StaticArray<u8>): u64 {
   Storage.set(OPERATION_INDEX_KEY, u64ToBytes(opIndex));
 
   generateEvent(
-    createEvent(SUBMIT_OPERATION_EVENT_NAME, [
+    createEvent(SUBMIT_TRANSACTION_EVENT_NAME, [
       Context.caller().toString(),
       opIndex.toString(),
       address.toString(),
       amount.toString()
+    ]),
+  );
+
+  return opIndex;
+}
+
+/**
+ * Submit a call operation and generate an event with its index number
+ *
+ * @example
+ * ```typescript
+ *   ms1_submitCall(
+ *   new Args()
+ *     .add<Address>(new Address("...")) // smart contract address for the call
+ *     .add(150000) // amount to transfer as part of the call
+ *     .add<string>("fun_name") // the name of the function to call
+ *     .add<Args>(new Args()...) // the arguments to the call
+ *     .serialize()
+ *   );
+ * ```
+ *
+ * @param stringifyArgs - Args object serialized as a string containing:
+ * - the smart contract address for the operation (Address)
+ * - the transfered amount attached to the call (u64).
+ * - the name of the function to call (string).
+ * - the function arguments (Args).
+ * @returns operation index.
+ */
+export function ms1_submitCall(stringifyArgs: StaticArray<u8>): u64 {
+
+  const args = new Args(stringifyArgs);
+
+  // initialize address
+  const address = args
+    .nextSerializable<Address>()
+    .expect('Error while initializing call operation address');
+
+  // initialize amount
+  const amount = args
+    .nextU64()
+    .expect('Error while initializing call operation amount');
+
+  // initialize amount
+  const name = args
+    .nextString()
+    .expect('Error while initializing call operation function name');
+
+  // initialize amount
+  const callArgsData = args
+    .nextBytes()
+    .expect('Error while initializing call operation function args');
+  const callArgs = new Args(callArgsData);
+
+  let opIndex = bytesToU64(Storage.get(OPERATION_INDEX_KEY));
+  opIndex++;
+
+  storeOperation(opIndex, new Operation(address, amount, name, callArgs));
+
+  // update the new opIndex value for the next operation
+  Storage.set(OPERATION_INDEX_KEY, u64ToBytes(opIndex));
+
+  generateEvent(
+    createEvent(SUBMIT_CALL_EVENT_NAME, [
+      Context.caller().toString(),
+      opIndex.toString(),
+      address.toString(),
+      amount.toString(),
+      name
     ]),
   );
 
@@ -416,7 +525,7 @@ export function ms1_executeOperation(stringifyArgs: StaticArray<u8>): void {
   // if the operation is sufficiently confirmed, execute it
   assert(operation.isValidated(),
     "The operation is unsufficiently confirmed, cannot execute");
-  Coins.transferCoinsOf(Context.callee(), operation.address, operation.amount);
+  operation.execute(Context.callee());
 
   // clean up Storage and remove executed operation
   // NB: we could decide to keep it for archive purposes but then the

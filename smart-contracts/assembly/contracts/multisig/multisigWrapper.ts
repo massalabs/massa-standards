@@ -40,7 +40,7 @@ export class MultisigWrapper {
   }
 
   /**
-   * Submit an operation, and retrieve its index to be used by
+   * Submit a transaction operation, and retrieve its index to be used by
    * the multisig owners to confirm it.
    *
    * @param address - recipient address
@@ -48,11 +48,35 @@ export class MultisigWrapper {
    *
    * @returns the operation index
    */
-  submitOperation(address: Address, amount: u64): u64 {
+  submitTransaction(address: Address, amount: u64): u64 {
     return bytesToU64(
       call(this._origin,
-           'ms1_submitOperation',
+           'ms1_submitTransaction',
            new Args().add<Address>(address).add(amount).serialize(),
+           0));
+  }
+
+  /**
+   * Submit a smart contract call operation, and retrieve its index to be
+   * used by the multisig owners to confirm it.
+   *
+   * @param address - the smart contract address for the operation
+   * @param amount - the transfered amount attached to the call
+   * @param name - the name of the function to call
+   * @param args - the function arguments
+   *
+   * @returns the operation index
+   */
+  submitCall(address: Address, amount: u64, name: string, args: Args): u64 {
+    return bytesToU64(
+      call(this._origin,
+           'ms1_submitCall',
+           new Args()
+            .add<Address>(address)
+            .add(amount)
+            .add<string>(name)
+            .add<StaticArray<u8>>(args.serialize())
+            .serialize(),
            0));
   }
 

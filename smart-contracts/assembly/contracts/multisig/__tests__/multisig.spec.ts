@@ -1,6 +1,7 @@
 import {
   ms1_deposit,
-  ms1_submitOperation,
+  ms1_submitTransaction,
+  ms1_submitCall,
   ms1_confirmOperation,
   ms1_executeOperation,
   ms1_revokeConfirmation,
@@ -171,7 +172,7 @@ describe('Multisig contract tests', () => {
   test('submit transaction operation', () => {
 
     // expect the operation index to be 1
-    expect(ms1_submitOperation(new Args()
+    expect(ms1_submitTransaction(new Args()
       .add<Address>(new Address(destination))
       .add(u64(15000))
       .serialize()
@@ -200,7 +201,7 @@ describe('Multisig contract tests', () => {
     confirmingOwnersIndexes = [0];
     opIndex = 2;
 
-    expect(ms1_submitOperation(new Args()
+    expect(ms1_submitTransaction(new Args()
       .add<Address>(new Address(destination))
       .add(u64(15000))
       .serialize()
@@ -238,7 +239,7 @@ describe('Multisig contract tests', () => {
     confirmingOwnersIndexes = [1];
     opIndex = 3;
 
-    expect(ms1_submitOperation(new Args()
+    expect(ms1_submitTransaction(new Args()
       .add<Address>(new Address(destination))
       .add(u64(15000))
       .serialize()
@@ -276,7 +277,7 @@ describe('Multisig contract tests', () => {
     confirmingOwnersIndexes = [2];
     opIndex = 4;
 
-    expect(ms1_submitOperation(new Args()
+    expect(ms1_submitTransaction(new Args()
       .add<Address>(new Address(destination))
       .add(u64(15000))
       .serialize()
@@ -314,7 +315,7 @@ describe('Multisig contract tests', () => {
     confirmingOwnersIndexes = [1,2];
     opIndex = 5;
 
-    expect(ms1_submitOperation(new Args()
+    expect(ms1_submitTransaction(new Args()
       .add<Address>(new Address(destination))
       .add(u64(15000))
       .serialize()
