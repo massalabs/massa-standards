@@ -28,6 +28,7 @@ import { Args,
          bytesToString,
          bytesToU64,
          byteToU8,
+         boolToByte,
          bytesToSerializableObjectArray,
          serializableObjectsArrayToBytes } from '@massalabs/as-types';
 
@@ -154,6 +155,11 @@ export function retrieveTransaction(txIndex: u64): Result<Transaction> {
   }
 
   return new Result(new Transaction(), "unknown or already executed transaction index")
+}
+
+export function hasTransaction(txIndex: u64): bool {
+
+  return Storage.has(makeTransactionKey(txIndex));
 }
 
 function deleteTransaction(txIndex: u64): void {
@@ -539,4 +545,31 @@ export function ms1_getTransaction(stringifyArgs : StaticArray<u8>) : StaticArra
   generateEvent(createEvent(RETRIEVE_TRANSACTION_EVENT_NAME, eventPayLoad));
 
   return transaction.serialize();
+}
+
+/**
+ * Check if the transaction defined by its index is a currently stored
+ * transaction.
+ * @example
+ * ```typescript
+ *   ms1_hasTransaction(
+ *   new Args()
+ *     .add(index) // the transaction index
+ *     .serialize(),
+ *   );
+ * ```
+ *
+ * @param stringifyArgs - Args object serialized as a string containing:
+ * - the transaction index (u64)
+ */
+export function ms1_hasTransaction(stringifyArgs : StaticArray<u8>) : StaticArray<u8> {
+
+  const args = new Args(stringifyArgs);
+
+  // initialize transaction index
+  const txIndex = args
+    .nextU64()
+    .expect('Error while initializing transaction index');
+
+  return boolToByte(hasTransaction(txIndex));
 }
