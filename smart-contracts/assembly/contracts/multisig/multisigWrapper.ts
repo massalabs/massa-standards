@@ -17,7 +17,7 @@ import { Args,
  * @example
  * ```typescript
  * const multisig = new MultisigWrapper(MultisigAddr);
- * multisig.confirmTransaction(txIndex);
+ * multisig.confirmOperation(opIndex);
  * ```
  */
 export class MultisigWrapper {
@@ -40,55 +40,55 @@ export class MultisigWrapper {
   }
 
   /**
-   * Submit a transaction, and retrieve its index to be used by
+   * Submit an operation, and retrieve its index to be used by
    * the multisig owners to confirm it.
    *
-   * @param toAddress - recipient address
+   * @param address - recipient address
    * @param amount - amount to transfer
    *
-   * @returns the transaction index
+   * @returns the operation index
    */
-  submitTransaction(toAddress: Address, amount: u64): u64 {
+  submitOperation(address: Address, amount: u64): u64 {
     return bytesToU64(
       call(this._origin,
-           'ms1_submitTransaction',
-           new Args().add<Address>(toAddress).add(amount).serialize(),
+           'ms1_submitOperation',
+           new Args().add<Address>(address).add(amount).serialize(),
            0));
   }
 
   /**
-   * Confirm a transaction identified by its index.
+   * Confirm an operation identified by its index.
    *
-   * @param txIndex - the transaction index
+   * @param opIndex - the operation index
    */
-  confirmTransaction(txIndex: u64): void {
+  confirmOperation(opIndex: u64): void {
     call(this._origin,
-         'ms1_confirmTransaction',
-         new Args().add(txIndex).serialize(),
+         'ms1_confirmOperation',
+         new Args().add(opIndex).serialize(),
          0);
   }
 
   /**
-   * Execute a transaction if it has enough validation from owners
+   * Execute an operation if it has enough validation from owners
    *
-   * @param txIndex - the transaction index
+   * @param opIndex - the operation index
    */
-  executeTransaction(txIndex: u64): void {
+  executeOperation(opIndex: u64): void {
     call(this._origin,
-         'ms1_executeTransaction',
-         new Args().add(txIndex).serialize(),
+         'ms1_executeOperation',
+         new Args().add(opIndex).serialize(),
          0);
   }
 
   /**
-   * Revoke a transaction identified by its index.
+   * Revoke a operation identified by its index.
    *
-   * @param txIndex - the transaction index
+   * @param opIndex - the operation index
    */
-  revokeTransaction(txIndex: u64): void {
+  revokeOperation(opIndex: u64): void {
     call(this._origin,
-         'ms1_revokeTransaction',
-         new Args().add(txIndex).serialize(),
+         'ms1_revokeOperation',
+         new Args().add(opIndex).serialize(),
          0);
   }
 
@@ -104,33 +104,32 @@ export class MultisigWrapper {
   }
 
   /**
-   * Get a transaction identified by its index.
-   * Will throw if the transaction index does not exist.
+   * Get an operation identified by its index.
+   * Will throw if the operation index does not exist.
    *
-   * @returns the transaction
+   * @returns the operation
    */
-  getTransaction(txIndex: u64): Transaction {
-    let transaction = new Transaction();
-    transaction.deserialize(
+  getOperation(opIndex: u64): Operation {
+    let operation = new Operation();
+    operation.deserialize(
       call(this._origin,
-          'ms1_getTransaction',
-          new Args().add(txIndex).serialize(),
+          'ms1_getOperation',
+          new Args().add(opIndex).serialize(),
           0));
 
-    return transaction;
+    return operation;
   }
 
   /**
-   * Check if a transaction identified by its index is pending.
+   * Check if an operation identified by its index is pending.
    *
-   * @returns true if the transaction is defined and pending execution.
+   * @returns true if the operation is defined and pending execution.
    */
-  hasTransaction(txIndex: u64): bool {
+  hasOperation(opIndex: u64): bool {
     return byteToBool (
       call(this._origin,
-          'ms1_hasTransaction',
-          new Args().add(txIndex).serialize(),
+          'ms1_hasOperation',
+          new Args().add(opIndex).serialize(),
           0));
   }
-
 }

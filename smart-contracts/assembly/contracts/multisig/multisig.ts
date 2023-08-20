@@ -33,29 +33,29 @@ import { Args,
          serializableObjectsArrayToBytes } from '@massalabs/as-types';
 
 const DEPOSIT_EVENT_NAME = 'DEPOSIT';
-const SUBMIT_TRANSACTION_EVENT_NAME = 'SUBMIT_TRANSACTION';
-const CONFIRM_TRANSACTION_EVENT_NAME = 'CONFIRM_TRANSACTION';
-const EXECUTE_TRANSACTION_EVENT_NAME = 'EXECUTE_TRANSACTION';
-const REVOKE_TRANSACTION_EVENT_NAME = 'REVOKE_TRANSACTION';
-const RETRIEVE_TRANSACTION_EVENT_NAME = 'RETRIEVE_TRANSACTION';
+const SUBMIT_OPERATION_EVENT_NAME = 'SUBMIT_OPERATION';
+const CONFIRM_OPERATION_EVENT_NAME = 'CONFIRM_OPERATION';
+const EXECUTE_OPERATION_EVENT_NAME = 'EXECUTE_OPERATION';
+const REVOKE_OPERATION_EVENT_NAME = 'REVOKE_OPERATION';
+const RETRIEVE_OPERATION_EVENT_NAME = 'RETRIEVE_OPERATION';
 const GET_OWNERS_EVENT_NAME = 'GET_OWNERS';
 
-export const TRANSACTION_INDEX_PREFIX_KEY = '00';
+export const OPERATION_INDEX_PREFIX_KEY = '00';
 export const OWNER_PREFIX_KEY = '01';
 
 export const NB_CONFIRMATIONS_REQUIRED_KEY = stringToBytes('NB CONFIRMATIONS REQUIRED');
 export const OWNERS_ADDRESSES_KEY = stringToBytes('OWNERS ADDRESSES');
-export const TRANSACTION_INDEX_KEY = stringToBytes('TRANSACTION INDEX');
+export const OPERATION_INDEX_KEY = stringToBytes('OPERATION INDEX');
 
 
 // ======================================================== //
 // ====             HELPER FUNCTIONS & TYPES           ==== //
 // ======================================================== //
 
-function makeTransactionKey(txIndex: u64) : StaticArray<u8> {
+function makeOperationKey(opIndex: u64) : StaticArray<u8> {
 
-    return stringToBytes(TRANSACTION_INDEX_PREFIX_KEY +
-                         bytesToString(u64ToBytes(txIndex)));
+    return stringToBytes(OPERATION_INDEX_PREFIX_KEY +
+                         bytesToString(u64ToBytes(opIndex)));
 }
 
 function makeOwnerKey(address: Address) : StaticArray<u8> {
@@ -64,14 +64,14 @@ function makeOwnerKey(address: Address) : StaticArray<u8> {
                          bytesToString(address.serialize()));
 }
 
-export class Transaction {
-    toAddress: Address; // the destination address
+export class Operation {
+    address: Address; // the destination address
     amount: u64; // the amount
     confirmedOwnerList: Array<Address>; // the Array listing the owners who have already signed
     confirmationWeightedSum: u8; // the confirmation total weight sum, for easy check
 
-    constructor(toAddress: Address = new Address(), amount: u64 = 0) {
-        this.toAddress = toAddress;
+    constructor(address: Address = new Address(), amount: u64 = 0) {
+        this.address = address;
         this.amount = amount;
         this.confirmedOwnerList = new Array<Address>();
         this.confirmationWeightedSum = 0;
@@ -79,34 +79,34 @@ export class Transaction {
 
     serialize() : StaticArray<u8> {
 
-        // create a serializable transaction record to store in Storage
+        // create a serializable Operation record to store in Storage
         // Here we store some redundant information, like the confirmation
         // total weight sum, trading some Storage space for Compute space,
-        // knowing that the transaction will be erased from Storage once executed
-        const argTransaction = new Args()
-          .add<Address>(this.toAddress)
+        // knowing that the Operation will be erased from Storage once executed
+        const argOperation = new Args()
+          .add<Address>(this.address)
           .add<u64>(this.amount)
           .addSerializableObjectArray<Array<Address>>(this.confirmedOwnerList)
           .add<u8>(this.confirmationWeightedSum);
-        return argTransaction.serialize();
+        return argOperation.serialize();
     }
 
     deserialize(data: StaticArray<u8>) : void {
 
         const args = new Args(data);
 
-        this.toAddress = args
+        this.address = args
           .nextSerializable<Address>()
-          .expect('Error while deserializing transaction toAddress');
+          .expect('Error while deserializing Operation address');
         this.amount = args
           .nextU64()
-          .expect('Error while deserializing transaction amount');
+          .expect('Error while deserializing Operation amount');
         this.confirmedOwnerList = args
           .nextSerializableObjectArray<Address>()
-          .expect('Error while deserializing transaction confirmedOwnerList');
+          .expect('Error while deserializing Operation confirmedOwnerList');
         this.confirmationWeightedSum = args
           .nextU8()
-          .expect('Error while deserializing transaction confirmationWeightedSum');
+          .expect('Error while deserializing Operation confirmationWeightedSum');
     }
 
     isAlreadyConfirmed(owner: Address) : bool {
@@ -137,35 +137,35 @@ export class Transaction {
     }
 }
 
-export function storeTransaction(txIndex: u64,
-                          transaction: Transaction): void {
+export function storeOperation(opIndex: u64,
+                          operation: Operation): void {
 
-  // we simply use the transaction index as a key to store it
-  Storage.set(makeTransactionKey(txIndex), transaction.serialize());
+  // we simply use the Operation index as a key to store it
+  Storage.set(makeOperationKey(opIndex), operation.serialize());
 }
 
-export function retrieveTransaction(txIndex: u64): Result<Transaction> {
+export function retrieveOperation(opIndex: u64): Result<Operation> {
 
-  const transactionKey = makeTransactionKey(txIndex);
+  const operationKey = makeOperationKey(opIndex);
 
-  if (Storage.has(transactionKey)) {
-      let transaction = new Transaction();
-      transaction.deserialize(Storage.get(transactionKey));
-      return new Result(transaction);
+  if (Storage.has(operationKey)) {
+      let operation = new Operation();
+      operation.deserialize(Storage.get(operationKey));
+      return new Result(operation);
   }
 
-  return new Result(new Transaction(), "unknown or already executed transaction index")
+  return new Result(new Operation(), "unknown or already executed Operation index")
 }
 
-export function hasTransaction(txIndex: u64): bool {
+export function hasOperation(opIndex: u64): bool {
 
-  return Storage.has(makeTransactionKey(txIndex));
+  return Storage.has(makeOperationKey(opIndex));
 }
 
-function deleteTransaction(txIndex: u64): void {
+function deleteOperation(opIndex: u64): void {
 
-  const transactionKey = makeTransactionKey(txIndex);
-  Storage.del(transactionKey);
+  const operationKey = makeOperationKey(opIndex);
+  Storage.del(operationKey);
 }
 
 // ======================================================== //
@@ -244,8 +244,8 @@ export function constructor(stringifyArgs: StaticArray<u8>): void {
   // We store the list of owners to be queries later if needed
   Storage.set(OWNERS_ADDRESSES_KEY, serializableObjectsArrayToBytes(ownerAddresses));
 
-  // initialize transaction index
-  Storage.set(TRANSACTION_INDEX_KEY, u64ToBytes(0));
+  // initialize operation index
+  Storage.set(OPERATION_INDEX_KEY, u64ToBytes(0));
 }
 
 /**
@@ -281,15 +281,15 @@ export function ms1_deposit(_: StaticArray<u8>): void {
 }
 
 // ======================================================== //
-// ====                 TRANSACTIONS                   ==== //
+// ====                 OPERATIONS                     ==== //
 // ======================================================== //
 
 /**
- * Submit a transaction and generate an event with its index number
+ * Submit an operation and generate an event with its index number
  *
  * @example
  * ```typescript
- *   ms1_submitTransaction(
+ *   ms1_submitOperation(
  *   new Args()
  *     .add<Address>(new Address("...")) // destination address
  *     .add(150000) // amount
@@ -299,66 +299,66 @@ export function ms1_deposit(_: StaticArray<u8>): void {
  *
  * @param stringifyArgs - Args object serialized as a string containing:
  * - the destination address for the transfert (Address)
- * - the amount of the transaction (u64).
- * @returns transaction index.
+ * - the amount of the operation (u64).
+ * @returns operation index.
  */
-export function ms1_submitTransaction(stringifyArgs: StaticArray<u8>): u64 {
+export function ms1_submitOperation(stringifyArgs: StaticArray<u8>): u64 {
 
   const args = new Args(stringifyArgs);
 
   // initialize address
-  const toAddress = args
+  const address = args
     .nextSerializable<Address>()
-    .expect('Error while initializing transaction address');
+    .expect('Error while initializing operation address');
 
   // initialize amount
   const amount = args
     .nextU64()
-    .expect('Error while initializing transaction amount');
+    .expect('Error while initializing operation amount');
 
-  let txIndex = bytesToU64(Storage.get(TRANSACTION_INDEX_KEY));
-  txIndex++;
+  let opIndex = bytesToU64(Storage.get(OPERATION_INDEX_KEY));
+  opIndex++;
 
-  storeTransaction(txIndex, new Transaction(toAddress, amount));
+  storeOperation(opIndex, new Operation(address, amount));
 
-  // update the new txIndex value for the next transaction
-  Storage.set(TRANSACTION_INDEX_KEY, u64ToBytes(txIndex));
+  // update the new opIndex value for the next operation
+  Storage.set(OPERATION_INDEX_KEY, u64ToBytes(opIndex));
 
   generateEvent(
-    createEvent(SUBMIT_TRANSACTION_EVENT_NAME, [
+    createEvent(SUBMIT_OPERATION_EVENT_NAME, [
       Context.caller().toString(),
-      txIndex.toString(),
-      toAddress.toString(),
+      opIndex.toString(),
+      address.toString(),
       amount.toString()
     ]),
   );
 
-  return txIndex;
+  return opIndex;
 }
 
 /**
- * Confirms a transaction by an owner, and generate an event
+ * Confirms an operation by an owner, and generate an event
  *
  * @example
  * ```typescript
- *   ms1_confirmTransaction(
+ *   ms1_confirmOperation(
  *   new Args()
- *     .add(index) // the transaction index
+ *     .add(index) // the operation index
  *     .serialize(),
  *   );
  * ```
  *
  * @param stringifyArgs - Args object serialized as a string containing:
- * - the transaction index (u64)
+ * - the operation index (u64)
  */
-export function ms1_confirmTransaction(stringifyArgs: StaticArray<u8>): void {
+export function ms1_confirmOperation(stringifyArgs: StaticArray<u8>): void {
 
   const args = new Args(stringifyArgs);
 
-  // initialize transaction index
-  const txIndex = args
+  // initialize operation index
+  const opIndex = args
     .nextU64()
-    .expect('Error while initializing transaction index');
+    .expect('Error while initializing operation index');
 
   let owner = Context.caller();
 
@@ -367,95 +367,95 @@ export function ms1_confirmTransaction(stringifyArgs: StaticArray<u8>): void {
   assert(Storage.has(ownerKey), "Caller address is not an owner");
   let weight = byteToU8(Storage.get(ownerKey));
 
-  // check the transaction exists and retrieve it from Storage
-  let transaction = retrieveTransaction(txIndex).unwrap();
+  // check the operation exists and retrieve it from Storage
+  let operation = retrieveOperation(opIndex).unwrap();
 
   // did we already confirm it?
-  assert(!transaction.isAlreadyConfirmed(owner),
-    "The caller address has already confirmed this transaction");
+  assert(!operation.isAlreadyConfirmed(owner),
+    "The caller address has already confirmed this operation");
 
   // confirm it and update the Storage
-  transaction.confirm(owner, weight);
-  storeTransaction(txIndex, transaction);
+  operation.confirm(owner, weight);
+  storeOperation(opIndex, operation);
 
   generateEvent(
-    createEvent(CONFIRM_TRANSACTION_EVENT_NAME, [
+    createEvent(CONFIRM_OPERATION_EVENT_NAME, [
       owner.toString(),
-      txIndex.toString()
+      opIndex.toString()
     ]),
   );
 }
 
 /**
- * Execute a transaction and generate an event in case of success
+ * Execute an operation and generate an event in case of success
  *
  * @example
  * ```typescript
- *   ms1_executeTransaction(
+ *   ms1_executeOperation(
  *   new Args()
- *     .add(index) // the transaction index
+ *     .add(index) // the operation index
  *     .serialize(),
  *   );
  * ```
  *
  * @param stringifyArgs - Args object serialized as a string containing:
- * - the transaction index (u64)
+ * - the operation index (u64)
  */
-export function ms1_executeTransaction(stringifyArgs: StaticArray<u8>): void {
+export function ms1_executeOperation(stringifyArgs: StaticArray<u8>): void {
 
   const args = new Args(stringifyArgs);
 
-  // initialize transaction index
-  const txIndex = args
+  // initialize operation index
+  const opIndex = args
     .nextU64()
-    .expect('Error while initializing transaction index');
+    .expect('Error while initializing operation index');
 
-  // check the transaction exists and retrieve it from Storage
-  let transaction = retrieveTransaction(txIndex).unwrap();
+  // check the operation exists and retrieve it from Storage
+  let operation = retrieveOperation(opIndex).unwrap();
 
-  // if the transaction is sufficiently confirmed, execute it
-  assert(transaction.isValidated(),
-    "The transaction is unsufficiently confirmed, cannot execute");
-  Coins.transferCoinsOf(Context.callee(), transaction.toAddress, transaction.amount);
+  // if the operation is sufficiently confirmed, execute it
+  assert(operation.isValidated(),
+    "The operation is unsufficiently confirmed, cannot execute");
+  Coins.transferCoinsOf(Context.callee(), operation.address, operation.amount);
 
-  // clean up Storage and remove executed transaction
+  // clean up Storage and remove executed operation
   // NB: we could decide to keep it for archive purposes but then the
   // Storage cost would increase forever.
-  deleteTransaction(txIndex);
+  deleteOperation(opIndex);
 
   generateEvent(
-    createEvent(EXECUTE_TRANSACTION_EVENT_NAME, [
+    createEvent(EXECUTE_OPERATION_EVENT_NAME, [
       Context.caller().toString(),
-      txIndex.toString(),
-      transaction.toAddress.toString(),
-      transaction.amount.toString(),
+      opIndex.toString(),
+      operation.address.toString(),
+      operation.amount.toString(),
     ]),
   );
 }
 
 /**
- * Revoke a transaction confirmation by an owner, and generate an event
+ * Revoke an operation confirmation by an owner, and generate an event
  *
  * @example
  * ```typescript
  *   ms1_revokeConfirmation(
  *   new Args()
- *     .add(index) // the transaction index
+ *     .add(index) // the operation index
  *     .serialize(),
  *   );
  * ```
  *
  * @param stringifyArgs - Args object serialized as a string containing:
- * - the transaction index (u64)
+ * - the operation index (u64)
  */
 export function ms1_revokeConfirmation(stringifyArgs: StaticArray<u8>): void {
 
   const args = new Args(stringifyArgs);
 
-  // initialize transaction index
-  const txIndex = args
+  // initialize operation index
+  const opIndex = args
     .nextU64()
-    .expect('Error while initializing transaction index');
+    .expect('Error while initializing operation index');
 
   let owner = Context.caller();
 
@@ -464,21 +464,21 @@ export function ms1_revokeConfirmation(stringifyArgs: StaticArray<u8>): void {
   assert(Storage.has(ownerKey), "Caller address is not an owner");
   let weight = byteToU8(Storage.get(ownerKey));
 
-  // check the transaction exists and retrieve it from Storage
-  let transaction = retrieveTransaction(txIndex).unwrap();
+  // check the operation exists and retrieve it from Storage
+  let operation = retrieveOperation(opIndex).unwrap();
 
   // did we actually already confirmed it?
-  assert(transaction.isAlreadyConfirmed(owner),
-    "The caller address has not yet confirmed this transaction");
+  assert(operation.isAlreadyConfirmed(owner),
+    "The caller address has not yet confirmed this operation");
 
   // revoke it and update the Storage
-  transaction.revoke(owner, weight);
-  storeTransaction(txIndex, transaction);
+  operation.revoke(owner, weight);
+  storeOperation(opIndex, operation);
 
   generateEvent(
-    createEvent(REVOKE_TRANSACTION_EVENT_NAME, [
+    createEvent(REVOKE_OPERATION_EVENT_NAME, [
       owner.toString(),
-      txIndex.toString()
+      opIndex.toString()
     ]),
   );
 }
@@ -507,69 +507,69 @@ export function ms1_getOwners(_ : StaticArray<u8>) : StaticArray<u8> {
 }
 
 /**
- * Retrieve a currently stored transaction and generate an event
+ * Retrieve a currently stored operation and generate an event
  *
  * @example
  * ```typescript
- *   let transaction = new Transaction();
- *   transaction.deserialize(ms1_getTransaction(
+ *   let operation = new Operation();
+ *   operation.deserialize(ms1_getOperation(
  *     new Args()
- *       .add(index) // the transaction index
+ *       .add(index) // the operation index
  *       .serialize()
  *     ));
  * ```
  *
  * @param stringifyArgs - Args object serialized as a string containing:
- * - the transaction index (u64)
+ * - the operation index (u64)
  */
-export function ms1_getTransaction(stringifyArgs : StaticArray<u8>) : StaticArray<u8> {
+export function ms1_getOperation(stringifyArgs : StaticArray<u8>) : StaticArray<u8> {
 
   const args = new Args(stringifyArgs);
 
-  // initialize transaction index
-  const txIndex = args
+  // initialize operation index
+  const opIndex = args
     .nextU64()
-    .expect('Error while initializing transaction index');
+    .expect('Error while initializing operation index');
 
-  // check the transaction exists and retrieve it from Storage
-  let transaction = retrieveTransaction(txIndex).unwrap();
+  // check the operation exists and retrieve it from Storage
+  let operation = retrieveOperation(opIndex).unwrap();
 
   // generate the event with the list of confirmed owners
   let eventPayLoad : Array<string> = [
-      txIndex.toString(),
-      transaction.toAddress.toString(),
-      transaction.amount.toString(),
-      transaction.confirmationWeightedSum.toString()];
-  for (let i = 0; i < transaction.confirmedOwnerList.length; i++)
-      eventPayLoad.push(transaction.confirmedOwnerList[i].toString());
-  generateEvent(createEvent(RETRIEVE_TRANSACTION_EVENT_NAME, eventPayLoad));
+      opIndex.toString(),
+      operation.address.toString(),
+      operation.amount.toString(),
+      operation.confirmationWeightedSum.toString()];
+  for (let i = 0; i < operation.confirmedOwnerList.length; i++)
+      eventPayLoad.push(operation.confirmedOwnerList[i].toString());
+  generateEvent(createEvent(RETRIEVE_OPERATION_EVENT_NAME, eventPayLoad));
 
-  return transaction.serialize();
+  return operation.serialize();
 }
 
 /**
- * Check if the transaction defined by its index is a currently stored
- * transaction.
+ * Check if the operation defined by its index is a currently stored
+ * operation.
  * @example
  * ```typescript
- *   ms1_hasTransaction(
+ *   ms1_hasOperation(
  *   new Args()
- *     .add(index) // the transaction index
+ *     .add(index) // the operation index
  *     .serialize(),
  *   );
  * ```
  *
  * @param stringifyArgs - Args object serialized as a string containing:
- * - the transaction index (u64)
+ * - the operation index (u64)
  */
-export function ms1_hasTransaction(stringifyArgs : StaticArray<u8>) : StaticArray<u8> {
+export function ms1_hasOperation(stringifyArgs : StaticArray<u8>) : StaticArray<u8> {
 
   const args = new Args(stringifyArgs);
 
-  // initialize transaction index
-  const txIndex = args
+  // initialize operation index
+  const opIndex = args
     .nextU64()
-    .expect('Error while initializing transaction index');
+    .expect('Error while initializing operation index');
 
-  return boolToByte(hasTransaction(txIndex));
+  return boolToByte(hasOperation(opIndex));
 }
