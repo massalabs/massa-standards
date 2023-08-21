@@ -1,5 +1,5 @@
-import { Address, call } from '@massalabs/massa-as-sdk';
-import { Args, NoArg, bytesToString, bytesToU256 } from '@massalabs/as-types';
+import { Address, Context, call } from '@massalabs/massa-as-sdk';
+import { Args, NoArg, bytesToString, bytesToU256, bytesToU32 } from '@massalabs/as-types';
 import { u256 } from 'as-bignum/assembly';
 
 /**
@@ -16,7 +16,7 @@ import { u256 } from 'as-bignum/assembly';
  * NFT.transfer('1x', 1);
  * ```
  */
-export class NFTWrapper {
+export class NFT1Wrapper {
   _origin: Address;
 
   /**
@@ -29,67 +29,110 @@ export class NFTWrapper {
   }
 
   /**
-   * Generate an event with the NFT's name
+   * Returns the NFT's name
    */
   name(): string {
-    return bytesToString(call(this._origin, 'name', NoArg, 0));
+    return bytesToString(call(this._origin, 'nft1_name', NoArg, Context.transferredCoins()));
   }
   /**
-   * Generate an event with the NFT's symbol
+   * Returns the NFT's symbol
    */
   symbol(): string {
-    return bytesToString(call(this._origin, 'symbol', NoArg, 0));
+    return bytesToString(call(this._origin, 'nft1_symbol', NoArg, Context.transferredCoins()));
   }
 
   /**
-   * generate an event with the token URI (external link written in NFT where pictures or others are stored)
+   * Returns the token URI (external link written in NFT where pictures or others are stored)
    * @param tokenId - Token ID
    */
   tokenURI(tokenId: u256): string {
     return bytesToString(
-      call(this._origin, 'tokenURI', new Args().add(tokenId), 0),
+      call(this._origin, 'nft1_tokenURI', new Args().add(tokenId), Context.transferredCoins()),
     );
   }
 
   /**
-   * generate an event with the base URI (external link written in NFT where pictures or others a stored)
+   * Set a token URI (external link written in NFT where pictures or others are stored).
+   * If not set the tokenURI will be the baseURI + tokenId
+   */
+  setTokenURI(tokenId: u256, tokenURI: string): void {
+    call(
+      this._origin,
+      'nft1_setTokenURI',
+      new Args().add(tokenId).add(tokenURI),
+      Context.transferredCoins(),
+    );
+  }
+
+  /**
+   * Returns the base URI (external link written in NFT where pictures or others a stored)
    */
   baseURI(): string {
-    return bytesToString(call(this._origin, 'baseURI', NoArg, 0));
+    return bytesToString(call(this._origin, 'nft1_baseURI', NoArg, Context.transferredCoins()));
   }
 
   /**
-   * Generate an event with  the max supply
+   * Returns the max supply
    */
   totalSupply(): u256 {
-    return bytesToU256(call(this._origin, 'totalSupply', NoArg, 0));
+    return bytesToU256(call(this._origin, 'nft1_totalSupply', NoArg, Context.transferredCoins()));
   }
 
   /**
-   * Generate an event with the current counter, if 10 NFT minted, returns 10.
+   * Returns the current counter, if 10 NFT minted, returns 10.
    */
   currentSupply(): u256 {
-    return bytesToU256(call(this._origin, 'currentSupply', NoArg, 0));
+    return bytesToU256(call(this._origin, 'nft1_currentSupply', NoArg, Context.transferredCoins()));
   }
 
   /**
-   * Generate an event with the owner of a tokenID
+   * Returns the owner of a tokenID
    * @param tokenId - Token ID
    */
   ownerOf(tokenId: u256): Address {
     return new Address(
-      bytesToString(call(this._origin, 'ownerOf', new Args().add(tokenId), 0)),
+      bytesToString(call(this._origin, 'nft1_ownerOf', new Args().add(tokenId), Context.transferredCoins())),
     );
   }
 
   /**
-   * The addressTo becomes the owner of the next token (if current tokenID = 10, will mint 11 )
+   * Returns the balance of an address
+   * @param address - address to check
+   */
+  balanceOf(address: string): u256 {
+    return bytesToU256(
+      call(this._origin, 'nft1_balanceOf', new Args().add(address), Context.transferredCoins()),
+    );
+  }
+
+
+  /**
+   * The address becomes the owner of the next token (if current tokenID = 10, will mint 11 )
    * Check if max supply is not reached
    *
    * @param address - address that will receive the minted token
    */
   mint(address: string): void {
-    call(this._origin, 'mint', new Args().add(address), 0);
+    call(this._origin, 'nft1_mint', new Args().add(address), Context.transferredCoins());
+  }
+
+  /**
+   * Transfer a chosen token from the fromAddress to the toAddress.
+   *
+   * @param owner - address of the owner
+   * @param recipient - address of the recipient
+   * @param tokenId - Token ID
+   *
+   * @remarks caller must be an approved address
+   *
+   */
+  transferFrom(owner: string, recipient: string, tokenId: u256): void {
+    call(
+      this._origin,
+      'nft1_transferFrom',
+      new Args().add(owner).add(recipient).add(tokenId),
+      Context.transferredCoins(),
+    );
   }
 
   /**
@@ -100,7 +143,21 @@ export class NFTWrapper {
    *
    */
   approve(tokenId: u256, address: string): void {
-    call(this._origin, 'approve', new Args().add(tokenId).add(address), 0);
+    call(this._origin, 'nft1_approve', new Args().add(tokenId).add(address), Context.transferredCoins());
+  }
+
+  /**
+   * Get the approved address of a token
+   *
+   * @param tokenId - Token ID
+   *
+   * @returns the approved address if there is one else ''
+   *
+   */
+  getApproved(tokenId: u256): string {
+    return bytesToString(
+      call(this._origin, 'nft1_getApproved', new Args().add(tokenId), Context.transferredCoins()),
+    );
   }
 
   // Approve for all
@@ -117,42 +174,30 @@ export class NFTWrapper {
   setApprovalForAll(address: string, approved: bool): void {
     call(
       this._origin,
-      'setApprovalForAll',
+      'nft1_setApprovalForAll',
       new Args().add(address).add(approved),
-      0,
+      Context.transferredCoins(),
     );
   }
 
   /**
-   * Transfer a chosen token from the fromAddress to the toAddress.
-   *
-   * @param owner - address of the owner
-   * @param recipient - address of the recipient
-   * @param tokenId - Token ID
-   *
-   * @remarks caller must be an approved address
-   *
+   * Return true or false if the address is approved for all or not
+   * @param owner - address of the owner of the collection
+   * @param operator - address of the operator
    */
-  transferFrom(owner: string, recipient: string, tokenId: u256): void {
-    call(
-      this._origin,
-      'transferFrom',
-      new Args().add(owner).add(recipient).add(tokenId),
-      0,
+  isApprovedForAll(owner: string, operator: string): bool {
+    let res = bytesToU32(
+      call(
+        this._origin,
+        'nft1_isApprovedForAll',
+        new Args().add(owner).add(operator),
+        Context.transferredCoins()
+      )
     );
-  }
-
-  /**
-   * Get the approved address(es) of a token
-   *
-   * @param tokenId - Token ID
-   *
-   * @returns an array of the approved address(es)
-   *
-   */
-  getApproved(tokenId: u256): string {
-    return bytesToString(
-      call(this._origin, 'getApproved', new Args().add(tokenId), 0),
-    );
+    if (res === 1) {
+      return true;
+    } else {
+      return false;
+    }
   }
 }

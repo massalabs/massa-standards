@@ -2,7 +2,6 @@ import {
   Storage,
   Context,
   generateEvent,
-  callerHasWriteAccess,
   Address,
   createEvent,
 } from '@massalabs/massa-as-sdk';
@@ -146,7 +145,7 @@ export function nft1_tokenURI(binaryArgs: StaticArray<u8>): StaticArray<u8> {
     .nextU256()
     .expect('token id argument is missing or invalid').toString();
   if (Storage.has(tokenURIKey + tokenId)) {
-    return stringToBytes(Storage.get(tokenURIKey + tokenId))
+    return stringToBytes(Storage.get(tokenURIKey + tokenId));
   } else {
     return stringToBytes(Storage.get(baseURIKey) + tokenId);
   }
@@ -390,6 +389,6 @@ export function nft1_isApprovedForAll(
     .expect('operatorAddress argument is missing or invalid');
 
   return _isApprovedForAll(ownerAddress, operatorAddress)
-    ? u32ToBytes(1)
+    ? boolToByte(1)
     : u32ToBytes(0);
 }
