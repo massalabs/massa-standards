@@ -28,6 +28,7 @@ export function _updateBalanceOf(address: string, increment: boolean): void {
     const newBalance = u256.add(balance, u256.fromI32(number));
     Storage.set(balanceKey, u256ToBytes(newBalance));
   } else {
+    assert(number == 1, 'Balance cannot be negative');
     Storage.set(balanceKey, u256ToBytes(new u256(1)));
   }
 }
@@ -68,8 +69,8 @@ export function _isTokenOwner(address: string, tokenId: u256): bool {
  * @param tokenId - the tokenID
  * @returns true if the token is minted
  */
-export function _onlyMinted(tokenId: string): bool {
-  return Storage.has(ownerTokenKey + tokenId);
+export function _onlyMinted(tokenId: u256): bool {
+  return Storage.has(ownerTokenKey + tokenId.toString());
 }
 
 /**
@@ -90,17 +91,16 @@ export function _transfer(
   recipient: string,
   tokenId: u256,
 ): void {
-  const id = tokenId.toString();
-  assertIsMinted(id);
+  assertIsMinted(tokenId);
   assertIsOwner(owner, tokenId);
   assertNotSelfTransfer(owner, recipient);
   assertIsApproved(owner, caller, tokenId);
 
-  _removeApproval(id);
+  _removeApproval(tokenId);
   _updateBalanceOf(owner, false);
   _updateBalanceOf(recipient, true);
 
-  Storage.set(ownerTokenKey + id, recipient);
+  Storage.set(ownerTokenKey + tokenId.toString(), recipient);
 }
 
 // ==================================================== //
@@ -119,12 +119,11 @@ export function _approve(
   owner: string,
   spenderAddress: string,
 ): void {
-  const id = tokenId.toString();
-  assertIsMinted(id);
+  assertIsMinted(tokenId);
   assertIsOwner(owner, tokenId);
   assert(!_isApproved(spenderAddress, tokenId), 'Already approved');
 
-  const key = approvedTokenKey + id;
+  const key = approvedTokenKey + tokenId.toString();
   Storage.set(key, spenderAddress);
 }
 
@@ -132,8 +131,8 @@ export function _approve(
  * Removes the approval of the token
  * @param tokenId - the tokenID
  */
-function _removeApproval(id: string): void {
-  const key = approvedTokenKey + id;
+function _removeApproval(id: u256): void {
+  const key = approvedTokenKey + id.toString();
   Storage.set(key, '');
 }
 
@@ -177,7 +176,7 @@ export function _isApprovedForAll(owner: string, operator: string): bool {
 // ====             General Assertions             ==== //
 // ==================================================== //
 
-export function assertIsMinted(tokenId: string): void {
+export function assertIsMinted(tokenId: u256): void {
   assert(_onlyMinted(tokenId), `Token ${tokenId.toString()} is not minted`);
 }
 

@@ -27,12 +27,14 @@ import {
   _isApprovedForAll,
   _updateBalanceOf,
   _getBalanceOf,
+  assertIsOwner,
 } from './NFT-internals';
 
 export const nameKey = 'name';
 export const symbolKey = 'symbol';
 export const totalSupplyKey = stringToBytes('totalSupply');
 export const baseURIKey = 'baseURI';
+export const tokenURIKey = 'tokenURI';
 export const ownerKey = 'Owner';
 export const counterKey = stringToBytes('Counter');
 export const ownerTokenKey = 'ownerOf_';
@@ -71,7 +73,7 @@ export const initCounter = new u256(0);
 export function constructor(binaryArgs: StaticArray<u8>): void {
   // This line is important. It ensures that this function can't be called in the future.
   // If you remove this check, someone could call your constructor function and reset your smart contract.
-  assert(callerHasWriteAccess());
+  assert(Context.isDeployingContract());
 
   const args = new Args(binaryArgs);
   const name = args.nextString().expect('name argument is missing or invalid');
@@ -142,9 +144,27 @@ export function nft1_tokenURI(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   const args = new Args(binaryArgs);
   const tokenId = args
     .nextU256()
-    .expect('token id argument is missing or invalid');
+    .expect('token id argument is missing or invalid').toString();
+  if (Storage.has(tokenURIKey + tokenId)) {
+    return stringToBytes(Storage.get(tokenURIKey + tokenId))
+  } else {
+    return stringToBytes(Storage.get(baseURIKey) + tokenId);
+  }
+}
 
-  return stringToBytes(Storage.get(baseURIKey) + tokenId.toString());
+/**
+ * Set a token URI (external link written in NFT where pictures or others are stored).
+ * If not set the tokenURI will be the baseURI + tokenId
+ * @param binaryArgs - u256 serialized tokenID with `Args` + URI string
+ */
+export function nft1_setTokenURI(binaryArgs: StaticArray<u8>): void {
+  const args = new Args(binaryArgs);
+  const tokenId = args
+    .nextU256()
+    .expect('token id argument is missing or invalid');
+  assertIsMinted(tokenId);
+  assertIsOwner(Context.caller().toString(), tokenId);
+  Storage.set(tokenURIKey + tokenId.toString(), args.nextString().expect('tokenURI argument is missing or invalid'));
 }
 
 /**
@@ -190,7 +210,7 @@ export function nft1_ownerOf(_args: StaticArray<u8>): StaticArray<u8> {
     .nextU256()
     .expect('tokenId argument is missing or invalid');
 
-  assertIsMinted(tokenId.toString());
+  assertIsMinted(tokenId);
 
   const key = ownerTokenKey + tokenId.toString();
 
