@@ -10,7 +10,6 @@ import {
   stringToBytes,
   bytesToU256,
   u256ToBytes,
-  boolToByte,
   u32ToBytes,
 } from '@massalabs/as-types';
 import { u256 } from 'as-bignum/assembly';

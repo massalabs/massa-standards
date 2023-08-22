@@ -1,10 +1,11 @@
 import { Address, call } from '@massalabs/massa-as-sdk';
-import { Args,
-         NoArg,
-         bytesToString,
-         byteToBool,
-         bytesToSerializableObjectArray,
-         bytesToU64 } from '@massalabs/as-types';
+import {
+  Args,
+  NoArg,
+  byteToBool,
+  bytesToSerializableObjectArray,
+  bytesToU64,
+} from '@massalabs/as-types';
 
 /**
  * The Massa's standard multisig implementation wrapper.
@@ -50,10 +51,13 @@ export class MultisigWrapper {
    */
   submitTransaction(address: Address, amount: u64): u64 {
     return bytesToU64(
-      call(this._origin,
-           'ms1_submitTransaction',
-           new Args().add<Address>(address).add(amount).serialize(),
-           0));
+      call(
+        this._origin,
+        'ms1_submitTransaction',
+        new Args().add<Address>(address).add(amount).serialize(),
+        0,
+      ),
+    );
   }
 
   /**
@@ -69,15 +73,18 @@ export class MultisigWrapper {
    */
   submitCall(address: Address, amount: u64, name: string, args: Args): u64 {
     return bytesToU64(
-      call(this._origin,
-           'ms1_submitCall',
-           new Args()
-            .add<Address>(address)
-            .add(amount)
-            .add<string>(name)
-            .add<StaticArray<u8>>(args.serialize())
-            .serialize(),
-           0));
+      call(
+        this._origin,
+        'ms1_submitCall',
+        new Args()
+          .add<Address>(address)
+          .add(amount)
+          .add<string>(name)
+          .add<StaticArray<u8>>(args.serialize())
+          .serialize(),
+        0,
+      ),
+    );
   }
 
   /**
@@ -86,10 +93,12 @@ export class MultisigWrapper {
    * @param opIndex - the operation index
    */
   confirmOperation(opIndex: u64): void {
-    call(this._origin,
-         'ms1_confirmOperation',
-         new Args().add(opIndex).serialize(),
-         0);
+    call(
+      this._origin,
+      'ms1_confirmOperation',
+      new Args().add(opIndex).serialize(),
+      0,
+    );
   }
 
   /**
@@ -98,10 +107,12 @@ export class MultisigWrapper {
    * @param opIndex - the operation index
    */
   executeOperation(opIndex: u64): void {
-    call(this._origin,
-         'ms1_executeOperation',
-         new Args().add(opIndex).serialize(),
-         0);
+    call(
+      this._origin,
+      'ms1_executeOperation',
+      new Args().add(opIndex).serialize(),
+      0,
+    );
   }
 
   /**
@@ -110,10 +121,12 @@ export class MultisigWrapper {
    * @param opIndex - the operation index
    */
   revokeOperation(opIndex: u64): void {
-    call(this._origin,
-         'ms1_revokeOperation',
-         new Args().add(opIndex).serialize(),
-         0);
+    call(
+      this._origin,
+      'ms1_revokeOperation',
+      new Args().add(opIndex).serialize(),
+      0,
+    );
   }
 
   /**
@@ -123,8 +136,8 @@ export class MultisigWrapper {
    */
   getOwners(): Array<Address> {
     return bytesToSerializableObjectArray<Address>(
-      call(this._origin, 'ms1_getOwners', NoArgs, 0))
-    .unwrap();
+      call(this._origin, 'ms1_getOwners', NoArgs, 0),
+    ).unwrap();
   }
 
   /**
@@ -136,10 +149,13 @@ export class MultisigWrapper {
   getOperation(opIndex: u64): Operation {
     let operation = new Operation();
     operation.deserialize(
-      call(this._origin,
-          'ms1_getOperation',
-          new Args().add(opIndex).serialize(),
-          0));
+      call(
+        this._origin,
+        'ms1_getOperation',
+        new Args().add(opIndex).serialize(),
+        0,
+      ),
+    );
 
     return operation;
   }
@@ -150,10 +166,13 @@ export class MultisigWrapper {
    * @returns true if the operation is defined and pending execution.
    */
   hasOperation(opIndex: u64): bool {
-    return byteToBool (
-      call(this._origin,
-          'ms1_hasOperation',
-          new Args().add(opIndex).serialize(),
-          0));
+    return byteToBool(
+      call(
+        this._origin,
+        'ms1_hasOperation',
+        new Args().add(opIndex).serialize(),
+        0,
+      ),
+    );
   }
 }
