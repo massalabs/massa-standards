@@ -52,18 +52,20 @@ const owners : Array<string> = [
   'AU125TiSrnD2YatYfEyRAWnBdD7TEuVbvGFkFgDuaYc2bdKyqKtb'
 ];
 
-// where operation funds are sent
+// where operation funds are sent when a transaction operation is executed
 const destination = 'AU155TiSrnD2YatYfEyRAWnBdD7TEuVbvGFkFgDuaYc2bdKyqKtb';
 
+// owners declared to the constructor for testing. Note that owners[0] has
+// a weight of 2 since it is mentionned twice in the list:
 const ownerList = [owners[0], owners[0], owners[1], owners[2]];
 const ownerWeight : Array<u8> = [2, 1, 1];
-
-export const OPERATION_INDEX_PREFIX_KEY = '00';
-export const OWNER_PREFIX_KEY = '01';
 
 export const NB_CONFIRMATIONS_REQUIRED_KEY = stringToBytes('NB CONFIRMATIONS REQUIRED');
 export const OWNERS_ADDRESSES_KEY = stringToBytes('OWNERS ADDRESSES');
 export const OPERATION_INDEX_KEY = stringToBytes('OPERATION INDEX');
+
+export const OPERATION_INDEX_PREFIX_KEY = '00';
+export const OWNER_PREFIX_KEY = '01';
 
 function makeOperationKey(opIndex: u64) : StaticArray<u8> {
     return stringToBytes(OPERATION_INDEX_PREFIX_KEY +
@@ -75,6 +77,7 @@ function makeOwnerKey(owner: string) : StaticArray<u8> {
               bytesToString(new Args().add(owner).serialize()));
 }
 
+// string are not serializable by default, we need this helper class
 class SerializableString implements Serializable {
   s: string;
 
@@ -138,14 +141,14 @@ describe('Multisig contract tests', () => {
     resetStorage();
 
     //-------------------------------------------------------
-    // define a valid constructor for a transaction operation
+    // define a valid constructor for a 2:4 multisig
     const serializedArgs = new Args()
       .add(nbConfirmations)
       .add<Array<string>>(ownerList)
       .serialize();
     constructor(serializedArgs);
 
-    // check the nb of confirmation required is properly stored
+    // check the nb of confirmations required is properly stored
     expect(byteToU8(Storage.get(NB_CONFIRMATIONS_REQUIRED_KEY))).toBe(nbConfirmations);
 
     // compare the array of addresses as string to the array of Address in storage
@@ -342,6 +345,34 @@ describe('Multisig contract tests', () => {
     // retrieve the operation in its final state in Storage
     let operation = retrieveOperation(opIndex).unwrap();
     expect(operation.isValidated()).toBe(true);
+  });
+
+  // test of the call operation constructor
+  test('submit call operation', () => {
+
+    // expect the operation index to be 1
+    expect(ms1_submitCall(new Args()
+      .add<Address>(new Address(destination))
+      .add(u64(15000))
+      .add<string>("getValueAt")
+      .add<StaticArray<u8>>(new Args().add(42).serialize())
+      .serialize()
+    )).toBe(6);
+
+    // check that the operation is correctly stored
+    let operationResult = retrieveOperation(6);
+    expect(operationResult.isOk()).toBe(true);
+
+    // check the operation content
+    let operation = operationResult.unwrap();
+    expect(operation.address).toBe(new Address(destination));
+    expect(operation.amount).toBe(u64(15000));
+    expect(operation.name).toBe("getValueAt");
+    expect(operation.args).toStrictEqual(new Args().add(42));
+    expect(operation.confirmedOwnerList.length).toBe(0);
+    expect(operation.confirmationWeightedSum).toBe(0);
+    expect(operation.isAlreadyConfirmed(new Address(owners[0]))).toBe(false);
+    expect(operation.isValidated()).toBe(false);
   });
 
   // operation 5 is validated, let's execute it
