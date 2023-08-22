@@ -10,6 +10,7 @@ import {
   bytesToU256,
   u256ToBytes,
   bytesToI32,
+  bytesToU32,
 } from '@massalabs/as-types';
 import {
   constructor,
@@ -136,7 +137,7 @@ describe('NFT contract', () => {
     );
 
     expect(
-      bytesToI32(
+      bytesToU32(
         nft1_isApprovedForAll(
           new Args().add(callerAddress).add(address).serialize(),
         ),

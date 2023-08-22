@@ -393,6 +393,6 @@ export function nft1_isApprovedForAll(
     .expect('operatorAddress argument is missing or invalid');
 
   return _isApprovedForAll(ownerAddress, operatorAddress)
-    ? boolToByte(1)
+    ? u32ToBytes(1)
     : u32ToBytes(0);
 }
