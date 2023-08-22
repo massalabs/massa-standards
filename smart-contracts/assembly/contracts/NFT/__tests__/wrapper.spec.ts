@@ -1,6 +1,7 @@
+import { u256 } from 'as-bignum/assembly';
 import { Address, mockScCall } from '@massalabs/massa-as-sdk';
-import { NFTWrapper } from '../NFTWrapper';
-import { stringToBytes, u64ToBytes } from '@massalabs/as-types';
+import { NFT1Wrapper } from '../NFTWrapper';
+import { stringToBytes, u256ToBytes } from '@massalabs/as-types';
 
 describe('NFT wrapper', () => {
   test('demonstrative test', () => {
@@ -10,7 +11,7 @@ describe('NFT wrapper', () => {
     const myAddress = new Address(
       'A1qDAxGJ387ETi9JRQzZWSPKYq4YPXrFvdiE4VoXUaiAt38JFEC',
     );
-    const NFT = new NFTWrapper(NFTaddr);
+    const NFT = new NFT1Wrapper(NFTaddr);
     mockScCall(stringToBytes('NFT name'));
     NFT.name();
     mockScCall(stringToBytes('NFT'));
@@ -18,20 +19,18 @@ describe('NFT wrapper', () => {
     mockScCall(stringToBytes('test.massa/'));
     NFT.baseURI();
     mockScCall(stringToBytes('test.massa/2'));
-    NFT.tokenURI(2);
-    mockScCall(u64ToBytes(3));
+    NFT.tokenURI(u256.fromU64(2));
+    mockScCall(u256ToBytes(u256.fromU64(3)));
     NFT.totalSupply();
     for (let i = 0; i < 3; i++) {
       mockScCall(stringToBytes('toto'));
       NFT.mint(myAddress.toString());
     }
-    mockScCall(u64ToBytes(3));
+    mockScCall(u256ToBytes(u256.fromU64(3)));
     NFT.currentSupply();
     mockScCall(stringToBytes(myAddress.toString()));
-    NFT.ownerOf(1);
-    mockScCall([]); // mocked calls need a mocked value, this may change is the future
-    NFT.transfer('1x', 1);
+    NFT.ownerOf(u256.fromU64(1));
     mockScCall(stringToBytes(myAddress.toString()));
-    NFT.ownerOf(1);
+    NFT.ownerOf(u256.fromU64(2));
   });
 });

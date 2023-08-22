@@ -6,9 +6,11 @@ import {
 import {
   Args,
   bytesToString,
-  bytesToU64,
   stringToBytes,
-  u64ToBytes,
+  bytesToU256,
+  u256ToBytes,
+  bytesToI32,
+  bytesToU32,
 } from '@massalabs/as-types';
 import {
   constructor,
@@ -19,7 +21,6 @@ import {
   nft1_totalSupply,
   nft1_mint,
   nft1_currentSupply,
-  nft1_transfer,
   nft1_setURI,
   nft1_ownerOf,
   counterKey,
@@ -27,7 +28,10 @@ import {
   nft1_getApproved,
   nft1_approve,
   nft1_transferFrom,
+  nft1_setApprovalForAll,
+  nft1_isApprovedForAll,
 } from '../NFT';
+import { u256 } from 'as-bignum/assembly';
 
 const callerAddress = 'A12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
 
@@ -36,7 +40,7 @@ const userAddress = 'A12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1e8';
 const NFTName = 'MASSA_NFT';
 const NFTSymbol = 'NFT';
 const NFTBaseURI = 'my.massa/';
-const NFTtotalSupply: u64 = 5;
+const NFTtotalSupply: u256 = new u256(5);
 
 describe('NFT contract', () => {
   beforeAll(() => {
@@ -53,7 +57,7 @@ describe('NFT contract', () => {
   });
 
   test('initialized', () => {
-    expect(bytesToU64(Storage.get(counterKey))).toBe(initCounter);
+    expect(bytesToU256(Storage.get(counterKey))).toBe(initCounter);
   });
 
   test('get name', () => {
@@ -63,42 +67,42 @@ describe('NFT contract', () => {
     expect(bytesToString(nft1_symbol())).toBe(NFTSymbol);
   });
   test('totalSupply call', () => {
-    expect(bytesToU64(nft1_totalSupply())).toBe(NFTtotalSupply);
+    expect(bytesToU256(nft1_totalSupply())).toBe(NFTtotalSupply);
   });
   test('get baseURI', () => {
     expect(bytesToString(nft1_baseURI())).toBe(NFTBaseURI);
   });
 
   test('get current supply', () => {
-    expect(bytesToU64(nft1_currentSupply())).toBe(0);
+    expect(bytesToU256(nft1_currentSupply())).toBe(new u256(0));
   });
 
   test('get tokenURI', () => {
-    const tokenID = 1;
+    const tokenID = new u256(1);
     expect(
-      bytesToString(nft1_tokenURI(new Args().add<u64>(tokenID).serialize())),
+      bytesToString(nft1_tokenURI(new Args().add<u256>(tokenID).serialize())),
     ).toBe('my.massa/1');
   });
 
   test('set URI', () => {
     const newURI = 'my.newMassaURI/';
-    const tokenID = 1;
+    const tokenID = new u256(1);
     nft1_setURI(new Args().add(newURI).serialize());
     expect(
-      bytesToString(nft1_tokenURI(new Args().add<u64>(tokenID).serialize())),
+      bytesToString(nft1_tokenURI(new Args().add<u256>(tokenID).serialize())),
     ).toBe('my.newMassaURI/1');
   });
 
   test('mint call, ownerOf and currentSupply call', () => {
-    expect(bytesToU64(nft1_currentSupply())).toBe(0);
-    for (let i: u64 = 0; i < NFTtotalSupply; i++) {
+    expect(bytesToU256(nft1_currentSupply())).toBe(u256.Zero);
+    for (let i: u64 = 0; i < NFTtotalSupply.toU64(); i++) {
       nft1_mint(new Args().add(callerAddress).serialize());
     }
-    expect(Storage.get(counterKey)).toStrictEqual(u64ToBytes(NFTtotalSupply));
-    expect(bytesToU64(nft1_currentSupply())).toBe(NFTtotalSupply);
-    expect(nft1_ownerOf(new Args().add<u64>(2).serialize())).toStrictEqual(
-      stringToBytes(callerAddress),
-    );
+    expect(Storage.get(counterKey)).toStrictEqual(u256ToBytes(NFTtotalSupply));
+    expect(bytesToU256(nft1_currentSupply())).toBe(NFTtotalSupply);
+    expect(
+      nft1_ownerOf(new Args().add<u256>(u256.fromU64(2)).serialize()),
+    ).toStrictEqual(stringToBytes(callerAddress));
   });
 
   throws('we have reach max supply', () => {
@@ -106,82 +110,103 @@ describe('NFT contract', () => {
   });
 
   test('current supply call', () => {
-    expect(bytesToU64(nft1_currentSupply())).toBe(NFTtotalSupply);
-  });
-
-  test('transfer call', () => {
-    const tokenToSend: u64 = 2;
-
-    nft1_transfer(new Args().add(userAddress).add(tokenToSend).serialize());
-
-    expect(nft1_ownerOf(u64ToBytes(tokenToSend))).toStrictEqual(
-      stringToBytes(userAddress),
-    );
-    expect(isAllowanceCleared(tokenToSend)).toBeTruthy();
+    expect(bytesToU256(nft1_currentSupply())).toBe(NFTtotalSupply);
   });
 
   test('approval', () => {
-    const tokenId: u64 = 1;
-    const addresses = ['2x', '3x'];
+    const tokenId = new u256(1);
 
-    addresses.forEach((address) => approveAddress(tokenId, address));
-    const approvedAddressArray = getAllowedAddress(tokenId);
+    let address = '2x';
+    approveAddress(tokenId, address);
+    let approvedAddress = getAllowedAddress(tokenId);
+    expect(approvedAddress).toStrictEqual(address);
 
-    expect(approvedAddressArray[0]).toStrictEqual(addresses[0]);
-    expect(approvedAddressArray[1]).toStrictEqual(addresses[1]);
+    address = '3x';
+    approveAddress(tokenId, address);
+    approvedAddress = getAllowedAddress(tokenId);
+    expect(approvedAddress).toStrictEqual(address);
   });
 
-  xtest('transferFrom', () => {
-    const tokenId: u64 = 3;
-    const addresses = ['2x', '3x'];
+  test('approval for all', () => {
+    const address = '2x';
+    const recipient = '3x';
+    const isApprovedForAll = true;
 
-    addresses.forEach((address) => {
-      approveAddress(tokenId, address);
-    });
-
-    expect(getAllowedAddress(tokenId)).toStrictEqual(addresses);
-
-    const approvedAddressArray = getAllowedAddress(tokenId);
-
-    expect(approvedAddressArray[0]).toStrictEqual(addresses[0]);
-    expect(approvedAddressArray[1]).toStrictEqual(addresses[1]);
-
-    nft1_transferFrom(
-      new Args().add(addresses[0]).add(addresses[1]).add(tokenId).serialize(),
+    nft1_setApprovalForAll(
+      new Args().add(address).add(isApprovedForAll).serialize(),
     );
 
-    expect(isAllowanceCleared(tokenId)).toBeTruthy();
+    expect(
+      bytesToU32(
+        nft1_isApprovedForAll(
+          new Args().add(callerAddress).add(address).serialize(),
+        ),
+      ),
+    ).toBe(1);
+
+    nft1_transferFrom(
+      new Args().add(callerAddress).add(recipient).add(new u256(1)).serialize(),
+    );
+
+    expect(
+      nft1_ownerOf(new Args().add<u256>(u256.fromU64(1)).serialize()),
+    ).toStrictEqual(stringToBytes(recipient));
+
+    expect(
+      bytesToI32(
+        nft1_isApprovedForAll(
+          new Args().add(recipient).add(address).serialize(),
+        ),
+      ),
+    ).toBe(0);
   });
 
-  test('transferFrom fail if not allowed', () => {
-    const tokenId: u64 = 4;
+  test('transferFrom', () => {
+    const tokenId = new u256(3);
+    let address = '2x';
+    let recipient = '3x';
 
-    expect(getAllowedAddress(tokenId)).toStrictEqual([]);
-    expect(nft1_ownerOf(u64ToBytes(tokenId))).toStrictEqual(
+    approveAddress(tokenId, address);
+    expect(getAllowedAddress(tokenId)).toStrictEqual(address);
+    let approvedAddress = getAllowedAddress(tokenId);
+
+    expect(approvedAddress).toStrictEqual(address);
+
+    nft1_transferFrom(
+      new Args().add(callerAddress).add(recipient).add(tokenId).serialize(),
+    );
+    expect(isAllowanceCleared(tokenId)).toBeTruthy();
+    expect(nft1_ownerOf(u256ToBytes(tokenId))).toStrictEqual(
+      stringToBytes(recipient),
+    );
+  });
+
+  throws('transferFrom fail if not allowed', () => {
+    const tokenId = new u256(4);
+    expect(getAllowedAddress(tokenId)).toStrictEqual('');
+    expect(nft1_ownerOf(u256ToBytes(tokenId))).toStrictEqual(
       stringToBytes(callerAddress),
     );
 
-    expect(() => {
-      nft1_transferFrom(
-        new Args().add('2x').add('3x').add(tokenId).serialize(),
-      );
-    }).toThrow();
+    nft1_transferFrom(
+      new Args().add('2x').add('3x').add(new u256(4)).serialize(),
+    );
   });
 });
 
-function isAllowanceCleared(tokenId: u64): boolean {
+function isAllowanceCleared(tokenId: u256): boolean {
   return getAllowedAddress(tokenId).length === 0;
 }
 
-function getAllowedAddress(tokenId: u64): string[] {
+function getAllowedAddress(tokenId: u256): string {
   const allowedAddress = bytesToString(
     nft1_getApproved(new Args().add(tokenId).serialize()),
   );
 
-  return allowedAddress === '' ? [] : allowedAddress.split(',');
+  return allowedAddress;
 }
 
-function approveAddress(tokenId: u64, address: string): void {
+function approveAddress(tokenId: u256, address: string): void {
   const args = new Args().add(tokenId).add(address).serialize();
   nft1_approve(args);
 }
