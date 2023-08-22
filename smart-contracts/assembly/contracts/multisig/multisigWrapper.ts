@@ -116,6 +116,20 @@ export class MultisigWrapper {
   }
 
   /**
+   * Cancel an operation (only the creator or an owner can do this)
+   *
+   * @param opIndex - the operation index
+   */
+  cancelOperation(opIndex: u64): void {
+    call(
+      this._origin,
+      'ms1_cancelOperation',
+      new Args().add(opIndex).serialize(),
+      0,
+    );
+  }
+
+  /**
    * Revoke a operation identified by its index.
    *
    * @param opIndex - the operation index

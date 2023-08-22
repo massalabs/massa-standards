@@ -5,9 +5,11 @@ import {
   ms1_executeOperation,
   ms1_revokeConfirmation,
   ms1_getOperation,
+  ms1_cancelOperation,
   constructor,
   Operation,
   retrieveOperation,
+  hasOperation,
 } from '../multisig';
 
 import {
@@ -375,7 +377,6 @@ describe('Multisig contract tests', () => {
 
   // test of the call operation constructor
   test('submit call operation', () => {
-    // expect the operation index to be 1
     expect(
       ms1_submitCall(
         new Args()
@@ -401,6 +402,48 @@ describe('Multisig contract tests', () => {
     expect(operation.confirmationWeightedSum).toBe(0);
     expect(operation.isAlreadyConfirmed(new Address(owners[0]))).toBe(false);
     expect(operation.isValidated()).toBe(false);
+  });
+
+  // test of the operation cancelation
+  test('cancel operation by creator', () => {
+    switchUser(destination);
+    expect(
+      ms1_submitTransaction(
+        new Args()
+          .add<Address>(new Address(destination))
+          .add(u64(15000))
+          .serialize(),
+      ),
+    ).toBe(7);
+
+    expect(() => {
+      ms1_cancelOperation(new Args().add(u64(7)).serialize());
+    }).not.toThrow();
+
+    // check that the operation is indeed canceled
+    expect(hasOperation(7)).toBe(false);
+    switchUser(deployerAddress);
+  });
+
+  test('cancel operation by an owner', () => {
+    switchUser(destination);
+    expect(
+      ms1_submitTransaction(
+        new Args()
+          .add<Address>(new Address(destination))
+          .add(u64(15000))
+          .serialize(),
+      ),
+    ).toBe(8);
+
+    switchUser(owners[1]);
+    expect(() => {
+      ms1_cancelOperation(new Args().add(u64(8)).serialize());
+    }).not.toThrow();
+
+    // check that the operation is indeed canceled
+    expect(hasOperation(8)).toBe(false);
+    switchUser(deployerAddress);
   });
 
   // operation 5 is validated, let's execute it

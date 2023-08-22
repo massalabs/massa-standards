@@ -41,6 +41,7 @@ const SUBMIT_CALL_EVENT_NAME = 'SUBMIT_CALL';
 const CONFIRM_OPERATION_EVENT_NAME = 'CONFIRM_OPERATION';
 const EXECUTE_OPERATION_EVENT_NAME = 'EXECUTE_OPERATION';
 const REVOKE_OPERATION_EVENT_NAME = 'REVOKE_OPERATION';
+const CANCEL_OPERATION_EVENT_NAME = 'CANCEL_OPERATION';
 const RETRIEVE_OPERATION_EVENT_NAME = 'RETRIEVE_OPERATION';
 const GET_OWNERS_EVENT_NAME = 'GET_OWNERS';
 
@@ -81,6 +82,7 @@ function makeOwnerKey(address: Address): StaticArray<u8> {
  *
  */
 export class Operation {
+  creator: Address; // the destination creator of the operation. Is allowed to later cancel it.
   address: Address; // the destination address (the recipient of coins or the smart contract to call)
   amount: u64; // the amount
   name: string; // the function call name, if any ("" means the operation is a simple coin transfer)
@@ -89,11 +91,13 @@ export class Operation {
   confirmationWeightedSum: u8; // the confirmation total weight sum, for easy check
 
   constructor(
+    creator: Address = new Address(),
     address: Address = new Address(),
     amount: u64 = 0,
     name: string = '',
     args: Args = new Args(),
   ) {
+    this.creator = creator;
     this.address = address;
     this.amount = amount;
     this.name = name;
@@ -108,6 +112,7 @@ export class Operation {
     // total weight sum, trading some Storage space for Compute space,
     // knowing that the Operation will be erased from Storage once executed
     const argOperation = new Args()
+      .add<Address>(this.creator)
       .add<Address>(this.address)
       .add<u64>(this.amount)
       .add<string>(this.name)
@@ -120,6 +125,9 @@ export class Operation {
   deserialize(data: StaticArray<u8>): void {
     const args = new Args(data);
 
+    this.creator = args
+      .nextSerializable<Address>()
+      .expect('Error while deserializing Operation creator');
     this.address = args
       .nextSerializable<Address>()
       .expect('Error while deserializing Operation address');
@@ -207,6 +215,20 @@ export function hasOperation(opIndex: u64): bool {
 function deleteOperation(opIndex: u64): void {
   const operationKey = makeOperationKey(opIndex);
   Storage.del(operationKey);
+}
+
+/**
+ * Helper function to check if a given address is an owner of the multisig
+ *
+ */
+function isOwner(address: Address): bool {
+  let serializedOwnerAddresses = Storage.get(OWNERS_ADDRESSES_KEY);
+  let owners = bytesToSerializableObjectArray<Address>(
+    serializedOwnerAddresses,
+  ).unwrap();
+
+  for (let i = 0; i < owners.length; i++) if (owners[i] == address) return true;
+  return false;
 }
 
 // ======================================================== //
@@ -368,7 +390,7 @@ export function ms1_submitTransaction(stringifyArgs: StaticArray<u8>): u64 {
   let opIndex = bytesToU64(Storage.get(OPERATION_INDEX_KEY));
   opIndex++;
 
-  storeOperation(opIndex, new Operation(address, amount));
+  storeOperation(opIndex, new Operation(Context.caller(), address, amount));
 
   // update the new opIndex value for the next operation
   Storage.set(OPERATION_INDEX_KEY, u64ToBytes(opIndex));
@@ -434,7 +456,10 @@ export function ms1_submitCall(stringifyArgs: StaticArray<u8>): u64 {
   let opIndex = bytesToU64(Storage.get(OPERATION_INDEX_KEY));
   opIndex++;
 
-  storeOperation(opIndex, new Operation(address, amount, name, callArgs));
+  storeOperation(
+    opIndex,
+    new Operation(Context.caller(), address, amount, name, callArgs),
+  );
 
   // update the new opIndex value for the next operation
   Storage.set(OPERATION_INDEX_KEY, u64ToBytes(opIndex));
@@ -547,6 +572,51 @@ export function ms1_executeOperation(stringifyArgs: StaticArray<u8>): void {
       opIndex.toString(),
       operation.address.toString(),
       operation.amount.toString(),
+    ]),
+  );
+}
+
+/**
+ * Cancel an operation and generate an event in case of success
+ * NB: only the operation creator or one of the owners of the multisig
+ * can cancel the operation. This is to avoid cancel-bombing attacks on
+ * pending operations.
+ *
+ * @example
+ * ```typescript
+ *   ms1_cancelOperation(
+ *   new Args()
+ *     .add(index) // the operation index
+ *     .serialize(),
+ *   );
+ * ```
+ *
+ * @param stringifyArgs - Args object serialized as a string containing:
+ * - the operation index (u64)
+ */
+export function ms1_cancelOperation(stringifyArgs: StaticArray<u8>): void {
+  const args = new Args(stringifyArgs);
+
+  // initialize operation index
+  const opIndex = args
+    .nextU64()
+    .expect('Error while initializing operation index');
+
+  // check the operation exists and retrieve it from Storage
+  let operation = retrieveOperation(opIndex).unwrap();
+
+  assert(
+    Context.caller() == operation.creator || isOwner(Context.caller()),
+    'invalid caller to cancel the operation. Only the owners or the creator are allowed.',
+  );
+
+  // clean up Storage and remove executed operation
+  deleteOperation(opIndex);
+
+  generateEvent(
+    createEvent(CANCEL_OPERATION_EVENT_NAME, [
+      Context.caller().toString(),
+      opIndex.toString(),
     ]),
   );
 }
