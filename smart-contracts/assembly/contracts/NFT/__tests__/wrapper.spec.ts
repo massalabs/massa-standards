@@ -1,6 +1,6 @@
 import { u256 } from 'as-bignum/assembly';
 import { Address, mockScCall } from '@massalabs/massa-as-sdk';
-import { NFTWrapper } from '../NFTWrapper';
+import { NFT1Wrapper } from '../NFTWrapper';
 import { stringToBytes, u256ToBytes } from '@massalabs/as-types';
 
 describe('NFT wrapper', () => {
@@ -11,7 +11,7 @@ describe('NFT wrapper', () => {
     const myAddress = new Address(
       'A1qDAxGJ387ETi9JRQzZWSPKYq4YPXrFvdiE4VoXUaiAt38JFEC',
     );
-    const NFT = new NFTWrapper(NFTaddr);
+    const NFT = new NFT1Wrapper(NFTaddr);
     mockScCall(stringToBytes('NFT name'));
     NFT.name();
     mockScCall(stringToBytes('NFT'));

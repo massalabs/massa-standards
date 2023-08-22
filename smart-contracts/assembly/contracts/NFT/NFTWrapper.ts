@@ -18,7 +18,7 @@ import { u256 } from 'as-bignum/assembly';
  *
  * @example
  * ```typescript
- * const NFT = new NFTWrapper(NFTaddr);
+ * const NFT = new NFT1Wrapper(NFTaddr);
  * NFT.transfer('1x', 1);
  * ```
  */
