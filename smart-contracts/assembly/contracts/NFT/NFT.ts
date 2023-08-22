@@ -143,7 +143,8 @@ export function nft1_tokenURI(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   const args = new Args(binaryArgs);
   const tokenId = args
     .nextU256()
-    .expect('token id argument is missing or invalid').toString();
+    .expect('token id argument is missing or invalid')
+    .toString();
   if (Storage.has(tokenURIKey + tokenId)) {
     return stringToBytes(Storage.get(tokenURIKey + tokenId));
   } else {
@@ -163,7 +164,10 @@ export function nft1_setTokenURI(binaryArgs: StaticArray<u8>): void {
     .expect('token id argument is missing or invalid');
   assertIsMinted(tokenId);
   assertIsOwner(Context.caller().toString(), tokenId);
-  Storage.set(tokenURIKey + tokenId.toString(), args.nextString().expect('tokenURI argument is missing or invalid'));
+  Storage.set(
+    tokenURIKey + tokenId.toString(),
+    args.nextString().expect('tokenURI argument is missing or invalid'),
+  );
 }
 
 /**

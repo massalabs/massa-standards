@@ -1,5 +1,11 @@
 import { Address, Context, call } from '@massalabs/massa-as-sdk';
-import { Args, NoArg, bytesToString, bytesToU256, bytesToU32 } from '@massalabs/as-types';
+import {
+  Args,
+  NoArg,
+  bytesToString,
+  bytesToU256,
+  bytesToU32,
+} from '@massalabs/as-types';
 import { u256 } from 'as-bignum/assembly';
 
 /**
@@ -32,13 +38,17 @@ export class NFT1Wrapper {
    * Returns the NFT's name
    */
   name(): string {
-    return bytesToString(call(this._origin, 'nft1_name', NoArg, Context.transferredCoins()));
+    return bytesToString(
+      call(this._origin, 'nft1_name', NoArg, Context.transferredCoins()),
+    );
   }
   /**
    * Returns the NFT's symbol
    */
   symbol(): string {
-    return bytesToString(call(this._origin, 'nft1_symbol', NoArg, Context.transferredCoins()));
+    return bytesToString(
+      call(this._origin, 'nft1_symbol', NoArg, Context.transferredCoins()),
+    );
   }
 
   /**
@@ -47,7 +57,12 @@ export class NFT1Wrapper {
    */
   tokenURI(tokenId: u256): string {
     return bytesToString(
-      call(this._origin, 'nft1_tokenURI', new Args().add(tokenId), Context.transferredCoins()),
+      call(
+        this._origin,
+        'nft1_tokenURI',
+        new Args().add(tokenId),
+        Context.transferredCoins(),
+      ),
     );
   }
 
@@ -68,21 +83,32 @@ export class NFT1Wrapper {
    * Returns the base URI (external link written in NFT where pictures or others a stored)
    */
   baseURI(): string {
-    return bytesToString(call(this._origin, 'nft1_baseURI', NoArg, Context.transferredCoins()));
+    return bytesToString(
+      call(this._origin, 'nft1_baseURI', NoArg, Context.transferredCoins()),
+    );
   }
 
   /**
    * Returns the max supply
    */
   totalSupply(): u256 {
-    return bytesToU256(call(this._origin, 'nft1_totalSupply', NoArg, Context.transferredCoins()));
+    return bytesToU256(
+      call(this._origin, 'nft1_totalSupply', NoArg, Context.transferredCoins()),
+    );
   }
 
   /**
    * Returns the current counter, if 10 NFT minted, returns 10.
    */
   currentSupply(): u256 {
-    return bytesToU256(call(this._origin, 'nft1_currentSupply', NoArg, Context.transferredCoins()));
+    return bytesToU256(
+      call(
+        this._origin,
+        'nft1_currentSupply',
+        NoArg,
+        Context.transferredCoins(),
+      ),
+    );
   }
 
   /**
@@ -91,7 +117,14 @@ export class NFT1Wrapper {
    */
   ownerOf(tokenId: u256): Address {
     return new Address(
-      bytesToString(call(this._origin, 'nft1_ownerOf', new Args().add(tokenId), Context.transferredCoins())),
+      bytesToString(
+        call(
+          this._origin,
+          'nft1_ownerOf',
+          new Args().add(tokenId),
+          Context.transferredCoins(),
+        ),
+      ),
     );
   }
 
@@ -101,10 +134,14 @@ export class NFT1Wrapper {
    */
   balanceOf(address: string): u256 {
     return bytesToU256(
-      call(this._origin, 'nft1_balanceOf', new Args().add(address), Context.transferredCoins()),
+      call(
+        this._origin,
+        'nft1_balanceOf',
+        new Args().add(address),
+        Context.transferredCoins(),
+      ),
     );
   }
-
 
   /**
    * The address becomes the owner of the next token (if current tokenID = 10, will mint 11 )
@@ -113,7 +150,12 @@ export class NFT1Wrapper {
    * @param address - address that will receive the minted token
    */
   mint(address: string): void {
-    call(this._origin, 'nft1_mint', new Args().add(address), Context.transferredCoins());
+    call(
+      this._origin,
+      'nft1_mint',
+      new Args().add(address),
+      Context.transferredCoins(),
+    );
   }
 
   /**
@@ -143,7 +185,12 @@ export class NFT1Wrapper {
    *
    */
   approve(tokenId: u256, address: string): void {
-    call(this._origin, 'nft1_approve', new Args().add(tokenId).add(address), Context.transferredCoins());
+    call(
+      this._origin,
+      'nft1_approve',
+      new Args().add(tokenId).add(address),
+      Context.transferredCoins(),
+    );
   }
 
   /**
@@ -156,7 +203,12 @@ export class NFT1Wrapper {
    */
   getApproved(tokenId: u256): string {
     return bytesToString(
-      call(this._origin, 'nft1_getApproved', new Args().add(tokenId), Context.transferredCoins()),
+      call(
+        this._origin,
+        'nft1_getApproved',
+        new Args().add(tokenId),
+        Context.transferredCoins(),
+      ),
     );
   }
 
@@ -191,8 +243,8 @@ export class NFT1Wrapper {
         this._origin,
         'nft1_isApprovedForAll',
         new Args().add(owner).add(operator),
-        Context.transferredCoins()
-      )
+        Context.transferredCoins(),
+      ),
     );
     if (res === 1) {
       return true;

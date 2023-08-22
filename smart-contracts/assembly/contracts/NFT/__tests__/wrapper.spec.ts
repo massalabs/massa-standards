@@ -1,7 +1,7 @@
 import { u256 } from 'as-bignum/assembly';
 import { Address, mockScCall } from '@massalabs/massa-as-sdk';
 import { NFTWrapper } from '../NFTWrapper';
-import { stringToBytes, u256ToBytes, u64ToBytes } from '@massalabs/as-types';
+import { stringToBytes, u256ToBytes } from '@massalabs/as-types';
 
 describe('NFT wrapper', () => {
   test('demonstrative test', () => {
