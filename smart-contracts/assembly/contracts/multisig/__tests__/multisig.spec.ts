@@ -446,6 +446,26 @@ describe('Multisig contract tests', () => {
     switchUser(deployerAddress);
   });
 
+  test('cancel operation by no owner/creator (will fail)', () => {
+    switchUser(destination);
+    expect(
+      ms1_submitTransaction(
+        new Args()
+          .add<Address>(new Address(destination))
+          .add(u64(15000))
+          .serialize(),
+      ),
+    ).toBe(9);
+
+    switchUser(deployerAddress);
+    expect(() => {
+      ms1_cancelOperation(new Args().add(u64(9)).serialize());
+    }).toThrow();
+
+    // check that the operation is indeed canceled
+    expect(hasOperation(9)).toBe(true);
+  });
+
   // operation 5 is validated, let's execute it
   test('execute transaction operation with success', () => {
     let destinationBalance = Coins.balanceOf(destination);
