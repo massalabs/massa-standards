@@ -221,7 +221,7 @@ function deleteOperation(opIndex: u64): void {
  * Helper function to check if a given address is an owner of the multisig
  *
  */
-function isOwner(address: Address): bool {
+export function isOwner(address: Address): bool {
   let serializedOwnerAddresses = Storage.get(OWNERS_ADDRESSES_KEY);
   let owners = bytesToSerializableObjectArray<Address>(
     serializedOwnerAddresses,
