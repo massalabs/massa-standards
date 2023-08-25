@@ -578,9 +578,9 @@ export function ms1_executeOperation(stringifyArgs: StaticArray<u8>): void {
 
 /**
  * Cancel an operation and generate an event in case of success
- * NB: only the operation creator or one of the owners of the multisig
- * can cancel the operation. This is to avoid cancel-bombing attacks on
- * pending operations.
+ * NB: only the operation creator can cancel the operation. This
+ * is to avoid cancel-bombing attacks on pending operations by
+ * antagonist or compromised owners.
  *
  * @example
  * ```typescript
@@ -606,8 +606,8 @@ export function ms1_cancelOperation(stringifyArgs: StaticArray<u8>): void {
   let operation = retrieveOperation(opIndex).unwrap();
 
   assert(
-    Context.caller() == operation.creator || isOwner(Context.caller()),
-    'invalid caller to cancel the operation. Only the owners or the creator are allowed.',
+    Context.caller() == operation.creator,
+    'invalid caller to cancel the operation. Only the creator is allowed.',
   );
 
   // clean up Storage and remove executed operation

@@ -439,10 +439,10 @@ describe('Multisig contract tests', () => {
     switchUser(owners[1]);
     expect(() => {
       ms1_cancelOperation(new Args().add(u64(8)).serialize());
-    }).not.toThrow();
+    }).toThrow();
 
     // check that the operation is indeed canceled
-    expect(hasOperation(8)).toBe(false);
+    expect(hasOperation(8)).toBe(true);
     switchUser(deployerAddress);
   });
 

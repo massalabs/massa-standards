@@ -116,7 +116,7 @@ export class MultisigWrapper {
   }
 
   /**
-   * Cancel an operation (only the creator or an owner can do this)
+   * Cancel an operation (only the creator can do this)
    *
    * @param opIndex - the operation index
    */
