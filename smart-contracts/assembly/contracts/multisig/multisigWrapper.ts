@@ -43,6 +43,7 @@ export class MultisigWrapper {
   /**
    * Submit a transaction operation, and retrieve its index to be used by
    * the multisig owners to confirm it.
+   * For security reasons, only owners can submit operations.
    *
    * @param address - recipient address
    * @param amount - amount to transfer
@@ -63,6 +64,7 @@ export class MultisigWrapper {
   /**
    * Submit a smart contract call operation, and retrieve its index to be
    * used by the multisig owners to confirm it.
+   * For security reasons, only owners can submit operations.
    *
    * @param address - the smart contract address for the operation
    * @param amount - the transfered amount attached to the call

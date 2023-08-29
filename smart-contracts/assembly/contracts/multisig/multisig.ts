@@ -357,7 +357,8 @@ export function ms1_deposit(_: StaticArray<u8>): void {
 // ======================================================== //
 
 /**
- * Submit a transaction operation and generate an event with its index number
+ * Submit a transaction operation and generate an event with its index number.
+ * For security reasons, only owners can submit operations.
  *
  * @example
  * ```typescript
@@ -375,6 +376,11 @@ export function ms1_deposit(_: StaticArray<u8>): void {
  * @returns operation index.
  */
 export function ms1_submitTransaction(stringifyArgs: StaticArray<u8>): u64 {
+  assert(
+    isOwner(Context.caller()),
+    'Invalid caller to submit an operation. Only owners are allowed.',
+  );
+
   const args = new Args(stringifyArgs);
 
   // initialize address
@@ -408,7 +414,8 @@ export function ms1_submitTransaction(stringifyArgs: StaticArray<u8>): u64 {
 }
 
 /**
- * Submit a call operation and generate an event with its index number
+ * Submit a call operation and generate an event with its index number.
+ * For security reasons, only owners can submit operations.
  *
  * @example
  * ```typescript
@@ -430,6 +437,11 @@ export function ms1_submitTransaction(stringifyArgs: StaticArray<u8>): u64 {
  * @returns operation index.
  */
 export function ms1_submitCall(stringifyArgs: StaticArray<u8>): u64 {
+  assert(
+    isOwner(Context.caller()),
+    'Invalid caller to submit an operation. Only owners are allowed.',
+  );
+
   const args = new Args(stringifyArgs);
 
   // initialize address

@@ -178,7 +178,22 @@ describe('Multisig contract tests', () => {
     expect(bytesToU64(Storage.get(OPERATION_INDEX_KEY))).toBe(0);
   });
 
+  test('submit operation by non owner', () => {
+    // expect the operation submission to fail
+    expect(() => {
+      ms1_submitTransaction(
+        new Args()
+          .add<Address>(new Address(destination))
+          .add(u64(15000))
+          .serialize(),
+      );
+    }).toThrow();
+  });
+
   test('submit transaction operation', () => {
+    // pick owners[1] as the operation creator
+    switchUser(owners[1]);
+
     // expect the operation index to be 1
     expect(
       ms1_submitTransaction(
@@ -205,6 +220,9 @@ describe('Multisig contract tests', () => {
 
   // validated operation
   test('confirm transaction operation [owners[0]]', () => {
+    // pick owners[1] as the operation creator
+    switchUser(owners[1]);
+
     let confirmingOwnersIndexes: Array<u8>;
     let opIndex: u64;
     let totalWeight: u8;
@@ -248,6 +266,9 @@ describe('Multisig contract tests', () => {
 
   // non validated operation
   test('confirm transaction operation [owners[1]]', () => {
+    // pick owners[1] as the operation creator
+    switchUser(owners[1]);
+
     let confirmingOwnersIndexes: Array<u8>;
     let opIndex: u64;
     let totalWeight: u8;
@@ -291,6 +312,9 @@ describe('Multisig contract tests', () => {
 
   // non validated operation
   test('confirm transaction operation [owners[2]]', () => {
+    // pick owners[1] as the operation creator
+    switchUser(owners[1]);
+
     let confirmingOwnersIndexes: Array<u8>;
     let opIndex: u64;
     let totalWeight: u8;
@@ -334,6 +358,9 @@ describe('Multisig contract tests', () => {
 
   // validated operation
   test('confirm transaction operation [owners[1], owners[2]]', () => {
+    // pick owners[1] as the operation creator
+    switchUser(owners[1]);
+
     let confirmingOwnersIndexes: Array<u8>;
     let opIndex: u64;
     let totalWeight: u8;
@@ -377,6 +404,9 @@ describe('Multisig contract tests', () => {
 
   // test of the call operation constructor
   test('submit call operation', () => {
+    // pick owners[1] as the operation creator
+    switchUser(owners[1]);
+
     expect(
       ms1_submitCall(
         new Args()
@@ -406,7 +436,8 @@ describe('Multisig contract tests', () => {
 
   // test of the operation cancelation
   test('cancel operation by creator', () => {
-    switchUser(destination);
+    // pick owners[1] as the operation creator
+    switchUser(owners[1]);
     expect(
       ms1_submitTransaction(
         new Args()
@@ -425,8 +456,9 @@ describe('Multisig contract tests', () => {
     switchUser(deployerAddress);
   });
 
-  test('cancel operation by an owner', () => {
-    switchUser(destination);
+  test('cancel operation by non creator', () => {
+    // pick owners[1] as the operation creator
+    switchUser(owners[1]);
     expect(
       ms1_submitTransaction(
         new Args()
@@ -436,7 +468,7 @@ describe('Multisig contract tests', () => {
       ),
     ).toBe(8);
 
-    switchUser(owners[1]);
+    switchUser(owners[2]);
     expect(() => {
       ms1_cancelOperation(new Args().add(u64(8)).serialize());
     }).toThrow();
@@ -447,7 +479,8 @@ describe('Multisig contract tests', () => {
   });
 
   test('cancel operation by no owner/creator (will fail)', () => {
-    switchUser(destination);
+    // pick owners[1] as the operation creator
+    switchUser(owners[1]);
     expect(
       ms1_submitTransaction(
         new Args()
