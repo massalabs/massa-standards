@@ -1,7 +1,7 @@
 import { Args, bytesToU256, u256ToBytes } from '@massalabs/as-types';
 import { _balance, _setBalance } from '../token-internals';
 import { Address, Storage, generateEvent } from '@massalabs/massa-as-sdk';
-import { TOTAL_SUPPLY_KEY, ft1_totalSupply } from '../token';
+import { TOTAL_SUPPLY_KEY, totalSupply } from '../token';
 import { u256 } from 'as-bignum/assembly';
 
 /**
@@ -64,7 +64,7 @@ export function _increaseBalance(recipient: Address, amount: u256): void {
  * @param amount - how much you want to increase the total supply
  */
 export function _increaseTotalSupply(amount: u256): void {
-  const oldTotalSupply = bytesToU256(ft1_totalSupply([]));
+  const oldTotalSupply = bytesToU256(totalSupply([]));
   // @ts-ignore
   const newTotalSupply = oldTotalSupply + amount;
 

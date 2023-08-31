@@ -18,7 +18,7 @@ import { _mint } from './mint-internal';
  * - the recipient's account (address)
  * - the amount of tokens to mint (u256).
  */
-export function ft1_mint(binaryArgs: StaticArray<u8>): void {
+export function mint(binaryArgs: StaticArray<u8>): void {
   onlyOwner();
   _mint(binaryArgs);
 }
