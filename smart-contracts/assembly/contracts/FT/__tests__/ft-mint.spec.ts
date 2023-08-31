@@ -10,15 +10,15 @@ import {
   u8toByte,
   u256ToBytes,
 } from '@massalabs/as-types';
-import { ft1_mint } from '../mintable/mint';
+import { mint } from '../mintable/mint';
 import {
-  ft1_balanceOf,
+  balanceOf,
   constructor,
-  ft1_decimals,
-  ft1_name,
-  ft1_symbol,
-  ft1_totalSupply,
-  ft1_version,
+  decimals,
+  name,
+  symbol,
+  totalSupply,
+  version,
 } from '../token';
 import { ownerAddress } from '../../utils/ownership';
 import { u256 } from 'as-bignum/assembly';
@@ -54,23 +54,23 @@ beforeAll(() => {
 
 describe('ERC20 MINT - Initialization', () => {
   test('total supply is properly initialized', () => {
-    expect(ft1_totalSupply([])).toStrictEqual(u256ToBytes(TOTAL_SUPPLY));
+    expect(totalSupply([])).toStrictEqual(u256ToBytes(TOTAL_SUPPLY));
   });
 
   test('token name is properly initialized', () => {
-    expect(ft1_name([])).toStrictEqual(stringToBytes(TOKEN_NAME));
+    expect(name([])).toStrictEqual(stringToBytes(TOKEN_NAME));
   });
 
   test('symbol is properly initialized', () => {
-    expect(ft1_symbol([])).toStrictEqual(stringToBytes(TOKEN_SYMBOL));
+    expect(symbol([])).toStrictEqual(stringToBytes(TOKEN_SYMBOL));
   });
 
   test('decimals is properly initialized', () => {
-    expect(ft1_decimals([])).toStrictEqual(u8toByte(DECIMALS));
+    expect(decimals([])).toStrictEqual(u8toByte(DECIMALS));
   });
 
   test('version is properly initialized', () => {
-    expect(ft1_version([])).toStrictEqual(stringToBytes('0.0.0'));
+    expect(version([])).toStrictEqual(stringToBytes('0.0.0'));
   });
 
   test('owner is properly initialized', () => {
@@ -82,14 +82,14 @@ const mintAmount = new u256(5000, 33);
 
 describe('Mint ERC20 to U2', () => {
   test('Should mint ERC20', () => {
-    ft1_mint(new Args().add(user2Address).add(mintAmount).serialize());
+    mint(new Args().add(user2Address).add(mintAmount).serialize());
     // check balance of U2
-    expect(
-      ft1_balanceOf(new Args().add(user2Address).serialize()),
-    ).toStrictEqual(u256ToBytes(mintAmount));
+    expect(balanceOf(new Args().add(user2Address).serialize())).toStrictEqual(
+      u256ToBytes(mintAmount),
+    );
 
     // check totalSupply update
-    expect(ft1_totalSupply([])).toStrictEqual(
+    expect(totalSupply([])).toStrictEqual(
       // @ts-ignore
       u256ToBytes(mintAmount + TOTAL_SUPPLY),
     );
@@ -98,17 +98,17 @@ describe('Mint ERC20 to U2', () => {
 
 describe('Fails mint ERC20', () => {
   throws('Should overflow ERC20', () =>
-    ft1_mint(new Args().add(user2Address).add(U64.MAX_VALUE).serialize()),
+    mint(new Args().add(user2Address).add(U64.MAX_VALUE).serialize()),
   );
 
   switchUser(user2Address);
 
   throws('Should fail because the owner is not the tx emitter', () =>
-    ft1_mint(new Args().add(user1Address).add(u64(5000)).serialize()),
+    mint(new Args().add(user1Address).add(u64(5000)).serialize()),
   );
 
   test("Should check totalSupply didn't change", () => {
-    expect(ft1_totalSupply([])).toStrictEqual(
+    expect(totalSupply([])).toStrictEqual(
       // @ts-ignore
       u256ToBytes(mintAmount + TOTAL_SUPPLY),
     );

@@ -82,7 +82,7 @@ export function constructor(stringifyArgs: StaticArray<u8>): void {
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
  * @returns token version
  */
-export function ft1_version(_: StaticArray<u8>): StaticArray<u8> {
+export function version(_: StaticArray<u8>): StaticArray<u8> {
   return stringToBytes('0.0.0');
 }
 
@@ -96,7 +96,7 @@ export function ft1_version(_: StaticArray<u8>): StaticArray<u8> {
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
  * @returns token name.
  */
-export function ft1_name(_: StaticArray<u8>): StaticArray<u8> {
+export function name(_: StaticArray<u8>): StaticArray<u8> {
   return Storage.get(NAME_KEY);
 }
 
@@ -105,7 +105,7 @@ export function ft1_name(_: StaticArray<u8>): StaticArray<u8> {
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
  * @returns token symbol.
  */
-export function ft1_symbol(_: StaticArray<u8>): StaticArray<u8> {
+export function symbol(_: StaticArray<u8>): StaticArray<u8> {
   return Storage.get(SYMBOL_KEY);
 }
 
@@ -117,7 +117,7 @@ export function ft1_symbol(_: StaticArray<u8>): StaticArray<u8> {
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
  * @returns u256
  */
-export function ft1_totalSupply(_: StaticArray<u8>): StaticArray<u8> {
+export function totalSupply(_: StaticArray<u8>): StaticArray<u8> {
   return Storage.get(TOTAL_SUPPLY_KEY);
 }
 
@@ -128,7 +128,7 @@ export function ft1_totalSupply(_: StaticArray<u8>): StaticArray<u8> {
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
  * @returns
  */
-export function ft1_decimals(_: StaticArray<u8>): StaticArray<u8> {
+export function decimals(_: StaticArray<u8>): StaticArray<u8> {
   return Storage.get(DECIMALS_KEY);
 }
 
@@ -141,7 +141,7 @@ export function ft1_decimals(_: StaticArray<u8>): StaticArray<u8> {
  *
  * @param binaryArgs - Args object serialized as a string containing an owner's account (Address).
  */
-export function ft1_balanceOf(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+export function balanceOf(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   const args = new Args(binaryArgs);
 
   const addr = new Address(
@@ -162,7 +162,7 @@ export function ft1_balanceOf(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  * - the recipient's account (address)
  * - the number of tokens (u256).
  */
-export function ft1_transfer(binaryArgs: StaticArray<u8>): void {
+export function transfer(binaryArgs: StaticArray<u8>): void {
   const owner = Context.caller();
 
   const args = new Args(binaryArgs);
@@ -217,7 +217,7 @@ function _transfer(from: Address, to: Address, amount: u256): void {
  * - the owner's account (address)
  * - the spender's account (address).
  */
-export function ft1_allowance(binaryArgs: StaticArray<u8>): StaticArray<u8> {
+export function allowance(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   const args = new Args(binaryArgs);
   const owner = new Address(
     args.nextString().expect('owner argument is missing or invalid'),
@@ -238,7 +238,7 @@ export function ft1_allowance(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  * - the spender's account (address);
  * - the amount (u256).
  */
-export function ft1_increaseAllowance(binaryArgs: StaticArray<u8>): void {
+export function increaseAllowance(binaryArgs: StaticArray<u8>): void {
   const owner = Context.caller();
 
   const args = new Args(binaryArgs);
@@ -275,7 +275,7 @@ export function ft1_increaseAllowance(binaryArgs: StaticArray<u8>): void {
  * - the spender's account (address);
  * - the amount (u256).
  */
-export function ft1_decreaseAllowance(binaryArgs: StaticArray<u8>): void {
+export function decreaseAllowance(binaryArgs: StaticArray<u8>): void {
   const owner = Context.caller();
 
   const args = new Args(binaryArgs);
@@ -320,7 +320,7 @@ export function ft1_decreaseAllowance(binaryArgs: StaticArray<u8>): void {
  * - the recipient's account (address);
  * - the amount (u256).
  */
-export function ft1_transferFrom(binaryArgs: StaticArray<u8>): void {
+export function transferFrom(binaryArgs: StaticArray<u8>): void {
   const spenderAddress = Context.caller();
 
   const args = new Args(binaryArgs);
