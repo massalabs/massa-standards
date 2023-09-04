@@ -5,8 +5,9 @@ import {
   Context,
 } from '@massalabs/massa-as-sdk';
 import { Args, boolToByte } from '@massalabs/as-types';
-import { _isOwner, onlyOwner } from './ownership';
+import { onlyOwner } from './ownership';
 import { _hasRole, _members, _roleKey } from './accessControl-internal';
+import { _isOwner } from './ownership-internal';
 
 export const ROLES_KEY = '_ROLES';
 
