@@ -1,14 +1,9 @@
 import { Args, boolToByte, stringToBytes } from '@massalabs/as-types';
 import { Storage, changeCallStack } from '@massalabs/massa-as-sdk';
-import {
-  OWNER_KEY,
-  isOwner,
-  onlyOwner,
-  ownerAddress,
-  setOwner,
-} from '../ownership';
+import { isOwner, onlyOwner, ownerAddress, setOwner } from '../ownership';
 
 import { resetStorage } from '@massalabs/massa-as-sdk';
+import { OWNER_KEY } from '../ownership-internal';
 
 // address of the contract set in vm-mock. must match with contractAddr of @massalabs/massa-as-sdk/vm-mock/vm.js
 const contractAddr = 'AS12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT';

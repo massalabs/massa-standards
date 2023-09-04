@@ -22,7 +22,7 @@
         "@massalabs/as-types": "^1.0.1",
         "@massalabs/eslint-config": "^0.0.9",
         "@massalabs/massa-as-sdk": "^2.2.1-dev",
-        "@massalabs/massa-sc-compiler": "^0.0.4-dev",
+        "@massalabs/massa-sc-compiler": "^0.1.1-dev",
         "@massalabs/prettier-config-as": "^0.0.2",
         "@types/node": "^18.11.10",
         "as-bignum": "^0.2.31",
