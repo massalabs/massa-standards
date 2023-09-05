@@ -195,10 +195,15 @@ export function storeOperation(opIndex: u64, operation: Operation): void {
   // we simply use the Operation index as a key to store it
   Storage.set(makeOperationKey(opIndex), operation.serialize());
 
+  // update the list of operation index if needed
   let operationIndexList = bytesToFixedSizeArray<u64>(
     Storage.get(OPERATION_LIST_KEY),
   );
-  operationIndexList.push(opIndex);
+  let index = operationIndexList.indexOf(opIndex);
+  if (index == -1) {
+    operationIndexList.push(opIndex);
+  }
+
   Storage.set(
     OPERATION_LIST_KEY,
     fixedSizeArrayToBytes<u64>(operationIndexList),
@@ -228,6 +233,7 @@ function deleteOperation(opIndex: u64): void {
   const operationKey = makeOperationKey(opIndex);
   Storage.del(operationKey);
 
+  // update the list of operation index
   let operationIndexList = bytesToFixedSizeArray<u64>(
     Storage.get(OPERATION_LIST_KEY),
   );

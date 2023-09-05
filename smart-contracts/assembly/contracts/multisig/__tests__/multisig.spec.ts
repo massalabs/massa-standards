@@ -6,6 +6,7 @@ import {
   ms1_revokeConfirmation,
   ms1_getOperation,
   ms1_cancelOperation,
+  ms1_getOperationIndexList,
   constructor,
   Operation,
   retrieveOperation,
@@ -29,6 +30,7 @@ import {
   bytesToString,
   serializableObjectsArrayToBytes,
   bytesToSerializableObjectArray,
+  bytesToFixedSizeArray,
   Serializable,
   Result,
 } from '@massalabs/as-types';
@@ -176,6 +178,12 @@ describe('Multisig contract tests', () => {
 
     // check that the operation index is set to 0
     expect(bytesToU64(Storage.get(OPERATION_INDEX_KEY))).toBe(0);
+
+    // check that there are no operation registered yet
+    let operationList = bytesToFixedSizeArray<u64>(
+      ms1_getOperationIndexList([]),
+    );
+    expect(operationList.length).toBe(0);
   });
 
   test('submit operation by non owner', () => {
@@ -456,7 +464,7 @@ describe('Multisig contract tests', () => {
     switchUser(deployerAddress);
   });
 
-  test('cancel operation by non creator', () => {
+  test('cancel operation by non creator (will fail)', () => {
     // pick owners[1] as the operation creator
     switchUser(owners[1]);
     expect(
@@ -473,7 +481,7 @@ describe('Multisig contract tests', () => {
       ms1_cancelOperation(new Args().add(u64(8)).serialize());
     }).toThrow();
 
-    // check that the operation is indeed canceled
+    // check that the operation is indeed not canceled
     expect(hasOperation(8)).toBe(true);
     switchUser(deployerAddress);
   });
@@ -495,7 +503,7 @@ describe('Multisig contract tests', () => {
       ms1_cancelOperation(new Args().add(u64(9)).serialize());
     }).toThrow();
 
-    // check that the operation is indeed canceled
+    // check that the operation is indeed not canceled
     expect(hasOperation(9)).toBe(true);
   });
 
@@ -625,5 +633,14 @@ describe('Multisig contract tests', () => {
     // check that the transfer has not been done
     expect(destinationBalance).toBe(initDestinationBalance);
     expect(contractBalance).toBe(initContractBalance);
+  });
+
+  // check that the list of operations is now [1,3,4,6,8,9]
+  test('check operation index list', () => {
+    let operationList = bytesToFixedSizeArray<u64>(
+      ms1_getOperationIndexList([]),
+    );
+    expect(operationList.length).toBe(7);
+    expect(operationList).toStrictEqual([1, 2, 3, 4, 6, 8, 9]);
   });
 });
