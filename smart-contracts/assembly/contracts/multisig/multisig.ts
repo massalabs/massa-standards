@@ -33,6 +33,8 @@ import {
   boolToByte,
   bytesToSerializableObjectArray,
   serializableObjectsArrayToBytes,
+  bytesToFixedSizeArray,
+  fixedSizeArrayToBytes,
 } from '@massalabs/as-types';
 
 const DEPOSIT_EVENT_NAME = 'DEPOSIT';
@@ -53,6 +55,7 @@ export const NB_CONFIRMATIONS_REQUIRED_KEY = stringToBytes(
 );
 export const OWNERS_ADDRESSES_KEY = stringToBytes('OWNERS ADDRESSES');
 export const OPERATION_INDEX_KEY = stringToBytes('OPERATION INDEX');
+export const OPERATION_LIST_KEY = stringToBytes('OPERATION LIST');
 
 // ======================================================== //
 // ====             HELPER FUNCTIONS & TYPES           ==== //
@@ -191,6 +194,15 @@ export class Operation {
 export function storeOperation(opIndex: u64, operation: Operation): void {
   // we simply use the Operation index as a key to store it
   Storage.set(makeOperationKey(opIndex), operation.serialize());
+
+  let operationIndexList = bytesToFixedSizeArray<u64>(
+    Storage.get(OPERATION_LIST_KEY),
+  );
+  operationIndexList.push(opIndex);
+  Storage.set(
+    OPERATION_LIST_KEY,
+    fixedSizeArrayToBytes<u64>(operationIndexList),
+  );
 }
 
 export function retrieveOperation(opIndex: u64): Result<Operation> {
@@ -215,6 +227,19 @@ export function hasOperation(opIndex: u64): bool {
 function deleteOperation(opIndex: u64): void {
   const operationKey = makeOperationKey(opIndex);
   Storage.del(operationKey);
+
+  let operationIndexList = bytesToFixedSizeArray<u64>(
+    Storage.get(OPERATION_LIST_KEY),
+  );
+  let index = operationIndexList.indexOf(opIndex);
+  if (index !== -1) {
+    operationIndexList.splice(index, 1);
+  }
+
+  Storage.set(
+    OPERATION_LIST_KEY,
+    fixedSizeArrayToBytes<u64>(operationIndexList),
+  );
 }
 
 /**
@@ -317,8 +342,9 @@ export function constructor(stringifyArgs: StaticArray<u8>): void {
     serializableObjectsArrayToBytes(ownerAddresses),
   );
 
-  // initialize operation index
+  // initialize operation index and operation list
   Storage.set(OPERATION_INDEX_KEY, u64ToBytes(0));
+  Storage.set(OPERATION_LIST_KEY, fixedSizeArrayToBytes<u64>([]));
 }
 
 /**
@@ -777,4 +803,17 @@ export function ms1_hasOperation(
     .expect('Error while initializing operation index');
 
   return boolToByte(hasOperation(opIndex));
+}
+
+/**
+ * Returns the list of all currently pending operations indexes (which
+ * can then be queried by ms1_getOperation to display a detail list of
+ * operations currently running)
+ * @example
+ * ```typescript
+ *   let operationIndexList = bytesToFixedSizeArray<u64>(ms1_getOperationIndexList());
+ * ```
+ */
+export function ms1_getOperationIndexList(_: StaticArray<u8>): StaticArray<u8> {
+  return Storage.get(OPERATION_LIST_KEY);
 }
