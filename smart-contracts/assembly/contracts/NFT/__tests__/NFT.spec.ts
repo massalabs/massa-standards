@@ -35,7 +35,8 @@ import { u256 } from 'as-bignum/assembly';
 
 const callerAddress = 'A12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
 
-const userAddress = 'A12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1e8';
+// never used
+// const userAddress = 'A12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1e8';
 
 const NFTName = 'MASSA_NFT';
 const NFTSymbol = 'NFT';
