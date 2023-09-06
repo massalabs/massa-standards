@@ -26,6 +26,7 @@ import {
   Args,
   byteToU8,
   bytesToU64,
+  u64ToBytes,
   stringToBytes,
   bytesToString,
   serializableObjectsArrayToBytes,
@@ -210,7 +211,7 @@ describe('Multisig contract tests', () => {
           .add(u64(15000))
           .serialize(),
       ),
-    ).toBe(1);
+    ).toStrictEqual(u64ToBytes(1));
 
     // check that the operation is correctly stored
     let operationResult = retrieveOperation(1);
@@ -245,7 +246,7 @@ describe('Multisig contract tests', () => {
           .add(u64(15000))
           .serialize(),
       ),
-    ).toBe(opIndex);
+    ).toStrictEqual(u64ToBytes(opIndex));
 
     totalWeight = 0;
     for (let i = 0; i < confirmingOwnersIndexes.length; ++i) {
@@ -291,7 +292,7 @@ describe('Multisig contract tests', () => {
           .add(u64(15000))
           .serialize(),
       ),
-    ).toBe(opIndex);
+    ).toStrictEqual(u64ToBytes(opIndex));
 
     totalWeight = 0;
     for (let i = 0; i < confirmingOwnersIndexes.length; ++i) {
@@ -337,7 +338,7 @@ describe('Multisig contract tests', () => {
           .add(u64(15000))
           .serialize(),
       ),
-    ).toBe(opIndex);
+    ).toStrictEqual(u64ToBytes(opIndex));
 
     totalWeight = 0;
     for (let i = 0; i < confirmingOwnersIndexes.length; ++i) {
@@ -383,7 +384,7 @@ describe('Multisig contract tests', () => {
           .add(u64(15000))
           .serialize(),
       ),
-    ).toBe(opIndex);
+    ).toStrictEqual(u64ToBytes(opIndex));
 
     totalWeight = 0;
     for (let i = 0; i < confirmingOwnersIndexes.length; ++i) {
@@ -424,7 +425,7 @@ describe('Multisig contract tests', () => {
           .add<StaticArray<u8>>(new Args().add(42).serialize())
           .serialize(),
       ),
-    ).toBe(6);
+    ).toStrictEqual(u64ToBytes(6));
 
     // check that the operation is correctly stored
     let operationResult = retrieveOperation(6);
@@ -453,7 +454,7 @@ describe('Multisig contract tests', () => {
           .add(u64(15000))
           .serialize(),
       ),
-    ).toBe(7);
+    ).toStrictEqual(u64ToBytes(7));
 
     expect(() => {
       ms1_cancelOperation(new Args().add(u64(7)).serialize());
@@ -474,7 +475,7 @@ describe('Multisig contract tests', () => {
           .add(u64(15000))
           .serialize(),
       ),
-    ).toBe(8);
+    ).toStrictEqual(u64ToBytes(8));
 
     switchUser(owners[2]);
     expect(() => {
@@ -496,7 +497,7 @@ describe('Multisig contract tests', () => {
           .add(u64(15000))
           .serialize(),
       ),
-    ).toBe(9);
+    ).toStrictEqual(u64ToBytes(9));
 
     switchUser(deployerAddress);
     expect(() => {

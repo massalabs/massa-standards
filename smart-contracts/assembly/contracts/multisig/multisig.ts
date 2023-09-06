@@ -407,7 +407,9 @@ export function ms1_deposit(_: StaticArray<u8>): void {
  * - the amount of the operation (u64).
  * @returns operation index.
  */
-export function ms1_submitTransaction(stringifyArgs: StaticArray<u8>): u64 {
+export function ms1_submitTransaction(
+  stringifyArgs: StaticArray<u8>,
+): StaticArray<u8> {
   assert(
     isOwner(Context.caller()),
     'Invalid caller to submit an operation. Only owners are allowed.',
@@ -442,7 +444,7 @@ export function ms1_submitTransaction(stringifyArgs: StaticArray<u8>): u64 {
     ]),
   );
 
-  return opIndex;
+  return u64ToBytes(opIndex);
 }
 
 /**
@@ -468,7 +470,9 @@ export function ms1_submitTransaction(stringifyArgs: StaticArray<u8>): u64 {
  * - the function arguments (Args).
  * @returns operation index.
  */
-export function ms1_submitCall(stringifyArgs: StaticArray<u8>): u64 {
+export function ms1_submitCall(
+  stringifyArgs: StaticArray<u8>,
+): StaticArray<u8> {
   assert(
     isOwner(Context.caller()),
     'Invalid caller to submit an operation. Only owners are allowed.',
@@ -518,7 +522,7 @@ export function ms1_submitCall(stringifyArgs: StaticArray<u8>): u64 {
     ]),
   );
 
-  return opIndex;
+  return u64ToBytes(opIndex);
 }
 
 /**
