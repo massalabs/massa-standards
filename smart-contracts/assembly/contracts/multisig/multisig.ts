@@ -490,12 +490,12 @@ export function ms1_submitCall(
     .nextU64()
     .expect('Error while initializing call operation amount');
 
-  // initialize amount
+  // initialize function name
   const name = args
     .nextString()
     .expect('Error while initializing call operation function name');
 
-  // initialize amount
+  // initialize args
   const callArgsData = args
     .nextBytes()
     .expect('Error while initializing call operation function args');
