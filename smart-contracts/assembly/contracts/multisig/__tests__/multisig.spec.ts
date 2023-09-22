@@ -9,8 +9,6 @@ import {
   ms1_getOperationIndexList,
   constructor,
   Operation,
-  retrieveOperation,
-  hasOperation,
 } from '../multisig';
 
 import {
@@ -74,10 +72,39 @@ export const OPERATION_INDEX_KEY = stringToBytes('OPERATION INDEX');
 export const OPERATION_INDEX_PREFIX_KEY = '00';
 export const OWNER_PREFIX_KEY = '01';
 
+// ======================================================== //
+// ====              HELPER FUNCTIONS                  ==== //
+// ======================================================== //
+
 function makeOwnerKey(owner: string): StaticArray<u8> {
   return stringToBytes(
     OWNER_PREFIX_KEY + bytesToString(new Args().add(owner).serialize()),
   );
+}
+
+function makeOperationKey(opIndex: u64): StaticArray<u8> {
+  return stringToBytes(
+    OPERATION_INDEX_PREFIX_KEY + bytesToString(u64ToBytes(opIndex)),
+  );
+}
+
+function retrieveOperation(opIndex: u64): Result<Operation> {
+  const operationKey = makeOperationKey(opIndex);
+
+  if (Storage.has(operationKey)) {
+    let operation = new Operation();
+    operation.deserialize(Storage.get(operationKey));
+    return new Result(operation);
+  }
+
+  return new Result(
+    new Operation(),
+    'unknown or already executed Operation index',
+  );
+}
+
+function hasOperation(opIndex: u64): bool {
+  return Storage.has(makeOperationKey(opIndex));
 }
 
 // string are not serializable by default, we need this helper class

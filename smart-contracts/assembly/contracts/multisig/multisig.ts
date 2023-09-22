@@ -191,7 +191,7 @@ export class Operation {
   }
 }
 
-export function storeOperation(opIndex: u64, operation: Operation): void {
+function storeOperation(opIndex: u64, operation: Operation): void {
   // we simply use the Operation index as a key to store it
   Storage.set(makeOperationKey(opIndex), operation.serialize());
 
@@ -210,7 +210,7 @@ export function storeOperation(opIndex: u64, operation: Operation): void {
   );
 }
 
-export function retrieveOperation(opIndex: u64): Result<Operation> {
+function retrieveOperation(opIndex: u64): Result<Operation> {
   const operationKey = makeOperationKey(opIndex);
 
   if (Storage.has(operationKey)) {
@@ -225,7 +225,7 @@ export function retrieveOperation(opIndex: u64): Result<Operation> {
   );
 }
 
-export function hasOperation(opIndex: u64): bool {
+function hasOperation(opIndex: u64): bool {
   return Storage.has(makeOperationKey(opIndex));
 }
 
@@ -252,7 +252,7 @@ function deleteOperation(opIndex: u64): void {
  * Helper function to check if a given address is an owner of the multisig
  *
  */
-export function isOwner(address: Address): bool {
+function isOwner(address: Address): bool {
   let serializedOwnerAddresses = Storage.get(OWNERS_ADDRESSES_KEY);
   let owners = bytesToSerializableObjectArray<Address>(
     serializedOwnerAddresses,
