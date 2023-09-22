@@ -370,11 +370,12 @@ export function ms1_version(_: StaticArray<u8>): StaticArray<u8> {
 
 /**
  * Accepts funds to credit the multisig wallet
+ * Follow specs here: https://github.com/massalabs/massa-standards/issues/106
  *
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
  * @returns token name.
  */
-export function ms1_deposit(_: StaticArray<u8>): void {
+export function cr1_receive_coins(_: StaticArray<u8>): void {
   generateEvent(
     createEvent(DEPOSIT_EVENT_NAME, [
       Context.caller().toString(),
