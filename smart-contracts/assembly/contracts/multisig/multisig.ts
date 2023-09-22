@@ -593,6 +593,11 @@ export function ms1_confirmOperation(stringifyArgs: StaticArray<u8>): void {
  * - the operation index (u64)
  */
 export function ms1_executeOperation(stringifyArgs: StaticArray<u8>): void {
+  assert(
+    isOwner(Context.caller()),
+    'Invalid caller to execute an operation. Only owners are allowed.',
+  );
+
   const args = new Args(stringifyArgs);
 
   // initialize operation index

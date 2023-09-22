@@ -542,6 +542,7 @@ describe('Multisig contract tests', () => {
     let initDestinationBalance = destinationBalance;
     let initContractBalance = contractBalance;
 
+    switchUser(owners[1]);
     generateEvent(
       createEvent('BALANCES BEFORE', [
         initDestinationBalance.toString(),
