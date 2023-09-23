@@ -85,8 +85,7 @@ function makeOwnerKey(address: Address): StaticArray<u8> {
  *
  */
 export class Operation {
-  creator: Address; // the destination creator of the operation. Is allowed to later delete it even if
-                    // has not yet been executed.
+  creator: Address; // the creator of the operation.
   address: Address; // the destination address (the recipient of coins or the smart contract to call)
   amount: u64; // the amount
   name: string; // the function call name, if any ("" means the operation is a simple coin transfer)
@@ -227,10 +226,7 @@ function retrieveOperation(opIndex: u64): Result<Operation> {
     return new Result(operation);
   }
 
-  return new Result(
-    new Operation(),
-    'unknown Operation index',
-  );
+  return new Result(new Operation(), 'unknown Operation index');
 }
 
 function hasOperation(opIndex: u64): bool {
@@ -568,7 +564,7 @@ export function ms1_confirmOperation(stringifyArgs: StaticArray<u8>): void {
   let operation = retrieveOperation(opIndex).unwrap();
 
   // don't allow changes on executed operations
-  assert(!operation.isExecuted,'cannot modify an executed operation');
+  assert(!operation.isExecuted, 'cannot modify an executed operation');
 
   // did we already confirm it?
   assert(
@@ -677,9 +673,9 @@ export function ms1_deleteOperation(stringifyArgs: StaticArray<u8>): void {
   // operation creator.
   assert(
     (operation.isExecuted && isOwner(Context.caller())) ||
-    Context.caller() == operation.creator,
+      Context.caller() == operation.creator,
     'invalid caller to delete the operation. Owner can delete executed operations, ' +
-    'or the creator if the operation is not yet executed.',
+      'or the creator if the operation is not yet executed.',
   );
 
   // clean up Storage and delete operation
@@ -733,7 +729,7 @@ export function ms1_revokeConfirmation(stringifyArgs: StaticArray<u8>): void {
   );
 
   // don't allow changes on executed operations
-  assert(!operation.isExecuted,'cannot modify an executed operation');
+  assert(!operation.isExecuted, 'cannot modify an executed operation');
 
   // revoke it and update the Storage
   operation.revoke(owner, weight);

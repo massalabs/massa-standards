@@ -492,28 +492,31 @@ describe('Multisig contract tests', () => {
     switchUser(deployerAddress);
   });
 
-  test('delete operation by non creator (will fail because' +
-       'the operation is not yet executed)', () => {
-    // pick owners[1] as the operation creator
-    switchUser(owners[1]);
-    expect(
-      ms1_submitTransaction(
-        new Args()
-          .add<Address>(new Address(destination))
-          .add(u64(15000))
-          .serialize(),
-      ),
-    ).toStrictEqual(u64ToBytes(8));
+  test(
+    'delete operation by non creator (will fail because' +
+      'the operation is not yet executed)',
+    () => {
+      // pick owners[1] as the operation creator
+      switchUser(owners[1]);
+      expect(
+        ms1_submitTransaction(
+          new Args()
+            .add<Address>(new Address(destination))
+            .add(u64(15000))
+            .serialize(),
+        ),
+      ).toStrictEqual(u64ToBytes(8));
 
-    switchUser(owners[2]);
-    expect(() => {
-      ms1_deleteOperation(new Args().add(u64(8)).serialize());
-    }).toThrow();
+      switchUser(owners[2]);
+      expect(() => {
+        ms1_deleteOperation(new Args().add(u64(8)).serialize());
+      }).toThrow();
 
-    // check that the operation is indeed not deleted
-    expect(hasOperation(8)).toBe(true);
-    switchUser(deployerAddress);
-  });
+      // check that the operation is indeed not deleted
+      expect(hasOperation(8)).toBe(true);
+      switchUser(deployerAddress);
+    },
+  );
 
   test('delete operation by no owner/creator (will fail)', () => {
     // pick owners[1] as the operation creator
