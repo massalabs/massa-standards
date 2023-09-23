@@ -43,7 +43,7 @@ const SUBMIT_CALL_EVENT_NAME = 'SUBMIT_CALL';
 const CONFIRM_OPERATION_EVENT_NAME = 'CONFIRM_OPERATION';
 const EXECUTE_OPERATION_EVENT_NAME = 'EXECUTE_OPERATION';
 const REVOKE_OPERATION_EVENT_NAME = 'REVOKE_OPERATION';
-const CANCEL_OPERATION_EVENT_NAME = 'CANCEL_OPERATION';
+const DELETE_OPERATION_EVENT_NAME = 'DELETE_OPERATION';
 const RETRIEVE_OPERATION_EVENT_NAME = 'RETRIEVE_OPERATION';
 const GET_OWNERS_EVENT_NAME = 'GET_OWNERS';
 
@@ -85,13 +85,15 @@ function makeOwnerKey(address: Address): StaticArray<u8> {
  *
  */
 export class Operation {
-  creator: Address; // the destination creator of the operation. Is allowed to later cancel it.
+  creator: Address; // the destination creator of the operation. Is allowed to later delete it even if
+                    // has not yet been executed.
   address: Address; // the destination address (the recipient of coins or the smart contract to call)
   amount: u64; // the amount
   name: string; // the function call name, if any ("" means the operation is a simple coin transfer)
   args: Args; // the args of the function call, if any
   confirmedOwnerList: Array<Address>; // the Array listing the owners who have already signed
   confirmationWeightedSum: u8; // the confirmation total weight sum, for easy check
+  isExecuted: bool; // true when the operation has been executed
 
   constructor(
     creator: Address = new Address(),
@@ -107,6 +109,7 @@ export class Operation {
     this.args = args;
     this.confirmedOwnerList = new Array<Address>(0);
     this.confirmationWeightedSum = 0;
+    this.isExecuted = false;
   }
 
   serialize(): StaticArray<u8> {
@@ -121,7 +124,8 @@ export class Operation {
       .add<string>(this.name)
       .add<StaticArray<u8>>(this.args.serialize())
       .addSerializableObjectArray<Array<Address>>(this.confirmedOwnerList)
-      .add<u8>(this.confirmationWeightedSum);
+      .add<u8>(this.confirmationWeightedSum)
+      .add<bool>(this.isExecuted);
     return argOperation.serialize();
   }
 
@@ -150,6 +154,9 @@ export class Operation {
     this.confirmationWeightedSum = args
       .nextU8()
       .expect('Error while deserializing Operation confirmationWeightedSum');
+    this.isExecuted = args
+      .nextBool()
+      .expect('Error while deserializing Operation isExecuted');
   }
 
   isAlreadyConfirmed(owner: Address): bool {
@@ -183,6 +190,7 @@ export class Operation {
   }
 
   execute(): void {
+    this.isExecuted = true;
     if (this.name.length == 0)
       // we have a transaction
       Coins.transferCoinsOf(Context.callee(), this.address, this.amount);
@@ -221,7 +229,7 @@ function retrieveOperation(opIndex: u64): Result<Operation> {
 
   return new Result(
     new Operation(),
-    'unknown or already executed Operation index',
+    'unknown Operation index',
   );
 }
 
@@ -559,6 +567,9 @@ export function ms1_confirmOperation(stringifyArgs: StaticArray<u8>): void {
   // check the operation exists and retrieve it from Storage
   let operation = retrieveOperation(opIndex).unwrap();
 
+  // don't allow changes on executed operations
+  assert(!operation.isExecuted,'cannot modify an executed operation');
+
   // did we already confirm it?
   assert(
     !operation.isAlreadyConfirmed(owner),
@@ -608,17 +619,20 @@ export function ms1_executeOperation(stringifyArgs: StaticArray<u8>): void {
   // check the operation exists and retrieve it from Storage
   let operation = retrieveOperation(opIndex).unwrap();
 
-  // if the operation is sufficiently confirmed, execute it
+  // if the operation is sufficiently confirmed and not already executed,
+  // then execute it.
+  assert(
+    !operation.isExecuted,
+    'The operation has already been executed, cannot execute twice',
+  );
   assert(
     operation.isValidated(),
     'The operation is unsufficiently confirmed, cannot execute',
   );
   operation.execute();
 
-  // clean up Storage and remove executed operation
-  // NB: we could decide to keep it for archive purposes but then the
-  // Storage cost would increase forever.
-  deleteOperation(opIndex);
+  // update the operation in storage to reflect its new isExecuted state
+  storeOperation(opIndex, operation);
 
   generateEvent(
     createEvent(EXECUTE_OPERATION_EVENT_NAME, [
@@ -631,14 +645,14 @@ export function ms1_executeOperation(stringifyArgs: StaticArray<u8>): void {
 }
 
 /**
- * Cancel an operation and generate an event in case of success
- * NB: only the operation creator can cancel the operation. This
- * is to avoid cancel-bombing attacks on pending operations by
- * antagonist or compromised owners.
+ * Delete an operation and generate an event in case of success
+ * NB: only the operation creator can delete the operation if it
+ * has not yet been executed. This is to avoid delete-bombing
+ * attacks on pending operations by antagonist or compromised owners.
  *
  * @example
  * ```typescript
- *   ms1_cancelOperation(
+ *   ms1_deleteOperation(
  *   new Args()
  *     .add(index) // the operation index
  *     .serialize(),
@@ -648,7 +662,7 @@ export function ms1_executeOperation(stringifyArgs: StaticArray<u8>): void {
  * @param stringifyArgs - Args object serialized as a string containing:
  * - the operation index (u64)
  */
-export function ms1_cancelOperation(stringifyArgs: StaticArray<u8>): void {
+export function ms1_deleteOperation(stringifyArgs: StaticArray<u8>): void {
   const args = new Args(stringifyArgs);
 
   // initialize operation index
@@ -659,16 +673,20 @@ export function ms1_cancelOperation(stringifyArgs: StaticArray<u8>): void {
   // check the operation exists and retrieve it from Storage
   let operation = retrieveOperation(opIndex).unwrap();
 
+  // any owner can delete an executed operation, other wise it has to be the
+  // operation creator.
   assert(
+    (operation.isExecuted && isOwner(Context.caller())) ||
     Context.caller() == operation.creator,
-    'invalid caller to cancel the operation. Only the creator is allowed.',
+    'invalid caller to delete the operation. Owner can delete executed operations, ' +
+    'or the creator if the operation is not yet executed.',
   );
 
-  // clean up Storage and remove executed operation
+  // clean up Storage and delete operation
   deleteOperation(opIndex);
 
   generateEvent(
-    createEvent(CANCEL_OPERATION_EVENT_NAME, [
+    createEvent(DELETE_OPERATION_EVENT_NAME, [
       Context.caller().toString(),
       opIndex.toString(),
     ]),
@@ -713,6 +731,9 @@ export function ms1_revokeConfirmation(stringifyArgs: StaticArray<u8>): void {
     operation.isAlreadyConfirmed(owner),
     'The caller address has not yet confirmed this operation',
   );
+
+  // don't allow changes on executed operations
+  assert(!operation.isExecuted,'cannot modify an executed operation');
 
   // revoke it and update the Storage
   operation.revoke(owner, weight);

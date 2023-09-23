@@ -5,7 +5,7 @@ import {
   ms1_executeOperation,
   ms1_revokeConfirmation,
   ms1_getOperation,
-  ms1_cancelOperation,
+  ms1_deleteOperation,
   ms1_getOperationIndexList,
   constructor,
   Operation,
@@ -470,8 +470,8 @@ describe('Multisig contract tests', () => {
     expect(operation.isValidated()).toBe(false);
   });
 
-  // test of the operation cancelation
-  test('cancel operation by creator', () => {
+  // test of the operation deletion
+  test('delete operation by creator', () => {
     // pick owners[1] as the operation creator
     switchUser(owners[1]);
     expect(
@@ -484,15 +484,16 @@ describe('Multisig contract tests', () => {
     ).toStrictEqual(u64ToBytes(7));
 
     expect(() => {
-      ms1_cancelOperation(new Args().add(u64(7)).serialize());
+      ms1_deleteOperation(new Args().add(u64(7)).serialize());
     }).not.toThrow();
 
-    // check that the operation is indeed canceled
+    // check that the operation is indeed deleted
     expect(hasOperation(7)).toBe(false);
     switchUser(deployerAddress);
   });
 
-  test('cancel operation by non creator (will fail)', () => {
+  test('delete operation by non creator (will fail because' +
+       'the operation is not yet executed)', () => {
     // pick owners[1] as the operation creator
     switchUser(owners[1]);
     expect(
@@ -506,15 +507,15 @@ describe('Multisig contract tests', () => {
 
     switchUser(owners[2]);
     expect(() => {
-      ms1_cancelOperation(new Args().add(u64(8)).serialize());
+      ms1_deleteOperation(new Args().add(u64(8)).serialize());
     }).toThrow();
 
-    // check that the operation is indeed not canceled
+    // check that the operation is indeed not deleted
     expect(hasOperation(8)).toBe(true);
     switchUser(deployerAddress);
   });
 
-  test('cancel operation by no owner/creator (will fail)', () => {
+  test('delete operation by no owner/creator (will fail)', () => {
     // pick owners[1] as the operation creator
     switchUser(owners[1]);
     expect(
@@ -528,10 +529,10 @@ describe('Multisig contract tests', () => {
 
     switchUser(deployerAddress);
     expect(() => {
-      ms1_cancelOperation(new Args().add(u64(9)).serialize());
+      ms1_deleteOperation(new Args().add(u64(9)).serialize());
     }).toThrow();
 
-    // check that the operation is indeed not canceled
+    // check that the operation is indeed not deleted
     expect(hasOperation(9)).toBe(true);
   });
 
@@ -554,10 +555,9 @@ describe('Multisig contract tests', () => {
       ms1_executeOperation(new Args().add(u64(5)).serialize());
     }).not.toThrow();
 
-    // once executed, the operation is deleted
-    expect(() => {
-      ms1_getOperation(new Args().add(u64(5)).serialize());
-    }).toThrow();
+    // retrieve the operation and check that it is marked as executed
+    let operation = retrieveOperation(u64(5)).unwrap();
+    expect(operation.isExecuted).toBe(true);
 
     destinationBalance = Coins.balanceOf(destination);
     contractBalance = Coins.balanceOf(contractAddr);
@@ -573,6 +573,19 @@ describe('Multisig contract tests', () => {
     expect(contractBalance + 15000).toBe(initContractBalance);
   });
 
+  // test of the operation deletion after execution
+  test('delete operation by owner (non creator) once executed', () => {
+    // owners[1] is the operation creator for operation 5, let's pick owner2
+    switchUser(owners[2]);
+    expect(() => {
+      ms1_deleteOperation(new Args().add(u64(5)).serialize());
+    }).not.toThrow();
+
+    // check that the operation is indeed deleted
+    expect(hasOperation(5)).toBe(false);
+    switchUser(deployerAddress);
+  });
+
   // operation 4 is not validated, let's try to execute it
   test('execute transaction operation with failure', () => {
     let destinationBalance = Coins.balanceOf(destination);
@@ -580,6 +593,7 @@ describe('Multisig contract tests', () => {
     let initDestinationBalance = destinationBalance;
     let initContractBalance = contractBalance;
 
+    switchUser(owners[1]);
     generateEvent(
       createEvent('BALANCES BEFORE', [
         initDestinationBalance.toString(),
