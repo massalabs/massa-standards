@@ -26,7 +26,7 @@ import {
   generateEvent,
   Address,
   Context,
-  callerHasWriteAccess,
+  isDeployingContract
 } from '@massalabs/massa-as-sdk';
 import { Args, byteToBool } from '@massalabs/as-types';
 import { onlyOwner, setOwner, triggerError } from '../utils';
@@ -69,11 +69,8 @@ export function dns1_isDescriptionValid(description: string): boolean {
  * @param binaryArgs - Arguments serialized with Args: dns owner address
  */
 export function constructor(_: StaticArray<u8>): StaticArray<u8> {
-  // This line is important. It ensures that this function can't be called in the future.
-  // If you remove this check, someone could call your constructor function and reset your smart contract.
-  if (!callerHasWriteAccess()) {
-    return [];
-  }
+  assert(isDeployingContract());
+
   setOwner(new Args().add(Context.caller().toString()).serialize());
   return [];
 }

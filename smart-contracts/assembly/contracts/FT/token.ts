@@ -3,12 +3,12 @@ import {
   Context,
   generateEvent,
   Storage,
+  isDeployingContract
 } from '@massalabs/massa-as-sdk';
 import { Args, stringToBytes, u256ToBytes } from '@massalabs/as-types';
 import { _balance, _setBalance, _approve, _allowance } from './token-internals';
 import { setOwner } from '../utils/ownership';
 import { u256 } from 'as-bignum/assembly';
-import { isDeployingContract } from '@massalabs/massa-as-sdk/assembly/std/context';
 
 const TRANSFER_EVENT_NAME = 'TRANSFER SUCCESS';
 const APPROVAL_EVENT_NAME = 'APPROVAL SUCCESS';
@@ -42,9 +42,7 @@ export const DECIMALS_KEY = stringToBytes('DECIMALS');
  * - first owner (address)e
  */
 export function constructor(stringifyArgs: StaticArray<u8>): void {
-  // This line is important. It ensures that this function can't be called in the future.
-  // If you remove this check, someone could call your constructor function and reset your smart contract.
-  assert(callerHasWriteAccess());
+  assert(isDeployingContract());
 
   const args = new Args(stringifyArgs);
 
