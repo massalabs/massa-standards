@@ -11,7 +11,7 @@ import { u256 } from 'as-bignum/assembly';
  *
  */
 
-export const MINT_EVENT = 'MINT';
+export const MINT_EVENT = 'MINT SUCCESS';
 
 /**
  *  Mint tokens on the recipient address
@@ -33,9 +33,7 @@ export function _mint(binaryArgs: StaticArray<u8>): void {
 
   _increaseBalance(recipient, amount);
 
-  generateEvent(
-    `${MINT_EVENT}: ${amount.toString()} tokens to ${recipient.toString()}`,
-  );
+  generateEvent(MINT_EVENT);
 }
 
 /**

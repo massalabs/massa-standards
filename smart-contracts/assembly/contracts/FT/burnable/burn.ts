@@ -10,7 +10,7 @@ import { _burn, _decreaseTotalSupply } from './burn-internal';
  *
  */
 
-const BURN_EVENT = 'BURN';
+const BURN_EVENT = 'BURN_SUCCESS';
 
 /**
  * Burn tokens from the caller address
@@ -28,9 +28,7 @@ export function burn(binaryArgs: StaticArray<u8>): void {
 
   _burn(Context.caller(), amount);
 
-  generateEvent(
-    `${BURN_EVENT}: ${amount.toString()} tokens from ${Context.caller().toString()}`,
-  );
+  generateEvent(BURN_EVENT);
 }
 
 /**
@@ -61,7 +59,5 @@ export function burnFrom(binaryArgs: StaticArray<u8>): void {
   // @ts-ignore
   _approve(owner, Context.caller(), spenderAllowance - amount);
 
-  generateEvent(
-    `${BURN_EVENT}: ${amount.toString()} tokens from ${owner.toString()}`,
-  );
+  generateEvent(BURN_EVENT);
 }

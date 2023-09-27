@@ -3,16 +3,15 @@ import {
   Context,
   generateEvent,
   Storage,
-  createEvent,
-  callerHasWriteAccess,
 } from '@massalabs/massa-as-sdk';
 import { Args, stringToBytes, u256ToBytes } from '@massalabs/as-types';
 import { _balance, _setBalance, _approve, _allowance } from './token-internals';
 import { setOwner } from '../utils/ownership';
 import { u256 } from 'as-bignum/assembly';
+import { isDeployingContract } from '@massalabs/massa-as-sdk/assembly/std/context';
 
-const TRANSFER_EVENT_NAME = 'TRANSFER';
-const APPROVAL_EVENT_NAME = 'APPROVAL';
+const TRANSFER_EVENT_NAME = 'TRANSFER SUCCESS';
+const APPROVAL_EVENT_NAME = 'APPROVAL SUCCESS';
 
 export const NAME_KEY = stringToBytes('NAME');
 export const SYMBOL_KEY = stringToBytes('SYMBOL');
@@ -83,7 +82,7 @@ export function constructor(stringifyArgs: StaticArray<u8>): void {
  * @returns token version
  */
 export function version(_: StaticArray<u8>): StaticArray<u8> {
-  return stringToBytes('0.0.0');
+  return stringToBytes('0.0.1');
 }
 
 // ======================================================== //
@@ -175,13 +174,7 @@ export function transfer(binaryArgs: StaticArray<u8>): void {
 
   _transfer(owner, toAddress, amount);
 
-  generateEvent(
-    createEvent(TRANSFER_EVENT_NAME, [
-      owner.toString(),
-      toAddress.toString(),
-      amount.toString(),
-    ]),
-  );
+  generateEvent(TRANSFER_EVENT_NAME);
 }
 
 /**
@@ -257,13 +250,7 @@ export function increaseAllowance(binaryArgs: StaticArray<u8>): void {
 
   _approve(owner, spenderAddress, newAllowance);
 
-  generateEvent(
-    createEvent(APPROVAL_EVENT_NAME, [
-      owner.toString(),
-      spenderAddress.toString(),
-      newAllowance.toString(),
-    ]),
-  );
+  generateEvent(APPROVAL_EVENT_NAME);
 }
 
 /**
@@ -297,13 +284,7 @@ export function decreaseAllowance(binaryArgs: StaticArray<u8>): void {
 
   _approve(owner, spenderAddress, newAllowance);
 
-  generateEvent(
-    createEvent(APPROVAL_EVENT_NAME, [
-      owner.toString(),
-      spenderAddress.toString(),
-      newAllowance.toString(),
-    ]),
-  );
+  generateEvent(APPROVAL_EVENT_NAME);
 }
 
 /**
@@ -346,11 +327,5 @@ export function transferFrom(binaryArgs: StaticArray<u8>): void {
   // @ts-ignore
   _approve(owner, spenderAddress, spenderAllowance - amount);
 
-  generateEvent(
-    createEvent(TRANSFER_EVENT_NAME, [
-      owner.toString(),
-      recipient.toString(),
-      amount.toString(),
-    ]),
-  );
+  generateEvent(TRANSFER_EVENT_NAME);
 }
