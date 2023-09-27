@@ -6,7 +6,7 @@
  * Only the owner of the contract can perform these operations.
  */
 
-import { Storage, Context, generateEvent } from '@massalabs/massa-as-sdk';
+import { Storage, Context, generateEvent,isDeployingContract } from '@massalabs/massa-as-sdk';
 import {
   Args,
   bytesToI32,
@@ -15,7 +15,6 @@ import {
 } from '@massalabs/as-types';
 import { onlyOwner } from '../utils';
 import { _setOwner } from '../utils/ownership-internal';
-import { isDeployingContract } from '@massalabs/massa-as-sdk/assembly/std/context';
 
 export const NB_CHUNKS_KEY = stringToBytes('NB_CHUNKS');
 
