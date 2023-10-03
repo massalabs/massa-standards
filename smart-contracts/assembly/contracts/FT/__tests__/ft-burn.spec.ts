@@ -22,6 +22,7 @@ import {
   increaseAllowance,
   transfer,
   allowance,
+  VERSION,
 } from '../token';
 import { burn, burnFrom } from '../burnable/burn';
 import { ownerAddress } from '../../utils/ownership';
@@ -76,7 +77,7 @@ describe('ERC20 BURN - Initialization', () => {
   });
 
   test('version is properly initialized', () => {
-    expect(version([])).toStrictEqual(stringToBytes('0.0.0'));
+    expect(version([])).toStrictEqual(VERSION);
   });
 
   test('owner is properly initialized', () => {

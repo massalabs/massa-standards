@@ -3,12 +3,14 @@ import {
   Context,
   generateEvent,
   Storage,
-  isDeployingContract
+  isDeployingContract,
 } from '@massalabs/massa-as-sdk';
 import { Args, stringToBytes, u256ToBytes } from '@massalabs/as-types';
 import { _balance, _setBalance, _approve, _allowance } from './token-internals';
 import { setOwner } from '../utils/ownership';
 import { u256 } from 'as-bignum/assembly';
+
+export const VERSION = stringToBytes('0.0.1');
 
 const TRANSFER_EVENT_NAME = 'TRANSFER SUCCESS';
 const APPROVAL_EVENT_NAME = 'APPROVAL SUCCESS';
@@ -80,7 +82,7 @@ export function constructor(stringifyArgs: StaticArray<u8>): void {
  * @returns token version
  */
 export function version(_: StaticArray<u8>): StaticArray<u8> {
-  return stringToBytes('0.0.1');
+  return VERSION;
 }
 
 // ======================================================== //

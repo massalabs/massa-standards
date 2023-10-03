@@ -6,7 +6,12 @@
  * Only the owner of the contract can perform these operations.
  */
 
-import { Storage, Context, generateEvent,isDeployingContract } from '@massalabs/massa-as-sdk';
+import {
+  Storage,
+  Context,
+  generateEvent,
+  isDeployingContract,
+} from '@massalabs/massa-as-sdk';
 import {
   Args,
   bytesToI32,
