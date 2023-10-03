@@ -26,7 +26,7 @@ import {
   generateEvent,
   Address,
   Context,
-  isDeployingContract
+  isDeployingContract,
 } from '@massalabs/massa-as-sdk';
 import { Args, byteToBool } from '@massalabs/as-types';
 import { onlyOwner, setOwner, triggerError } from '../utils';

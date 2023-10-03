@@ -24,6 +24,7 @@ import {
   increaseAllowance,
   decreaseAllowance,
   constructor,
+  VERSION,
 } from '../token';
 import { u256 } from 'as-bignum/assembly';
 
@@ -72,7 +73,7 @@ describe('Initialization', () => {
     expect(decimals([])).toStrictEqual(u8toByte(DECIMALS)));
 
   test('version is properly initialized', () =>
-    expect(version([])).toStrictEqual(stringToBytes('0.0.0')));
+    expect(version([])).toStrictEqual(VERSION));
 });
 
 describe('BalanceOf', () => {

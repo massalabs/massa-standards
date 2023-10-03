@@ -12,6 +12,7 @@ import {
 } from '@massalabs/as-types';
 import { mint } from '../mintable/mint';
 import {
+  VERSION,
   balanceOf,
   constructor,
   decimals,
@@ -70,7 +71,7 @@ describe('ERC20 MINT - Initialization', () => {
   });
 
   test('version is properly initialized', () => {
-    expect(version([])).toStrictEqual(stringToBytes('0.0.0'));
+    expect(version([])).toStrictEqual(VERSION);
   });
 
   test('owner is properly initialized', () => {
