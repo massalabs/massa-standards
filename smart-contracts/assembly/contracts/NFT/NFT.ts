@@ -98,12 +98,13 @@ export function constructor(binaryArgs: StaticArray<u8>): void {
  * @param binaryArgs - Serialized URI String with `Args`
  */
 export function nft1_setURI(binaryArgs: StaticArray<u8>): void {
+  assert(_onlyOwner(), 'The caller is not the owner of the contract');
+
   const args = new Args(binaryArgs);
   const newBaseURI = args
     .nextString()
     .expect('BaseURI argument is missing or invalid');
 
-  assert(_onlyOwner(), 'The caller is not the owner of the contract');
   Storage.set(baseURIKey, newBaseURI);
   generateEvent(createEvent('baseURI', [newBaseURI]));
 }
@@ -163,6 +164,7 @@ export function nft1_setTokenURI(binaryArgs: StaticArray<u8>): void {
     .expect('token id argument is missing or invalid');
   assertIsMinted(tokenId);
   assertIsOwner(Context.caller().toString(), tokenId);
+
   Storage.set(
     tokenURIKey + tokenId.toString(),
     args.nextString().expect('tokenURI argument is missing or invalid'),
