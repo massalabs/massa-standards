@@ -7,10 +7,10 @@ import {
   Args,
   bytesToString,
   stringToBytes,
-  bytesToU256,
-  u256ToBytes,
+  bytesToU64,
   bytesToI32,
   bytesToU32,
+  u64ToBytes,
 } from '@massalabs/as-types';
 import {
   constructor,
@@ -31,14 +31,13 @@ import {
   nft1_setApprovalForAll,
   nft1_isApprovedForAll,
 } from '../NFT';
-import { u256 } from 'as-bignum/assembly';
 
 const callerAddress = 'A12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
 
 const NFTName = 'MASSA_NFT';
 const NFTSymbol = 'NFT';
 const NFTBaseURI = 'my.massa/';
-const NFTtotalSupply: u256 = new u256(5);
+const NFTtotalSupply: u64 = 5;
 
 describe('NFT contract', () => {
   beforeAll(() => {
@@ -55,7 +54,7 @@ describe('NFT contract', () => {
   });
 
   test('initialized', () => {
-    expect(bytesToU256(Storage.get(counterKey))).toBe(initCounter);
+    expect(bytesToU64(Storage.get(counterKey))).toBe(initCounter);
   });
 
   test('get name', () => {
@@ -65,42 +64,42 @@ describe('NFT contract', () => {
     expect(bytesToString(nft1_symbol())).toBe(NFTSymbol);
   });
   test('totalSupply call', () => {
-    expect(bytesToU256(nft1_totalSupply())).toBe(NFTtotalSupply);
+    expect(bytesToU64(nft1_totalSupply())).toBe(NFTtotalSupply);
   });
   test('get baseURI', () => {
     expect(bytesToString(nft1_baseURI())).toBe(NFTBaseURI);
   });
 
   test('get current supply', () => {
-    expect(bytesToU256(nft1_currentSupply())).toBe(new u256(0));
+    expect(bytesToU64(nft1_currentSupply())).toBe(0);
   });
 
   test('get tokenURI', () => {
-    const tokenID = new u256(1);
+    const tokenID = 1;
     expect(
-      bytesToString(nft1_tokenURI(new Args().add<u256>(tokenID).serialize())),
+      bytesToString(nft1_tokenURI(new Args().add<u64>(tokenID).serialize())),
     ).toBe('my.massa/1');
   });
 
   test('set URI', () => {
     const newURI = 'my.newMassaURI/';
-    const tokenID = new u256(1);
+    const tokenID = 1;
     nft1_setURI(new Args().add(newURI).serialize());
     expect(
-      bytesToString(nft1_tokenURI(new Args().add<u256>(tokenID).serialize())),
+      bytesToString(nft1_tokenURI(new Args().add<u64>(tokenID).serialize())),
     ).toBe('my.newMassaURI/1');
   });
 
   test('mint call, ownerOf and currentSupply call', () => {
-    expect(bytesToU256(nft1_currentSupply())).toBe(u256.Zero);
-    for (let i: u64 = 0; i < NFTtotalSupply.toU64(); i++) {
+    expect(bytesToU64(nft1_currentSupply())).toBe(0);
+    for (let i: u64 = 0; i < NFTtotalSupply; i++) {
       nft1_mint(new Args().add(callerAddress).serialize());
     }
-    expect(Storage.get(counterKey)).toStrictEqual(u256ToBytes(NFTtotalSupply));
-    expect(bytesToU256(nft1_currentSupply())).toBe(NFTtotalSupply);
-    expect(
-      nft1_ownerOf(new Args().add<u256>(u256.fromU64(2)).serialize()),
-    ).toStrictEqual(stringToBytes(callerAddress));
+    expect(Storage.get(counterKey)).toStrictEqual(u64ToBytes(NFTtotalSupply));
+    expect(bytesToU64(nft1_currentSupply())).toBe(NFTtotalSupply);
+    expect(nft1_ownerOf(new Args().add<u64>(2).serialize())).toStrictEqual(
+      stringToBytes(callerAddress),
+    );
   });
 
   throws('we have reach max supply', () => {
@@ -108,11 +107,11 @@ describe('NFT contract', () => {
   });
 
   test('current supply call', () => {
-    expect(bytesToU256(nft1_currentSupply())).toBe(NFTtotalSupply);
+    expect(bytesToU64(nft1_currentSupply())).toBe(NFTtotalSupply);
   });
 
   test('approval', () => {
-    const tokenId = new u256(1);
+    const tokenId = 1;
 
     let address = '2x';
     approveAddress(tokenId, address);
@@ -143,12 +142,12 @@ describe('NFT contract', () => {
     ).toBe(1);
 
     nft1_transferFrom(
-      new Args().add(callerAddress).add(recipient).add(new u256(1)).serialize(),
+      new Args().add(callerAddress).add(recipient).add<u64>(1).serialize(),
     );
 
-    expect(
-      nft1_ownerOf(new Args().add<u256>(u256.fromU64(1)).serialize()),
-    ).toStrictEqual(stringToBytes(recipient));
+    expect(nft1_ownerOf(new Args().add<u64>(1).serialize())).toStrictEqual(
+      stringToBytes(recipient),
+    );
 
     expect(
       bytesToI32(
@@ -160,7 +159,7 @@ describe('NFT contract', () => {
   });
 
   test('transferFrom', () => {
-    const tokenId = new u256(3);
+    const tokenId = 3;
     let address = '2x';
     let recipient = '3x';
 
@@ -171,32 +170,34 @@ describe('NFT contract', () => {
     expect(approvedAddress).toStrictEqual(address);
 
     nft1_transferFrom(
-      new Args().add(callerAddress).add(recipient).add(tokenId).serialize(),
+      new Args()
+        .add(callerAddress)
+        .add(recipient)
+        .add<u64>(tokenId)
+        .serialize(),
     );
     expect(isAllowanceCleared(tokenId)).toBeTruthy();
-    expect(nft1_ownerOf(u256ToBytes(tokenId))).toStrictEqual(
+    expect(nft1_ownerOf(u64ToBytes(tokenId))).toStrictEqual(
       stringToBytes(recipient),
     );
   });
 
   throws('transferFrom fail if not allowed', () => {
-    const tokenId = new u256(4);
+    const tokenId = 4;
     expect(getAllowedAddress(tokenId)).toStrictEqual('');
-    expect(nft1_ownerOf(u256ToBytes(tokenId))).toStrictEqual(
+    expect(nft1_ownerOf(u64ToBytes(tokenId))).toStrictEqual(
       stringToBytes(callerAddress),
     );
 
-    nft1_transferFrom(
-      new Args().add('2x').add('3x').add(new u256(4)).serialize(),
-    );
+    nft1_transferFrom(new Args().add('2x').add('3x').add(4).serialize());
   });
 });
 
-function isAllowanceCleared(tokenId: u256): boolean {
+function isAllowanceCleared(tokenId: u64): boolean {
   return getAllowedAddress(tokenId).length === 0;
 }
 
-function getAllowedAddress(tokenId: u256): string {
+function getAllowedAddress(tokenId: u64): string {
   const allowedAddress = bytesToString(
     nft1_getApproved(new Args().add(tokenId).serialize()),
   );
@@ -204,7 +205,7 @@ function getAllowedAddress(tokenId: u256): string {
   return allowedAddress;
 }
 
-function approveAddress(tokenId: u256, address: string): void {
+function approveAddress(tokenId: u64, address: string): void {
   const args = new Args().add(tokenId).add(address).serialize();
   nft1_approve(args);
 }

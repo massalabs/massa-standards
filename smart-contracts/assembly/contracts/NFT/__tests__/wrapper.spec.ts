@@ -1,7 +1,6 @@
-import { u256 } from 'as-bignum/assembly';
 import { Address, mockScCall } from '@massalabs/massa-as-sdk';
 import { NFT1Wrapper } from '../NFTWrapper';
-import { stringToBytes, u256ToBytes } from '@massalabs/as-types';
+import { stringToBytes, u64ToBytes } from '@massalabs/as-types';
 
 describe('NFT wrapper', () => {
   test('demonstrative test', () => {
@@ -19,18 +18,18 @@ describe('NFT wrapper', () => {
     mockScCall(stringToBytes('test.massa/'));
     NFT.baseURI();
     mockScCall(stringToBytes('test.massa/2'));
-    NFT.tokenURI(u256.fromU64(2));
-    mockScCall(u256ToBytes(u256.fromU64(3)));
+    NFT.tokenURI(2);
+    mockScCall(u64ToBytes(3));
     NFT.totalSupply();
     for (let i = 0; i < 3; i++) {
       mockScCall(stringToBytes('toto'));
       NFT.mint(myAddress.toString());
     }
-    mockScCall(u256ToBytes(u256.fromU64(3)));
+    mockScCall(u64ToBytes(3));
     NFT.currentSupply();
     mockScCall(stringToBytes(myAddress.toString()));
-    NFT.ownerOf(u256.fromU64(1));
+    NFT.ownerOf(1);
     mockScCall(stringToBytes(myAddress.toString()));
-    NFT.ownerOf(u256.fromU64(2));
+    NFT.ownerOf(2);
   });
 });
