@@ -20,6 +20,15 @@ import {
   totalSupplyKey,
 } from './NFT';
 
+/**
+ * Initialize all the properties of the NFT (contract Owner, counter to 0...)
+ *
+ * @param args - Args object serialized as a string containing:
+ * - the token name (string)
+ * - the token symbol (string).
+ * - the totalSupply (u64)
+ * - the baseURI (string)
+ */
 export function _constructor(args: Args): void {
   // This line is important. It ensures that this function can't be called in the future.
   // If you remove this check, someone could call your constructor function and reset your smart contract.

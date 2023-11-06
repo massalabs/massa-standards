@@ -41,7 +41,8 @@ export const approvedForAllTokenKey = 'approvedForAll_';
 export const initCounter = 0;
 
 /**
- * Initialize all the properties of the NFT (contract Owner, counter to 0...)
+ * Constructor of the NFT contract
+ * Can be called only once
  *
  * @remarks
  * Storage specification:
