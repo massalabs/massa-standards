@@ -1,14 +1,48 @@
-import { stringToBytes, bytesToU64, u64ToBytes } from '@massalabs/as-types';
+import {
+  stringToBytes,
+  bytesToU64,
+  u64ToBytes,
+  Args,
+} from '@massalabs/as-types';
 import { Storage, Context, validateAddress } from '@massalabs/massa-as-sdk';
 
 import {
   approvedForAllTokenKey,
   approvedTokenKey,
+  baseURIKey,
   counterKey,
+  initCounter,
+  nameKey,
   nft1_ownerOf,
   ownerKey,
   ownerTokenKey,
+  symbolKey,
+  totalSupplyKey,
 } from './NFT';
+
+export function _constructor(args: Args): void {
+  // This line is important. It ensures that this function can't be called in the future.
+  // If you remove this check, someone could call your constructor function and reset your smart contract.
+  assert(Context.isDeployingContract());
+
+  const name = args.nextString().expect('name argument is missing or invalid');
+  const symbol = args
+    .nextString()
+    .expect('symbol argument is missing or invalid');
+  const totalSupply = args
+    .nextU64()
+    .expect('totalSupply argument is missing or invalid');
+  const baseURI = args
+    .nextString()
+    .expect('baseURI argument is missing or invalid');
+
+  Storage.set(nameKey, name);
+  Storage.set(symbolKey, symbol);
+  Storage.set(totalSupplyKey, u64ToBytes(totalSupply));
+  Storage.set(baseURIKey, baseURI);
+  Storage.set(ownerKey, Context.caller().toString());
+  Storage.set(counterKey, u64ToBytes(initCounter));
+}
 
 /**
  * Increment the NFT counter

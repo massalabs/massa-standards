@@ -25,6 +25,7 @@ import {
   _updateBalanceOf,
   _getBalanceOf,
   assertIsOwner,
+  _constructor,
 } from './NFT-internals';
 
 export const nameKey = 'name';
@@ -68,28 +69,8 @@ export const initCounter = 0;
  * the baseURI
  */
 export function constructor(binaryArgs: StaticArray<u8>): void {
-  // This line is important. It ensures that this function can't be called in the future.
-  // If you remove this check, someone could call your constructor function and reset your smart contract.
-  assert(Context.isDeployingContract());
-
   const args = new Args(binaryArgs);
-  const name = args.nextString().expect('name argument is missing or invalid');
-  const symbol = args
-    .nextString()
-    .expect('symbol argument is missing or invalid');
-  const totalSupply = args
-    .nextU64()
-    .expect('totalSupply argument is missing or invalid');
-  const baseURI = args
-    .nextString()
-    .expect('baseURI argument is missing or invalid');
-
-  Storage.set(nameKey, name);
-  Storage.set(symbolKey, symbol);
-  Storage.set(totalSupplyKey, u64ToBytes(totalSupply));
-  Storage.set(baseURIKey, baseURI);
-  Storage.set(ownerKey, Context.caller().toString());
-  Storage.set(counterKey, u64ToBytes(initCounter));
+  _constructor(args);
 }
 
 /**
