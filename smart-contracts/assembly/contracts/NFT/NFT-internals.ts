@@ -1,6 +1,6 @@
-import { stringToBytes, bytesToU256, u256ToBytes } from '@massalabs/as-types';
-import { Storage, Context } from '@massalabs/massa-as-sdk';
-import { u256 } from 'as-bignum/assembly';
+import { stringToBytes, bytesToU64, u64ToBytes } from '@massalabs/as-types';
+import { Storage, Context, validateAddress } from '@massalabs/massa-as-sdk';
+
 import {
   approvedForAllTokenKey,
   approvedTokenKey,
@@ -13,10 +13,11 @@ import {
 /**
  * Increment the NFT counter
  */
-export function _increment(): void {
-  const currentID = bytesToU256(Storage.get(counterKey));
-  const newID = u256.add(currentID, u256.fromU32(1));
-  Storage.set(counterKey, u256ToBytes(newID));
+export function _increment(): u64 {
+  const currentID = bytesToU64(Storage.get(counterKey));
+  const newID = currentID + 1;
+  Storage.set(counterKey, u64ToBytes(newID));
+  return newID;
 }
 
 export function _updateBalanceOf(address: string, increment: boolean): void {
@@ -24,21 +25,21 @@ export function _updateBalanceOf(address: string, increment: boolean): void {
   const number = increment ? 1 : -1;
 
   if (Storage.has(balanceKey)) {
-    const balance = bytesToU256(Storage.get(balanceKey));
-    const newBalance = u256.add(balance, u256.fromI32(number));
-    Storage.set(balanceKey, u256ToBytes(newBalance));
+    const balance = bytesToU64(Storage.get(balanceKey));
+    const newBalance = balance + number;
+    Storage.set(balanceKey, u64ToBytes(newBalance));
   } else {
     assert(number == 1, 'Balance cannot be negative');
-    Storage.set(balanceKey, u256ToBytes(new u256(1)));
+    Storage.set(balanceKey, u64ToBytes(1));
   }
 }
 
-export function _getBalanceOf(address: string): u256 {
+export function _getBalanceOf(address: string): u64 {
   const balanceKey = stringToBytes('balanceOf_' + address);
 
-  if (!Storage.has(balanceKey)) return new u256(0);
+  if (!Storage.has(balanceKey)) return 0;
 
-  return bytesToU256(Storage.get(balanceKey));
+  return bytesToU64(Storage.get(balanceKey));
 }
 
 /**
@@ -52,10 +53,10 @@ export function _onlyOwner(): bool {
  * @param tokenId - the tokenID
  * @returns true if the caller is token's owner
  */
-export function _isTokenOwner(address: string, tokenId: u256): bool {
+export function _isTokenOwner(address: string, tokenId: u64): bool {
   // as we need to compare two byteArrays, we need to compare the pointers
   // we transform our byte array to their pointers and we compare them
-  const left = nft1_ownerOf(u256ToBytes(tokenId));
+  const left = nft1_ownerOf(u64ToBytes(tokenId));
   return (
     memory.compare(
       changetype<usize>(left),
@@ -69,16 +70,16 @@ export function _isTokenOwner(address: string, tokenId: u256): bool {
  * @param tokenId - the tokenID
  * @returns true if the token is minted
  */
-export function _onlyMinted(tokenId: u256): bool {
+export function _onlyMinted(tokenId: u64): bool {
   return Storage.has(ownerTokenKey + tokenId.toString());
 }
 
 /**
  * Internal function returning the currentSupply
- * @returns u256
+ * @returns u64
  */
-export function _currentSupply(): u256 {
-  return bytesToU256(Storage.get(counterKey));
+export function _currentSupply(): u64 {
+  return bytesToU64(Storage.get(counterKey));
 }
 
 // ==================================================== //
@@ -89,7 +90,7 @@ export function _transfer(
   caller: string,
   owner: string,
   recipient: string,
-  tokenId: u256,
+  tokenId: u64,
 ): void {
   assertIsMinted(tokenId);
   assertIsOwner(owner, tokenId);
@@ -115,7 +116,7 @@ export function _transfer(
  * @param tokenId - The token ID to approve
  */
 export function _approve(
-  tokenId: u256,
+  tokenId: u64,
   owner: string,
   spenderAddress: string,
 ): void {
@@ -131,20 +132,19 @@ export function _approve(
  * Removes the approval of the token
  * @param tokenId - the tokenID
  */
-function _removeApproval(id: u256): void {
-  const key = approvedTokenKey + id.toString();
+function _removeApproval(tokenId: u64): void {
+  const key = approvedTokenKey + tokenId.toString();
   Storage.set(key, '');
 }
 
-export function _getApproved(tokenId: u256): string {
+export function _getApproved(tokenId: u64): string {
   const key = approvedTokenKey + tokenId.toString();
-
   if (!Storage.has(key)) return '';
 
   return Storage.get(key);
 }
 
-export function _isApproved(address: string, tokenId: u256): bool {
+export function _isApproved(address: string, tokenId: u64): bool {
   if (address.length === 0) return false;
   const approvedAddress = _getApproved(tokenId);
   return approvedAddress === address;
@@ -176,18 +176,18 @@ export function _isApprovedForAll(owner: string, operator: string): bool {
 // ====             General Assertions             ==== //
 // ==================================================== //
 
-export function assertIsMinted(tokenId: u256): void {
+export function assertIsMinted(tokenId: u64): void {
   assert(_onlyMinted(tokenId), `Token ${tokenId.toString()} is not minted`);
 }
 
-export function assertIsOwner(address: string, tokenId: u256): void {
+export function assertIsOwner(address: string, tokenId: u64): void {
   assert(
     _isTokenOwner(address, tokenId),
     `${address} is not the owner of ${tokenId.toString()}`,
   );
 }
 
-function assertIsApproved(owner: string, caller: string, tokenId: u256): void {
+function assertIsApproved(owner: string, caller: string, tokenId: u64): void {
   assert(
     _isApproved(caller, tokenId) ||
       _isApprovedForAll(owner, caller) ||
@@ -201,6 +201,10 @@ export function assertNotSelfTransfer(owner: string, recipient: string): void {
     owner != recipient,
     'The owner and the recipient must be different addresses',
   );
+}
+
+export function assertAddressIsValid(address: string): void {
+  assert(validateAddress(address), 'Address is not valid');
 }
 
 // ==================================================== //

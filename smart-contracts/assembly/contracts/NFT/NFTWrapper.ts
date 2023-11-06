@@ -3,10 +3,9 @@ import {
   Args,
   NoArg,
   bytesToString,
-  bytesToU256,
+  bytesToU64,
   bytesToU32,
 } from '@massalabs/as-types';
-import { u256 } from 'as-bignum/assembly';
 
 /**
  * The Massa's standard NFT implementation wrapper.
@@ -55,7 +54,7 @@ export class NFT1Wrapper {
    * Returns the token URI (external link written in NFT where pictures or others are stored)
    * @param tokenId - Token ID
    */
-  tokenURI(tokenId: u256): string {
+  tokenURI(tokenId: u64): string {
     return bytesToString(
       call(
         this._origin,
@@ -70,7 +69,7 @@ export class NFT1Wrapper {
    * Set a token URI (external link written in NFT where pictures or others are stored).
    * If not set the tokenURI will be the baseURI + tokenId
    */
-  setTokenURI(tokenId: u256, tokenURI: string): void {
+  setTokenURI(tokenId: u64, tokenURI: string): void {
     call(
       this._origin,
       'nft1_setTokenURI',
@@ -91,8 +90,8 @@ export class NFT1Wrapper {
   /**
    * Returns the max supply
    */
-  totalSupply(): u256 {
-    return bytesToU256(
+  totalSupply(): u64 {
+    return bytesToU64(
       call(this._origin, 'nft1_totalSupply', NoArg, Context.transferredCoins()),
     );
   }
@@ -100,8 +99,8 @@ export class NFT1Wrapper {
   /**
    * Returns the current counter, if 10 NFT minted, returns 10.
    */
-  currentSupply(): u256 {
-    return bytesToU256(
+  currentSupply(): u64 {
+    return bytesToU64(
       call(
         this._origin,
         'nft1_currentSupply',
@@ -115,7 +114,7 @@ export class NFT1Wrapper {
    * Returns the owner of a tokenID
    * @param tokenId - Token ID
    */
-  ownerOf(tokenId: u256): Address {
+  ownerOf(tokenId: u64): Address {
     return new Address(
       bytesToString(
         call(
@@ -132,8 +131,8 @@ export class NFT1Wrapper {
    * Returns the balance of an address
    * @param address - address to check
    */
-  balanceOf(address: string): u256 {
-    return bytesToU256(
+  balanceOf(address: string): u64 {
+    return bytesToU64(
       call(
         this._origin,
         'nft1_balanceOf',
@@ -168,7 +167,7 @@ export class NFT1Wrapper {
    * @remarks caller must be an approved address
    *
    */
-  transferFrom(owner: string, recipient: string, tokenId: u256): void {
+  transferFrom(owner: string, recipient: string, tokenId: u64): void {
     call(
       this._origin,
       'nft1_transferFrom',
@@ -184,7 +183,7 @@ export class NFT1Wrapper {
    * @param address - address to approve
    *
    */
-  approve(tokenId: u256, address: string): void {
+  approve(tokenId: u64, address: string): void {
     call(
       this._origin,
       'nft1_approve',
@@ -201,7 +200,7 @@ export class NFT1Wrapper {
    * @returns the approved address if there is one else ''
    *
    */
-  getApproved(tokenId: u256): string {
+  getApproved(tokenId: u64): string {
     return bytesToString(
       call(
         this._origin,
