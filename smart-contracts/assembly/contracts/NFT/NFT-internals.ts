@@ -13,10 +13,11 @@ import {
 /**
  * Increment the NFT counter
  */
-export function _increment(): void {
+export function _increment(): u64 {
   const currentID = bytesToU64(Storage.get(counterKey));
   const newID = currentID + 1;
   Storage.set(counterKey, u64ToBytes(newID));
+  return newID;
 }
 
 export function _updateBalanceOf(address: string, increment: boolean): void {
