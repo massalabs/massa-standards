@@ -31,7 +31,7 @@ import {
   nft1_setApprovalForAll,
   nft1_isApprovedForAll,
 } from '../NFT';
-import { _increment } from '../NFT-internals';
+import { _increment, _updateBalanceOf } from '../NFT-internals';
 
 const callerAddress = 'A12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
 
@@ -229,6 +229,41 @@ describe('NFT internal', () => {
       expect(_increment()).toBe(1);
       const result = Storage.get(counterKey);
       expect(result).toStrictEqual(u64ToBytes(1));
+    });
+  });
+
+  describe('_updateBalanceOf function', () => {
+    it('should throw an error when overflow occurs', () => {
+      const maxU64 = u64.MAX_VALUE;
+      const balanceKey = stringToBytes('balanceOf_testAddress');
+      Storage.set(balanceKey, u64ToBytes(maxU64));
+
+      expect(() => _updateBalanceOf('testAddress', true)).toThrow();
+    });
+
+    it('should throw an error when underflow occurs', () => {
+      const balanceKey = stringToBytes('balanceOf_testAddress');
+      Storage.set(balanceKey, u64ToBytes(0));
+
+      expect(() => _updateBalanceOf('testAddress', false)).toThrow();
+    });
+
+    it('should correctly increment the balance', () => {
+      const balanceKey = stringToBytes('balanceOf_testAddress');
+      Storage.set(balanceKey, u64ToBytes(10));
+
+      _updateBalanceOf('testAddress', true);
+      const newBalance = bytesToU64(Storage.get(balanceKey));
+      expect(newBalance).toBe(11);
+    });
+
+    it('should correctly decrement the balance', () => {
+      const balanceKey = stringToBytes('balanceOf_testAddress');
+      Storage.set(balanceKey, u64ToBytes(10));
+
+      _updateBalanceOf('testAddress', false);
+      const newBalance = bytesToU64(Storage.get(balanceKey));
+      expect(newBalance).toBe(9);
     });
   });
 });

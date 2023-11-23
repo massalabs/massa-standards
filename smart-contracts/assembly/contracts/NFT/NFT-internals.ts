@@ -66,14 +66,21 @@ export function _increment(): u64 {
 
 export function _updateBalanceOf(address: string, increment: boolean): void {
   const balanceKey = stringToBytes('balanceOf_' + address);
-  const number = increment ? 1 : -1;
+  const number = 1;
 
   if (Storage.has(balanceKey)) {
     const balance = bytesToU64(Storage.get(balanceKey));
-    const newBalance = balance + number;
+    let newBalance: u64;
+
+    if (increment) {
+      newBalance = SafeMath.add(balance, number);
+    } else {
+      newBalance = SafeMath.sub(balance, number);
+    }
+
     Storage.set(balanceKey, u64ToBytes(newBalance));
   } else {
-    assert(number == 1, 'Balance cannot be negative');
+    assert(increment, 'Balance cannot be negative');
     Storage.set(balanceKey, u64ToBytes(1));
   }
 }
