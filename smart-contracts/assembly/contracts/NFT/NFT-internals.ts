@@ -105,8 +105,9 @@ export function _onlyOwner(): bool {
  * @returns true if the caller is token's owner
  */
 export function _isTokenOwner(address: string, tokenId: u64): bool {
-  // as we need to compare two byteArrays, we need to compare the pointers
-  // we transform our byte array to their pointers and we compare them
+  // To compare two byte arrays, we compare their contents.
+  // The byte arrays are transformed into pointers, and `memory.compare` is used to
+  // compare the values (bytes) referenced by these pointers.
   const left = nft1_ownerOf(u64ToBytes(tokenId));
   return (
     memory.compare(
