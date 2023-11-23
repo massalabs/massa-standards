@@ -31,6 +31,7 @@ import {
   nft1_setApprovalForAll,
   nft1_isApprovedForAll,
 } from '../NFT';
+import { _increment } from '../NFT-internals';
 
 const callerAddress = 'A12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
 
@@ -209,3 +210,25 @@ function approveAddress(tokenId: u64, address: string): void {
   const args = new Args().add(tokenId).add(address).serialize();
   nft1_approve(args);
 }
+describe('NFT internal', () => {
+  describe('_increment function', () => {
+    throws('should throw an error when overflow occurs', () => {
+      // Set the counter to its maximum value
+      const maxU64: u64 = u64.MAX_VALUE;
+      Storage.set(counterKey, u64ToBytes(maxU64));
+
+      // Expect an error to be thrown when trying to increment beyond the maximum value
+      _increment();
+    });
+
+    test('should increment the counter', () => {
+      // Set the counter to 0
+      Storage.set(counterKey, u64ToBytes(0));
+
+      // Expect the counter to be incremented
+      expect(_increment()).toBe(1);
+      const result = Storage.get(counterKey);
+      expect(result).toStrictEqual(u64ToBytes(1));
+    });
+  });
+});

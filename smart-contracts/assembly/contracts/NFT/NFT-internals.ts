@@ -3,6 +3,7 @@ import {
   bytesToU64,
   u64ToBytes,
   Args,
+  SafeMath,
 } from '@massalabs/as-types';
 import { Storage, Context, validateAddress } from '@massalabs/massa-as-sdk';
 
@@ -58,7 +59,7 @@ export function _constructor(args: Args): void {
  */
 export function _increment(): u64 {
   const currentID = bytesToU64(Storage.get(counterKey));
-  const newID = currentID + 1;
+  const newID = SafeMath.add(currentID, 1);
   Storage.set(counterKey, u64ToBytes(newID));
   return newID;
 }
