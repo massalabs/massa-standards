@@ -122,6 +122,10 @@ describe('Transfer', () => {
   throws('Overflow', () =>
     transfer(new Args().add(user2Address).add(u256.Max).serialize()),
   );
+
+  throws('Self transfer', () =>
+    transfer(new Args().add(user1Address).serialize()),
+  );
 });
 
 let u1u2AllowAmount = new u256(20, 20);
