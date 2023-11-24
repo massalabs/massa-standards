@@ -3,6 +3,7 @@ import {
   bytesToU64,
   u64ToBytes,
   Args,
+  SafeMath,
 } from '@massalabs/as-types';
 import { Storage, Context, validateAddress } from '@massalabs/massa-as-sdk';
 
@@ -58,21 +59,28 @@ export function _constructor(args: Args): void {
  */
 export function _increment(): u64 {
   const currentID = bytesToU64(Storage.get(counterKey));
-  const newID = currentID + 1;
+  const newID = SafeMath.add(currentID, 1);
   Storage.set(counterKey, u64ToBytes(newID));
   return newID;
 }
 
 export function _updateBalanceOf(address: string, increment: boolean): void {
   const balanceKey = stringToBytes('balanceOf_' + address);
-  const number = increment ? 1 : -1;
+  const number = 1;
 
   if (Storage.has(balanceKey)) {
     const balance = bytesToU64(Storage.get(balanceKey));
-    const newBalance = balance + number;
+    let newBalance: u64;
+
+    if (increment) {
+      newBalance = SafeMath.add(balance, number);
+    } else {
+      newBalance = SafeMath.sub(balance, number);
+    }
+
     Storage.set(balanceKey, u64ToBytes(newBalance));
   } else {
-    assert(number == 1, 'Balance cannot be negative');
+    assert(increment, 'Balance cannot be negative');
     Storage.set(balanceKey, u64ToBytes(1));
   }
 }
@@ -97,8 +105,9 @@ export function _onlyOwner(): bool {
  * @returns true if the caller is token's owner
  */
 export function _isTokenOwner(address: string, tokenId: u64): bool {
-  // as we need to compare two byteArrays, we need to compare the pointers
-  // we transform our byte array to their pointers and we compare them
+  // To compare two byte arrays, we compare their contents.
+  // The byte arrays are transformed into pointers, and `memory.compare` is used to
+  // compare the values (bytes) referenced by these pointers.
   const left = nft1_ownerOf(u64ToBytes(tokenId));
   return (
     memory.compare(
