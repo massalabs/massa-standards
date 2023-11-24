@@ -187,10 +187,7 @@ export function transfer(binaryArgs: StaticArray<u8>): void {
  * @returns true if the transfer is successful
  */
 function _transfer(from: Address, to: Address, amount: u256): void {
-  assert(
-    from.toString() != to.toString(),
-    'Transfer failed: cannot send tokens to own account',
-  );
+  assert(from != to, 'Transfer failed: cannot send tokens to own account');
 
   const currentFromBalance = _balance(from);
   const currentToBalance = _balance(to);
