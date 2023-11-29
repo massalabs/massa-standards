@@ -33,7 +33,7 @@ export function _mint(binaryArgs: StaticArray<u8>): void {
 
   _increaseBalance(recipient, amount);
 
-  generateEvent(MINT_EVENT);
+  generateEvent(`${MINT_EVENT} to ${recipient.toString()}, amount: ${amount}`);
 }
 
 /**

@@ -28,7 +28,9 @@ export function burn(binaryArgs: StaticArray<u8>): void {
 
   _burn(Context.caller(), amount);
 
-  generateEvent(BURN_EVENT);
+  generateEvent(
+    `${BURN_EVENT} from ${Context.caller().toString()}, amount ${amount}`,
+  );
 }
 
 /**
