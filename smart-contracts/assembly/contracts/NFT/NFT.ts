@@ -136,26 +136,6 @@ export function nft1_tokenURI(binaryArgs: StaticArray<u8>): StaticArray<u8> {
 }
 
 /**
- * Set a token URI (external link written in NFT where pictures or others are stored).
- * If not set the tokenURI will be the baseURI + tokenId
- * @param binaryArgs - u64 serialized tokenID with `Args` + URI string
- */
-export function nft1_setTokenURI(binaryArgs: StaticArray<u8>): void {
-  const args = new Args(binaryArgs);
-  const tokenId = args
-    .nextU64()
-    .expect('token id argument is missing or invalid');
-
-  assertIsMinted(tokenId);
-  assertIsOwner(Context.caller().toString(), tokenId);
-
-  Storage.set(
-    tokenURIKey + tokenId.toString(),
-    args.nextString().expect('tokenURI argument is missing or invalid'),
-  );
-}
-
-/**
  * Returns the base URI
  * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
  */
