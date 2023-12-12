@@ -172,7 +172,7 @@ export class TokenWrapper {
    * @param toAccount -
    * @param nbTokens -
    */
-  mint(toAccount: Address, nbTokens: u64): void {
+  mint(toAccount: Address, nbTokens: u256): void {
     call(this._origin, 'mint', new Args().add(toAccount).add(nbTokens), 0);
   }
 
@@ -181,7 +181,7 @@ export class TokenWrapper {
    *
    * @param nbTokens -
    */
-  burn(nbTokens: u64): void {
+  burn(nbTokens: u256): void {
     call(this._origin, 'burn', new Args().add(nbTokens), 0);
   }
 }
