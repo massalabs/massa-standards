@@ -24,7 +24,6 @@ import {
   _isApprovedForAll,
   _updateBalanceOf,
   _getBalanceOf,
-  assertIsOwner,
   _constructor,
 } from './NFT-internals';
 
