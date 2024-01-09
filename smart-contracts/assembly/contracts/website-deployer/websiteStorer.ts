@@ -15,13 +15,16 @@ import {
 import {
   Args,
   bytesToI32,
+  bytesToU64,
   i32ToBytes,
   stringToBytes,
+  u64ToBytes,
 } from '@massalabs/as-types';
 import { onlyOwner } from '../utils';
 import { _setOwner } from '../utils/ownership-internal';
 
 export const NB_CHUNKS_KEY = stringToBytes('NB_CHUNKS');
+export const NONCE_KEY = stringToBytes('NONCE');
 
 /**
  * Constructor function that initializes the contract owner.
@@ -60,6 +63,14 @@ export function appendBytesToWebsite(binaryArgs: StaticArray<u8>): void {
     Storage.set(NB_CHUNKS_KEY, i32ToBytes(chunkNb + 1));
   }
 
+  // if we are uploading a new website version, increment the nonce
+  if (!totalChunks) {
+    let nonce: u64 = Storage.has(NONCE_KEY)
+      ? bytesToU64(Storage.get(NONCE_KEY)) + 1
+      : 0;
+    Storage.set(NONCE_KEY, u64ToBytes(nonce));
+  }
+
   generateEvent(
     `Website chunk ${chunkNb} deployed to ${Context.callee().toString()}`,
   );
@@ -87,6 +98,10 @@ export function deleteWebsite(_: StaticArray<u8>): void {
     }
   }
   Storage.del(NB_CHUNKS_KEY);
+
+  // increment nonce
+  let nonce: u64 = bytesToU64(Storage.get(NONCE_KEY));
+  Storage.set(NONCE_KEY, u64ToBytes(++nonce));
 
   generateEvent(`Website ${Context.callee().toString()} deleted successfully`);
 }
