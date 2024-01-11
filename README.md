@@ -7,7 +7,7 @@ This project aims to establish a common set of standards for the Massa blockchai
 If you're interested in learning more about Massa and its capabilities, check out the following resources:
 
 - [Massa website](https://massa.net): This is the official website for the Massa blockchain. Here, you can learn more about Massa's features and use cases, as well as explore the Massa ecosystem and community.
-- [Massa documentation](https://docs.massa.net/en/latest/): This is the official documentation for Massa. Here, you can find detailed guides and tutorials for developing on the Massa blockchain, as well as API reference documentation for the Massa SDK and other tools.
+- [Massa documentation](https://docs.massa.net/): This is the official documentation for Massa. Here, you can find detailed guides and tutorials for developing on the Massa blockchain, as well as API reference documentation for the Massa SDK and other tools.
 
 ## Fungible Token
 
