@@ -1,11 +1,6 @@
 import { Args, u256ToBytes } from '@massalabs/as-types';
-import {
-  Address,
-  Context,
-  transferCoins,
-} from '@massalabs/massa-as-sdk';
+import { Address, Context, transferCoins } from '@massalabs/massa-as-sdk';
 import { burn } from './burnable/burn';
-import { _balance, _setBalance } from './token-internals';
 import { u256 } from 'as-bignum/assembly/integer/u256';
 import { _mint } from './mintable/mint-internal';
 
@@ -28,7 +23,8 @@ export function deposit(_: StaticArray<u8>): void {
 /**
  * Unwrap wanted value.
  *
- * @param {StaticArray<u8>} bs - Byte string
+ * @param {StaticArray<u8>} bs - serialized StaticArray<u8> containing:
+ * - the amount to withdraw (u64)
  */
 export function withdraw(bs: StaticArray<u8>): void {
   const args = new Args(bs);
