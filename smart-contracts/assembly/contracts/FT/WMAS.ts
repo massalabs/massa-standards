@@ -16,8 +16,8 @@ export function deposit(_: StaticArray<u8>): void {
   const recipient = Context.caller();
   assert(amount > 0, 'Payment must be more than 0 MAS');
 
-  const args = new Args().add(recipient).add(u256.from(amount));
-  _mint(args.serialize());
+  const args = new Args().add(recipient).add(u256.fromU64(amount)).serialize();
+  _mint(args);
 }
 
 /**
@@ -30,6 +30,6 @@ export function withdraw(bs: StaticArray<u8>): void {
   const amount = args.nextU64().unwrap();
   assert(amount > 0, 'Payment must be more than 0 WMAS');
 
-  burn(u256ToBytes(u256.from(amount)));
+  burn(u256ToBytes(u256.fromU64(amount)));
   transferCoins(new Address(args.nextString().unwrap()), amount);
 }
