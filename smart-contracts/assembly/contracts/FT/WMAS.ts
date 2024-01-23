@@ -23,7 +23,9 @@ export function deposit(_: StaticArray<u8>): void {
 /**
  * Unwrap wanted value.
  *
- * @param bs - serialized StaticArray<u8> containing the amount to withdraw (u64)
+ * @param bs - serialized StaticArray<u8> containing
+ * - the amount to withdraw (u64)
+ * - the recipient's account (String).
  */
 export function withdraw(bs: StaticArray<u8>): void {
   const args = new Args(bs);
