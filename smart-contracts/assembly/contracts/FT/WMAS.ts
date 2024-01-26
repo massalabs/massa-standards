@@ -29,9 +29,11 @@ export function deposit(_: StaticArray<u8>): void {
  */
 export function withdraw(bs: StaticArray<u8>): void {
   const args = new Args(bs);
-  const amount = args.nextU64().unwrap();
+  const amount = args.nextU64().expect('amount is missing');
+  const recipient = new Address(args.nextString().expect('recipient is missing'));
+
   assert(amount > 0, 'Payment must be more than 0 WMAS');
 
   burn(u256ToBytes(u256.fromU64(amount)));
-  transferCoins(new Address(args.nextString().unwrap()), amount);
+  transferCoins(recipient, amount);
 }
