@@ -9,7 +9,7 @@ export * from './token';
 /**
  * Wrap wanted value.
  *
- * @param _ - unused but mandatory. See https://github.com/massalabs/massa-sc-std/issues/18
+ * @param _ - unused but mandatory.
  */
 export function deposit(_: StaticArray<u8>): void {
   const amount = Context.transferredCoins();
