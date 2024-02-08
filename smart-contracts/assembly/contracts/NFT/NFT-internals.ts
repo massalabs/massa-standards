@@ -1,24 +1,35 @@
 import {
   stringToBytes,
-  SafeMath,
   bytesToU256,
   bytesToString,
   boolToByte,
   byteToBool,
   u256ToBytes,
+  Args,
 } from '@massalabs/as-types';
 import { Storage, Context, Address } from '@massalabs/massa-as-sdk';
 
-import { u256 } from 'as-bignum';
+import { u256 } from 'as-bignum/assembly';
 
 export const NAME_KEY = stringToBytes('NAME');
 export const SYMBOL_KEY = stringToBytes('SYMBOL');
-export const URI_KEY = stringToBytes('URI');
 
 export const BALANCE_KEY_PREFIX = 'BALANCE';
 export const OWNER_KEY_PREFIX = 'OWNER';
 export const ALLOWANCE_KEY_PREFIX = 'ALLOWANCE';
 export const OPERATOR_ALLOWANCE_KEY_PREFIX = 'OPERATOR_ALLOWANCE';
+
+/**
+ * Constructs a new NFT contract.
+ * @param binaryArgs - the binary arguments name and symbol
+ */
+export function _constructor(binaryArgs: StaticArray<u8>): void {
+  const args = new Args(binaryArgs);
+  const name = args.nextString().expect('Invalid name');
+  const symbol = args.nextString().expect('Invalid symbol');
+  Storage.set(NAME_KEY, stringToBytes(name));
+  Storage.set(SYMBOL_KEY, stringToBytes(symbol));
+}
 
 /**
  * @param address - address to get the balance for
@@ -116,9 +127,7 @@ export function _symbol(): string {
 export function _approve(approved: Address, tokenId: u256): void {
   assert(_isAuthorized(Context.caller(), tokenId), 'Unauthorized');
   const key = allowanceKey(tokenId);
-  if (Storage.has(key)) {
-    Storage.set(key, stringToBytes(approved.toString()));
-  }
+  Storage.set(key, stringToBytes(approved.toString()));
 }
 
 /**
@@ -144,22 +153,20 @@ export function _getApproved(tokenId: u256): Address {
 export function _isApproved(operator: Address, tokenId: u256): bool {
   const allowKey = allowanceKey(tokenId);
   if (Storage.has(allowKey)) {
-    return Storage.get(allowKey) == stringToBytes(operator.toString());
+    return bytesToString(Storage.get(allowKey)) == operator.toString();
   }
   return false;
 }
 
 /**
- * Approve to to operate tokenId.
+ * Enable or disable approval for a third party ("operator") to manage all of `Context.caller`'s assets
  *
- * @param tokenId - Id if the token to approve
- * @param to - Address to be approved
+ * @param operator - Address to add to the set of authorized operators
+ * @param approved - True if the operator is approved, false to revoke approval
  */
-export function _setApprovalForAll(operator: Address, _approved: bool): void {
+export function _setApprovalForAll(operator: Address, approved: bool): void {
   const key = operatorAllowanceKey(Context.caller(), operator);
-  if (Storage.has(key)) {
-    Storage.set(key, boolToByte(_approved));
-  }
+  Storage.set(key, boolToByte(approved));
 }
 
 /**
@@ -168,7 +175,7 @@ export function _setApprovalForAll(operator: Address, _approved: bool): void {
  * @param operator - The address that acts on behalf of the owner
  * @returns
  */
-function _isApprovedForAll(owner: Address, operator: Address): bool {
+export function _isApprovedForAll(owner: Address, operator: Address): bool {
   const key = operatorAllowanceKey(owner, operator);
   if (Storage.has(key)) {
     return byteToBool(Storage.get(key));
@@ -191,7 +198,7 @@ function _isAuthorized(operator: Address, tokenId: u256): bool {
   );
 }
 
-function _update(to: Address, tokenId: u256, auth: Address): void {
+export function _update(to: Address, tokenId: u256, auth: Address): void {
   const from = _ownerOf(tokenId);
   if (auth != new Address()) {
     assert(_isAuthorized(auth, tokenId), 'Unauthorized');
@@ -203,13 +210,17 @@ function _update(to: Address, tokenId: u256, auth: Address): void {
     const fromBalance = bytesToU256(Storage.get(balanceKey(from)));
     Storage.set(
       balanceKey(from),
-      u256ToBytes(SafeMath.sub(fromBalance, u256.One)),
+      u256ToBytes(fromBalance - u256.One)
     );
   }
   if (to != new Address()) {
+    const toBalanceKey = balanceKey(to);
     // update the balance of the to
-    const toBalance = bytesToU256(Storage.get(balanceKey(to)));
-    Storage.set(balanceKey(to), u256ToBytes(toBalance + u256.One));
+    if(Storage.has(toBalanceKey)){
+      Storage.set(toBalanceKey, u256ToBytes(bytesToU256(Storage.get(toBalanceKey)) + u256.One));
+    }else{
+      Storage.set(toBalanceKey, u256ToBytes(u256.One));
+    }
     // update the owner of the token
     Storage.set(ownerKey(tokenId), stringToBytes(to.toString()));
   }
@@ -222,26 +233,4 @@ export function _safeTransferFrom(
 ): void {
   assert(_isAuthorized(Context.caller(), tokenId), 'Unauthorized');
   _update(to, tokenId, from);
-}
-
-// ==================================================== //
-// ====                 EVENTS                     ==== //
-// ==================================================== //
-
-/**
- * Constructs a pretty formatted event with given key and arguments.
- *
- * @remarks
- * The result is meant to be used with the {@link generateEvent} function.
- * It is useful to generate events from an array.
- *
- * @param key - the string event key.
- *
- * @param args - the string array arguments.
- *
- * @returns the stringified event.
- *
- */
-export function createEvent(key: string, args: Array<string>): string {
-  return `${key}:`.concat(args.join(','));
 }
