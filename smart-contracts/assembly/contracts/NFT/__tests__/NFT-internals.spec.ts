@@ -3,13 +3,10 @@ import {
   resetStorage,
   setDeployContext,
 } from '@massalabs/massa-as-sdk';
-import {
-  Args,
-} from '@massalabs/as-types';
+import { Args } from '@massalabs/as-types';
 
 import { u256 } from 'as-bignum/assembly';
 import * as NFT from '../NFT-internals';
-
 
 const callerAddress = 'A12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
 const from = 'AU12CzoKEASaeBHnxGLnHDG2u73dLzWWfgvW6bc4L1UfMA5Uc5Fg7';
@@ -87,13 +84,13 @@ describe('Transferring NFTs', () => {
     NFT._update(new Address(callerAddress), tokenId, new Address());
     NFT._approve(new Address(from), tokenId);
     NFT._safeTransferFrom(new Address(from), new Address(newOwner), tokenId);
-    
+
     const ownerOfToken = NFT._ownerOf(tokenId);
     expect(ownerOfToken.toString()).toBe(newOwner);
-    
+
     const balanceOfNewOwner = NFT._balanceOf(new Address(newOwner));
     expect(balanceOfNewOwner).toBe(u256.One);
-    
+
     const balanceOfOldOwner = NFT._balanceOf(new Address(from));
     expect(balanceOfOldOwner).toBe(u256.Zero);
   });

@@ -208,17 +208,17 @@ export function _update(to: Address, tokenId: u256, auth: Address): void {
     _approve(new Address(), tokenId);
     // update the balance of the from
     const fromBalance = bytesToU256(Storage.get(balanceKey(from)));
-    Storage.set(
-      balanceKey(from),
-      u256ToBytes(fromBalance - u256.One)
-    );
+    Storage.set(balanceKey(from), u256ToBytes(fromBalance - u256.One));
   }
   if (to != new Address()) {
     const toBalanceKey = balanceKey(to);
     // update the balance of the to
-    if(Storage.has(toBalanceKey)){
-      Storage.set(toBalanceKey, u256ToBytes(bytesToU256(Storage.get(toBalanceKey)) + u256.One));
-    }else{
+    if (Storage.has(toBalanceKey)) {
+      Storage.set(
+        toBalanceKey,
+        u256ToBytes(bytesToU256(Storage.get(toBalanceKey)) + u256.One),
+      );
+    } else {
       Storage.set(toBalanceKey, u256ToBytes(u256.One));
     }
     // update the owner of the token
