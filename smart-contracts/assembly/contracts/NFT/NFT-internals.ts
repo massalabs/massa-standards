@@ -122,7 +122,11 @@ export function _symbol(): string {
 export function _approve(approved: string, tokenId: u256): void {
   assert(_isAuthorized(Context.caller().toString(), tokenId), 'Unauthorized');
   const key = allowanceKey(tokenId);
-  Storage.set(key, stringToBytes(approved));
+  if (approved == '') {
+    Storage.del(key);
+  } else {
+    Storage.set(key, stringToBytes(approved));
+  }
 }
 
 /**
