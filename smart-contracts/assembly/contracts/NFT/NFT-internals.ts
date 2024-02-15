@@ -165,7 +165,11 @@ export function _isApproved(operator: string, tokenId: u256): bool {
  */
 export function _setApprovalForAll(operator: string, approved: bool): void {
   const key = operatorAllowanceKey(Context.caller().toString(), operator);
-  Storage.set(key, boolToByte(approved));
+  if (approved) {
+    Storage.set(key, boolToByte(true));
+  } else {
+    Storage.del(key);
+  }
 }
 
 /**

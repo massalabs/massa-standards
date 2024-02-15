@@ -54,6 +54,10 @@ describe('Approval', () => {
 });
 
 describe('Operator Approval', () => {
+  test('should not be approved for all', () => {
+    const isApprovedForAll = internals._isApprovedForAll(caller, to);
+    expect(isApprovedForAll).toBe(false);
+  });
   test('set approval for all', () => {
     internals._setApprovalForAll(to, true);
     const isApprovedForAll = internals._isApprovedForAll(caller, to);
@@ -61,6 +65,7 @@ describe('Operator Approval', () => {
   });
 
   test('revoke approval for all', () => {
+    internals._setApprovalForAll(to, true);
     internals._setApprovalForAll(to, false);
     const isApprovedForAll = internals._isApprovedForAll(caller, to);
     expect(isApprovedForAll).toBe(false);
