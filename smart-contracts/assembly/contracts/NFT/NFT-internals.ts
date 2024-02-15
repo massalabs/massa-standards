@@ -5,28 +5,24 @@ import {
   boolToByte,
   byteToBool,
   u256ToBytes,
-  Args,
 } from '@massalabs/as-types';
-import { Storage, Context, Address } from '@massalabs/massa-as-sdk';
+import { Storage, Context } from '@massalabs/massa-as-sdk';
 
 import { u256 } from 'as-bignum/assembly';
 
-export const NAME_KEY = stringToBytes('NAME');
-export const SYMBOL_KEY = stringToBytes('SYMBOL');
+export const NAME_KEY: StaticArray<u8> = [0x01];
+export const SYMBOL_KEY: StaticArray<u8> = [0x02];
 
-export const BALANCE_KEY_PREFIX = 'BALANCE';
-export const OWNER_KEY_PREFIX = 'OWNER';
-export const ALLOWANCE_KEY_PREFIX = 'ALLOWANCE';
-export const OPERATOR_ALLOWANCE_KEY_PREFIX = 'OPERATOR_ALLOWANCE';
+export const BALANCE_KEY_PREFIX: StaticArray<u8> = [0x03];
+export const OWNER_KEY_PREFIX: StaticArray<u8> = [0x04];
+export const ALLOWANCE_KEY_PREFIX: StaticArray<u8> = [0x05];
+export const OPERATOR_ALLOWANCE_KEY_PREFIX: StaticArray<u8> = [0x06];
 
 /**
  * Constructs a new NFT contract.
  * @param binaryArgs - the binary arguments name and symbol
  */
-export function _constructor(binaryArgs: StaticArray<u8>): void {
-  const args = new Args(binaryArgs);
-  const name = args.nextString().expect('Invalid name');
-  const symbol = args.nextString().expect('Invalid symbol');
+export function _constructor(name: string, symbol: string): void {
   Storage.set(NAME_KEY, stringToBytes(name));
   Storage.set(SYMBOL_KEY, stringToBytes(symbol));
 }
@@ -35,8 +31,8 @@ export function _constructor(binaryArgs: StaticArray<u8>): void {
  * @param address - address to get the balance for
  * @returns the key of the balance in the storage for the given address
  */
-function balanceKey(address: Address): StaticArray<u8> {
-  return stringToBytes(BALANCE_KEY_PREFIX + address.toString());
+function balanceKey(address: string): StaticArray<u8> {
+  return BALANCE_KEY_PREFIX.concat(stringToBytes(address));
 }
 
 /**
@@ -44,7 +40,7 @@ function balanceKey(address: Address): StaticArray<u8> {
  * @returns the key of the owner in the storage for the given tokenId
  */
 function ownerKey(tokenId: u256): StaticArray<u8> {
-  return stringToBytes(OWNER_KEY_PREFIX + tokenId.toString());
+  return OWNER_KEY_PREFIX.concat(u256ToBytes(tokenId));
 }
 
 /**
@@ -52,7 +48,7 @@ function ownerKey(tokenId: u256): StaticArray<u8> {
  * @returns the key of the allowance in the storage for the given owner and spender
  */
 function allowanceKey(tokenId: u256): StaticArray<u8> {
-  return stringToBytes(ALLOWANCE_KEY_PREFIX + tokenId.toString());
+  return ALLOWANCE_KEY_PREFIX.concat(u256ToBytes(tokenId));
 }
 
 /**
@@ -62,12 +58,11 @@ function allowanceKey(tokenId: u256): StaticArray<u8> {
  * @returns The key of the operator allowance in the storage for the given owner and operator
  */
 function operatorAllowanceKey(
-  owner: Address,
-  operator: Address,
+  owner: string,
+  operator: string,
 ): StaticArray<u8> {
-  return stringToBytes(
-    OPERATOR_ALLOWANCE_KEY_PREFIX +
-      owner.toString().concat(operator.toString()),
+  return OPERATOR_ALLOWANCE_KEY_PREFIX.concat(
+    stringToBytes(owner).concat(stringToBytes(operator)),
   );
 }
 
@@ -76,7 +71,7 @@ function operatorAllowanceKey(
  *
  * @param owner - An address for whom to query the balance
  */
-export function _balanceOf(owner: Address): u256 {
+export function _balanceOf(owner: string): u256 {
   const key = balanceKey(owner);
   if (Storage.has(key)) {
     return bytesToU256(Storage.get(key));
@@ -90,12 +85,12 @@ export function _balanceOf(owner: Address): u256 {
  * @param tokenId - The identifier for an NFT
  * @returns the address of the owner of the NFT
  */
-export function _ownerOf(tokenId: u256): Address {
+export function _ownerOf(tokenId: u256): string {
   const key = ownerKey(tokenId);
   if (Storage.has(key)) {
-    return new Address(bytesToString(Storage.get(key)));
+    return bytesToString(Storage.get(key));
   }
-  return new Address();
+  return '';
 }
 
 /**
@@ -124,10 +119,10 @@ export function _symbol(): string {
  * @param tokenId - The NFT to approve
  * @param approved - The new approved NFT controller
  */
-export function _approve(approved: Address, tokenId: u256): void {
-  assert(_isAuthorized(Context.caller(), tokenId), 'Unauthorized');
+export function _approve(approved: string, tokenId: u256): void {
+  assert(_isAuthorized(Context.caller().toString(), tokenId), 'Unauthorized');
   const key = allowanceKey(tokenId);
-  Storage.set(key, stringToBytes(approved.toString()));
+  Storage.set(key, stringToBytes(approved));
 }
 
 /**
@@ -135,12 +130,12 @@ export function _approve(approved: Address, tokenId: u256): void {
  * @param tokenId - Id of the NFT
  * @returns Address of the approved owner of the NFT
  */
-export function _getApproved(tokenId: u256): Address {
+export function _getApproved(tokenId: u256): string {
   const key = allowanceKey(tokenId);
   if (Storage.has(key)) {
-    return new Address(bytesToString(Storage.get(key)));
+    return bytesToString(Storage.get(key));
   }
-  return new Address();
+  return '';
 }
 
 /**
@@ -150,10 +145,10 @@ export function _getApproved(tokenId: u256): Address {
  * @param tokenId - tokenId of the token
  * @returns
  */
-export function _isApproved(operator: Address, tokenId: u256): bool {
+export function _isApproved(operator: string, tokenId: u256): bool {
   const allowKey = allowanceKey(tokenId);
   if (Storage.has(allowKey)) {
-    return bytesToString(Storage.get(allowKey)) == operator.toString();
+    return bytesToString(Storage.get(allowKey)) == operator;
   }
   return false;
 }
@@ -164,8 +159,8 @@ export function _isApproved(operator: Address, tokenId: u256): bool {
  * @param operator - Address to add to the set of authorized operators
  * @param approved - True if the operator is approved, false to revoke approval
  */
-export function _setApprovalForAll(operator: Address, approved: bool): void {
-  const key = operatorAllowanceKey(Context.caller(), operator);
+export function _setApprovalForAll(operator: string, approved: bool): void {
+  const key = operatorAllowanceKey(Context.caller().toString(), operator);
   Storage.set(key, boolToByte(approved));
 }
 
@@ -175,7 +170,7 @@ export function _setApprovalForAll(operator: Address, approved: bool): void {
  * @param operator - The address that acts on behalf of the owner
  * @returns
  */
-export function _isApprovedForAll(owner: Address, operator: Address): bool {
+export function _isApprovedForAll(owner: string, operator: string): bool {
   const key = operatorAllowanceKey(owner, operator);
   if (Storage.has(key)) {
     return byteToBool(Storage.get(key));
@@ -190,7 +185,7 @@ export function _isApprovedForAll(owner: Address, operator: Address): bool {
  * @param tokenId - The NFT to be managed
  * @returns
  */
-function _isAuthorized(operator: Address, tokenId: u256): bool {
+function _isAuthorized(operator: string, tokenId: u256): bool {
   return (
     _isApproved(operator, tokenId) ||
     _isApprovedForAll(_ownerOf(tokenId), operator) ||
@@ -198,19 +193,19 @@ function _isAuthorized(operator: Address, tokenId: u256): bool {
   );
 }
 
-export function _update(to: Address, tokenId: u256, auth: Address): void {
+export function _update(to: string, tokenId: u256, auth: string): void {
   const from = _ownerOf(tokenId);
-  if (auth != new Address()) {
+  if (auth != '') {
     assert(_isAuthorized(auth, tokenId), 'Unauthorized');
   }
-  if (from != new Address()) {
+  if (from != '') {
     // clear the approval
-    _approve(new Address(), tokenId);
+    _approve('', tokenId);
     // update the balance of the from
     const fromBalance = bytesToU256(Storage.get(balanceKey(from)));
     Storage.set(balanceKey(from), u256ToBytes(fromBalance - u256.One));
   }
-  if (to != new Address()) {
+  if (to != '') {
     const toBalanceKey = balanceKey(to);
     // update the balance of the to
     if (Storage.has(toBalanceKey)) {
@@ -227,10 +222,10 @@ export function _update(to: Address, tokenId: u256, auth: Address): void {
 }
 
 export function _safeTransferFrom(
-  from: Address,
-  to: Address,
+  from: string,
+  to: string,
   tokenId: u256,
 ): void {
-  assert(_isAuthorized(Context.caller(), tokenId), 'Unauthorized');
+  assert(_isAuthorized(Context.caller().toString(), tokenId), 'Unauthorized');
   _update(to, tokenId, from);
 }
