@@ -13,8 +13,8 @@ export * from './token';
  */
 export function deposit(_: StaticArray<u8>): void {
   const amount = Context.transferredCoins();
-  const recipient = Context.caller();
   assert(amount > 0, 'Payment must be more than 0 MAS');
+  const recipient = Context.caller();
 
   const args = new Args().add(recipient).add(u256.fromU64(amount)).serialize();
   _mint(args);
