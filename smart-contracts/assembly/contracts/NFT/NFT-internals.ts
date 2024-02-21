@@ -73,73 +73,58 @@ function operatorAllowanceKey(
  */
 export function _balanceOf(owner: string): u256 {
   const key = balanceKey(owner);
-  if (Storage.has(key)) {
-    return bytesToU256(Storage.get(key));
-  }
-  return u256.Zero;
+  return Storage.has(key) ? bytesToU256(Storage.get(key)) : u256.Zero;
 }
 
 /**
  * Returns the owner of a given tokenId.
  *
  * @param tokenId - The identifier for an NFT
- * @returns the address of the owner of the NFT
+ * @returns the address of the owner of the NFT or an empty string if the NFT is not owned
  */
 export function _ownerOf(tokenId: u256): string {
   const key = ownerKey(tokenId);
-  if (Storage.has(key)) {
-    return bytesToString(Storage.get(key));
-  }
-  return '';
+  return Storage.has(key) ? bytesToString(Storage.get(key)) : '';
 }
 
 /**
- * Returns the name of the contract.
+ * Returns the name of the contract or an empty string if the name is not set.
  */
 export function _name(): string {
-  if (Storage.has(NAME_KEY)) {
-    return bytesToString(Storage.get(NAME_KEY));
-  }
-  return '';
+  return Storage.has(NAME_KEY) ? bytesToString(Storage.get(NAME_KEY)) : '';
 }
 
 /**
- * Returns the symbol of the contract.
+ * Returns the symbol of the contract or an empty string if the symbol is not set.
  */
 export function _symbol(): string {
-  if (Storage.has(SYMBOL_KEY)) {
-    return bytesToString(Storage.get(SYMBOL_KEY));
-  }
-  return '';
+  return Storage.has(SYMBOL_KEY) ? bytesToString(Storage.get(SYMBOL_KEY)) : '';
 }
 
 /**
- * Change or reaffirm the approved address for an NFT
+ * Change ,reaffirm or revoke the approved address for an NFT.
+ * Checks that the caller is the NFT owner or has been approved by the owner.
  *
  * @param tokenId - The NFT to approve
- * @param approved - The new approved NFT controller
+ * @param approved - The new approved NFT operator
+ *
+ * @remarks If approved is the zero address, the function will clear the approval for the NFT by deleting the key.
+ *
  */
 export function _approve(approved: string, tokenId: u256): void {
   assert(_isAuthorized(Context.caller().toString(), tokenId), 'Unauthorized');
   const key = allowanceKey(tokenId);
-  if (approved == '') {
-    Storage.del(key);
-  } else {
-    Storage.set(key, stringToBytes(approved));
-  }
+  approved == '' ? Storage.del(key) : Storage.set(key, stringToBytes(approved));
 }
 
 /**
  * Get the approved address for a single NFT
  * @param tokenId - Id of the NFT
- * @returns Address of the approved owner of the NFT
+ * @returns Address of the approved owner of the NFT or an empty string if no address is approved.
  */
 export function _getApproved(tokenId: u256): string {
   const key = allowanceKey(tokenId);
-  if (Storage.has(key)) {
-    return bytesToString(Storage.get(key));
-  }
-  return '';
+  return Storage.has(key) ? bytesToString(Storage.get(key)) : '';
 }
 
 /**
@@ -147,43 +132,37 @@ export function _getApproved(tokenId: u256): string {
  *
  * @param operator - address of the operator
  * @param tokenId - tokenId of the token
- * @returns
+ * @returns true if the operator is approved, false if not
  */
 export function _isApproved(operator: string, tokenId: u256): bool {
   const allowKey = allowanceKey(tokenId);
-  if (Storage.has(allowKey)) {
-    return bytesToString(Storage.get(allowKey)) == operator;
-  }
-  return false;
+  return Storage.has(allowKey)
+    ? bytesToString(Storage.get(allowKey)) == operator
+    : false;
 }
 
 /**
- * Enable or disable approval for a third party ("operator") to manage all of `Context.caller`'s assets
+ * Enable or disable approval for a third party ("operator") to manage all of `Context.caller`'s assets.
  *
  * @param operator - Address to add to the set of authorized operators
  * @param approved - True if the operator is approved, false to revoke approval
+ *
+ * @remarks deletes the key if approved is false
  */
 export function _setApprovalForAll(operator: string, approved: bool): void {
   const key = operatorAllowanceKey(Context.caller().toString(), operator);
-  if (approved) {
-    Storage.set(key, boolToByte(true));
-  } else {
-    Storage.del(key);
-  }
+  approved ? Storage.set(key, boolToByte(true)) : Storage.del(key);
 }
 
 /**
  * Query if an address is an authorized operator for another address
  * @param owner - The address that owns the NFTs
  * @param operator - The address that acts on behalf of the owner
- * @returns
+ * @returns true if the operator is approved for all, false if not
  */
 export function _isApprovedForAll(owner: string, operator: string): bool {
   const key = operatorAllowanceKey(owner, operator);
-  if (Storage.has(key)) {
-    return byteToBool(Storage.get(key));
-  }
-  return false;
+  return Storage.has(key) ? byteToBool(Storage.get(key)) : false;
 }
 
 /**
@@ -191,15 +170,36 @@ export function _isApprovedForAll(owner: string, operator: string): bool {
  *
  * @param operator - address of the operator
  * @param tokenId - The NFT to be managed
- * @returns
+ * @returns true if operator is allowed to manage the NFT, false if not. The three possibilities are:
+ * 1. The owner of the NFT
+ * 2. The operator has been approved by the owner
+ * 3. The operator has been approved for all NFTs by the owner
  */
 function _isAuthorized(operator: string, tokenId: u256): bool {
   return (
+    _ownerOf(tokenId) == operator ||
     _isApproved(operator, tokenId) ||
-    _isApprovedForAll(_ownerOf(tokenId), operator) ||
-    _ownerOf(tokenId) == operator
+    _isApprovedForAll(_ownerOf(tokenId), operator)
   );
 }
+
+/**
+ * Transfers `tokenId` from its current owner to `to`,
+ * or alternatively mints if the current owner is the zero address.
+ * or alternatively burns if the `to` is the zero address.
+ *
+ * @param to - the address to transfer the token to. If the address is the zero address, the token is burned.
+ * @param tokenId - the token to transfer. If the owner is the zero address, i.e., the token isn't owned,
+ * the token gets minted.
+ * @param auth - the address of the operator. If the 'auth' is non 0,
+ * then this function will check that 'auth' is either the owner of the token,
+ * or approved to operate on the token (by the owner). If `auth` is 0, then no check is performed.
+ *
+ * @remarks This function is a helper function for functions such as `transfer`, `transferFrom`, `mint` or `burn`.
+ * It is not meant to be called directly as it does not check for the caller's permissions.
+ * For example if you were to wrap this helper in a `transfer` function,
+ * you should check that the caller is the owner of the token, and then call the _update function.
+ */
 
 export function _update(to: string, tokenId: u256, auth: string): void {
   const from = _ownerOf(tokenId);
@@ -211,21 +211,24 @@ export function _update(to: string, tokenId: u256, auth: string): void {
     _approve('', tokenId);
     // update the balance of the from
     const fromBalance = bytesToU256(Storage.get(balanceKey(from)));
+    assert(fromBalance > u256.Zero, 'Insufficient balance');
     Storage.set(balanceKey(from), u256ToBytes(fromBalance - u256.One));
   }
   if (to != '') {
     const toBalanceKey = balanceKey(to);
     // update the balance of the to
     if (Storage.has(toBalanceKey)) {
-      Storage.set(
-        toBalanceKey,
-        u256ToBytes(bytesToU256(Storage.get(toBalanceKey)) + u256.One),
-      );
+      const toBalance = bytesToU256(Storage.get(toBalanceKey));
+      assert(toBalance < u256.Max, 'Balance overflow');
+      Storage.set(toBalanceKey, u256ToBytes(toBalance + u256.One));
     } else {
       Storage.set(toBalanceKey, u256ToBytes(u256.One));
     }
     // update the owner of the token
     Storage.set(ownerKey(tokenId), stringToBytes(to.toString()));
+  } else {
+    // burn the token
+    Storage.del(ownerKey(tokenId));
   }
 }
 
@@ -234,6 +237,11 @@ export function _safeTransferFrom(
   to: string,
   tokenId: u256,
 ): void {
-  assert(_isAuthorized(Context.caller().toString(), tokenId), 'Unauthorized');
+  assert(
+    _isAuthorized(Context.caller().toString(), tokenId),
+    'Unauthorized caller',
+  );
+  assert(from == _ownerOf(tokenId), 'Unauthorized from');
+  assert(to != '', 'Unauthorized to');
   _update(to, tokenId, from);
 }

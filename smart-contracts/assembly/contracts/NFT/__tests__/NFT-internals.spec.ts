@@ -1,8 +1,13 @@
-import { resetStorage, setDeployContext } from '@massalabs/massa-as-sdk';
+import {
+  changeCallStack,
+  resetStorage,
+  setDeployContext,
+} from '@massalabs/massa-as-sdk';
 
 import { u256 } from 'as-bignum/assembly';
 import * as internals from '../NFT-internals';
 
+const tokenAddress = 'AS12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT';
 const caller = 'A12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
 const from = 'AU12CzoKEASaeBHnxGLnHDG2u73dLzWWfgvW6bc4L1UfMA5Uc5Fg7';
 const to = 'AU178qZCfaNXkz9tQiXJcVfAEnYGJ27UoNtFFJh3BiT8jTfY8P2D';
@@ -20,6 +25,10 @@ beforeEach(() => {
   internals._constructor(NFTName, NFTSymbol);
 });
 
+function switchUser(user: string): void {
+  changeCallStack(user + ' , ' + tokenAddress);
+}
+
 describe('Initialization', () => {
   test('get name', () => {
     expect(internals._name()).toBe(NFTName);
@@ -34,6 +43,13 @@ describe('update', () => {
     internals._update(to, tokenId, zeroAddress);
     expect(internals._balanceOf(to)).toBe(tokenId);
     expect(internals._ownerOf(tokenId)).toBe(to);
+  });
+  throws('Minting to zero address should fail', () => {
+    internals._update(zeroAddress, tokenId, zeroAddress);
+  });
+  throws('Minting an already existing tokenId should fail', () => {
+    internals._update(to, tokenId, zeroAddress);
+    internals._update(to, tokenId, zeroAddress);
   });
 });
 
@@ -50,6 +66,17 @@ describe('Approval', () => {
     internals._approve(approved, tokenId);
     const isApproved = internals._isApproved(approved, tokenId);
     expect(isApproved).toBe(true);
+  });
+
+  throws('Approving zero address should fail', () => {
+    internals._update(caller, tokenId, zeroAddress);
+    internals._approve(zeroAddress, tokenId);
+  });
+
+  throws('Approving a token one does not own should fail', () => {
+    internals._update(to, tokenId, zeroAddress);
+    switchUser(from);
+    internals._approve(approved, tokenId);
   });
 });
 
@@ -73,16 +100,11 @@ describe('Operator Approval', () => {
 });
 
 describe('Transferring NFTs', () => {
-  test('safeTransferFrom without approval fails', () => {
-    expect(() => {
-      internals._safeTransferFrom(from, newOwner, tokenId);
-    }).toThrow('Unauthorized');
-  });
-
   test('safeTransferFrom with approval succeeds', () => {
     internals._update(caller, tokenId, zeroAddress);
     internals._approve(from, tokenId);
-    internals._safeTransferFrom(from, newOwner, tokenId);
+    switchUser(from);
+    internals._safeTransferFrom(caller, newOwner, tokenId);
 
     const ownerOfToken = internals._ownerOf(tokenId);
     expect(ownerOfToken).toBe(newOwner);
@@ -92,5 +114,19 @@ describe('Transferring NFTs', () => {
 
     const balanceOfOldOwner = internals._balanceOf(from);
     expect(balanceOfOldOwner).toBe(u256.Zero);
+  });
+  throws('Transferring a non-existent token should fail', () => {
+    internals._safeTransferFrom(from, to, tokenId);
+  });
+
+  throws('Transferring from incorrect owner should fail', () => {
+    internals._update(to, tokenId, zeroAddress);
+    internals._safeTransferFrom(from, newOwner, tokenId);
+  });
+
+  throws('Transferring without approval should fail', () => {
+    internals._update(caller, tokenId, zeroAddress);
+    switchUser(from);
+    internals._safeTransferFrom(caller, newOwner, tokenId);
   });
 });
