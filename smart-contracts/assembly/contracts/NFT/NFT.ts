@@ -95,8 +95,7 @@ export function safeTransferFrom(binaryArgs: StaticArray<u8>): void {
   const tokenId = args
     .nextU256()
     .expect('tokenId argument is missing or invalid');
-  const data = args.nextBytes().expect('data argument is missing or invalid');
-  internals._safeTransferFrom(from, to, tokenId, data);
+  internals._safeTransferFrom(from, to, tokenId);
 }
 
 export function mint(binaryArgs: StaticArray<u8>): void {
