@@ -114,7 +114,11 @@ export function _symbol(): string {
 export function _approve(approved: string, tokenId: u256): void {
   assert(_isAuthorized(Context.caller().toString(), tokenId), 'Unauthorized');
   const key = allowanceKey(tokenId);
-  approved == '' ? Storage.del(key) : Storage.set(key, stringToBytes(approved));
+  approved != ''
+    ? Storage.set(key, stringToBytes(approved))
+    : Storage.has(key)
+    ? Storage.del(key)
+    : '';
 }
 
 /**
@@ -203,6 +207,7 @@ function _isAuthorized(operator: string, tokenId: u256): bool {
 
 export function _update(to: string, tokenId: u256, auth: string): void {
   const from = _ownerOf(tokenId);
+  assert(to != from, 'The from and to addresses are the same');
   if (auth != '') {
     assert(_isAuthorized(auth, tokenId), 'Unauthorized');
   }
@@ -231,17 +236,30 @@ export function _update(to: string, tokenId: u256, auth: string): void {
     Storage.del(ownerKey(tokenId));
   }
 }
-
-export function _safeTransferFrom(
-  from: string,
-  to: string,
-  tokenId: u256,
-): void {
+/**
+ * Transfers the ownership of an NFT from one address to another address.
+ * @param from - The address of the current owner
+ * @param to - The address of the new owner
+ * @param tokenId - The NFT to transfer
+ *
+ * @remarks This function can be called by the current owner of the NFT or an authorized operator.
+ * If the caller is not the owner, it must be an authorized operator to execute the function.
+ *
+ **/
+export function _transferFrom(from: string, to: string, tokenId: u256): void {
   assert(
     _isAuthorized(Context.caller().toString(), tokenId),
     'Unauthorized caller',
   );
   assert(from == _ownerOf(tokenId), 'Unauthorized from');
   assert(to != '', 'Unauthorized to');
+  assert(Storage.has(ownerKey(tokenId)), 'Nonexistent token');
   _update(to, tokenId, from);
 }
+
+/**
+ * TOD0: Implement the safeTransferFrom function.
+ * To do so you need to verify that the recipient is a contract and supports the ERC721Receiver interface.
+ *
+ * see: https://github.com/massalabs/massa-standards/issues/146
+ */

@@ -53,7 +53,6 @@ function balanceKey(address: Address): StaticArray<u8> {
  */
 export function _approve(owner: Address, spender: Address, amount: u256): void {
   const key = allowanceKey(owner, spender);
-
   Storage.set(key, u256ToBytes(amount));
 }
 
