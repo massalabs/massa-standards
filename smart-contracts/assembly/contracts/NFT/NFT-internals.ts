@@ -1,3 +1,12 @@
+/**
+ * This file contains the internals functions of an NFT contract as defined by the ERC721 standard.
+ * https://eips.ethereum.org/EIPS/eip-721
+ * This file is meant to be imported and used by an NFT implementation contract.
+ * It is not meant to be deployed as is on its own.
+ * Please check the NFT-example.ts file for an example of how to use this file.
+ *
+ */
+
 import {
   stringToBytes,
   bytesToU256,
@@ -21,6 +30,10 @@ export const OPERATOR_ALLOWANCE_KEY_PREFIX: StaticArray<u8> = [0x06];
 /**
  * Constructs a new NFT contract.
  * @param binaryArgs - the binary arguments name and symbol
+ *
+ * @remarks This function shouldn't be directly exported by the implementation contract.
+ * It is meant to be called by the constructor of the implementation contract.
+ * Please check the NFT-example.ts file for an example of how to use this function.
  */
 export function _constructor(name: string, symbol: string): void {
   Storage.set(NAME_KEY, stringToBytes(name));
@@ -179,7 +192,7 @@ export function _isApprovedForAll(owner: string, operator: string): bool {
  * 2. The operator has been approved by the owner
  * 3. The operator has been approved for all NFTs by the owner
  */
-function _isAuthorized(operator: string, tokenId: u256): bool {
+export function _isAuthorized(operator: string, tokenId: u256): bool {
   return (
     _ownerOf(tokenId) == operator ||
     _isApproved(operator, tokenId) ||

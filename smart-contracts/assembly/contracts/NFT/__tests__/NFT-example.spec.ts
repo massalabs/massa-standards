@@ -16,7 +16,8 @@ import {
   isApprovedForAll,
   transferFrom,
   burn,
-} from '../NFT';
+  ownerAddress,
+} from '../NFT-example';
 import {
   Args,
   byteToBool,
@@ -27,7 +28,7 @@ import { u256 } from 'as-bignum/assembly';
 
 const NFTName = 'MASSA_NFT';
 const NFTSymbol = 'NFT';
-const caller = 'A12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
+const contractOwner = 'A12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
 const tokenAddress = 'AS12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT';
 const from = 'AU12CzoKEASaeBHnxGLnHDG2u73dLzWWfgvW6bc4L1UfMA5Uc5Fg7';
 const to = 'AU178qZCfaNXkz9tQiXJcVfAEnYGJ27UoNtFFJh3BiT8jTfY8P2D';
@@ -36,15 +37,16 @@ const newOwner = 'AU12F7y3PWpw72XcwhSksJztRiTSqAvLxaLacP2qDYhNUEfEXuG4T';
 const zeroAddress = '';
 const tokenId = u256.One;
 
-beforeEach(() => {
-  resetStorage();
-  setDeployContext(caller);
-  constructor(new Args().add(NFTName).add(NFTSymbol).serialize());
-});
-
 function switchUser(user: string): void {
   changeCallStack(user + ' , ' + tokenAddress);
 }
+
+beforeEach(() => {
+  resetStorage();
+  setDeployContext(contractOwner);
+  constructor(new Args().add(NFTName).add(NFTSymbol).serialize());
+  switchUser(contractOwner);
+});
 
 describe('Initialization', () => {
   test('get name', () => {
@@ -53,10 +55,14 @@ describe('Initialization', () => {
   test('get symbol', () => {
     expect(symbol()).toBe(NFTSymbol);
   });
+  test('get owner', () => {
+    expect(bytesToString(ownerAddress([]))).toBe(contractOwner);
+  });
 });
 
 describe('Minting', () => {
   test('Mint token to an address', () => {
+    switchUser(contractOwner);
     mint(new Args().add(to).add(tokenId).serialize());
     expect(bytesToString(ownerOf(new Args().add(tokenId).serialize()))).toBe(
       to,
@@ -64,6 +70,10 @@ describe('Minting', () => {
     expect(
       bytesToU256(balanceOf(new Args().add(to).serialize())),
     ).toStrictEqual(u256.One);
+  });
+  throws('Minting from not owner should fail', () => {
+    switchUser(from);
+    mint(new Args().add(to).add(tokenId).serialize());
   });
   throws('Minting to zero address should fail', () => {
     mint(new Args().add(zeroAddress).add(tokenId).serialize());

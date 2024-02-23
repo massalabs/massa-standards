@@ -1,11 +1,13 @@
 /**
- * 
+ *
  * This is an example of a smart contract that implements the ERC721 standard.
  * On top of the standard function defined in the standard, it also implements a mint and burn function.
  * The mint function is used to create a new NFT and assign it to an address.
+ * The mint function is only callable by the contract owner.
  * The burn function is used to destroy an NFT.
- * In this example, there is no restriction on who can mint or burn a token. 
- * 
+ *
+ * The contract owner is the address that deployed the contract.
+ *
  */
 
 import {
@@ -27,7 +29,9 @@ import {
   _update,
   _transferFrom,
 } from './NFT-internals';
-import { isDeployingContract } from '@massalabs/massa-as-sdk';
+import { setOwner, onlyOwner } from '../utils/ownership';
+
+import { Context, isDeployingContract } from '@massalabs/massa-as-sdk';
 
 export function constructor(binaryArgs: StaticArray<u8>): void {
   assert(isDeployingContract());
@@ -37,6 +41,7 @@ export function constructor(binaryArgs: StaticArray<u8>): void {
     .nextString()
     .expect('symbol argument is missing or invalid');
   _constructor(name, symbol);
+  setOwner(new Args().add(Context.caller().toString()).serialize());
 }
 
 export function name(): string {
@@ -111,6 +116,7 @@ export function transferFrom(binaryArgs: StaticArray<u8>): void {
 }
 
 export function mint(binaryArgs: StaticArray<u8>): void {
+  onlyOwner();
   const args = new Args(binaryArgs);
   const to = args.nextString().expect('to argument is missing or invalid');
   const tokenId = args
@@ -126,3 +132,5 @@ export function burn(binaryArgs: StaticArray<u8>): void {
     .expect('tokenId argument is missing or invalid');
   _update('', tokenId, '');
 }
+
+export { ownerAddress } from '../utils/ownership';
