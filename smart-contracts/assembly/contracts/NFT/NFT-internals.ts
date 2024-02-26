@@ -1,8 +1,18 @@
 /**
  * This file contains the internals functions of an NFT contract as defined by the ERC721 standard.
  * https://eips.ethereum.org/EIPS/eip-721
- * This file is meant to be imported and used by an NFT implementation contract.
- * It is not meant to be deployed as is on its own.
+ *
+ * DO NOT DEPLOY THIS CONTRACT.
+ *
+ * This file is NOT meant to be deployed on its own.
+ * The functions exposed by this file are meant to be imported and used inside an NFT implementation contract.
+ * This file can be seen as a library of helper functions that can be used to implement an NFT contract.
+ *
+ * The goal of having one separate file for the internals of the NFT contract is
+ * 1. To abstract the complexity of storage access.
+ * 2. To guarantee that the storage is accessed in a consistent and gas efficient way.
+ * 3. To allow developers to focus on the business logic of their NFT contracts.
+ *
  * Please check the NFT-example.ts file for an example of how to use this file.
  *
  */
