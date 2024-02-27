@@ -1,2 +1,2 @@
-export * from './NFT';
-export * from './NFTWrapper';
+export * from './NFT-internals';
+export * from './NFT-example';

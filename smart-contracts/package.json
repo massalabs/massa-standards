@@ -25,7 +25,7 @@
         "@massalabs/massa-sc-compiler": "^0.1.1-dev",
         "@massalabs/prettier-config-as": "^0.0.2",
         "@types/node": "^18.11.10",
-        "as-bignum": "^0.2.31",
+        "as-bignum": "^0.3.0",
         "assemblyscript": "^0.25.2",
         "dotenv": "^16.0.3",
         "prettier": "^2.8.1",
