@@ -1,5 +1,11 @@
 import { Address, call } from '@massalabs/massa-as-sdk';
-import { Args, NoArg, bytesToU256, bytesToString } from '@massalabs/as-types';
+import {
+  Args,
+  NoArg,
+  bytesToU256,
+  bytesToString,
+  byteToU8,
+} from '@massalabs/as-types';
 import { u256 } from 'as-bignum/assembly';
 
 /**
@@ -29,6 +35,19 @@ export class TokenWrapper {
   }
 
   /**
+   * Initializes the smart contract.
+   *
+   * @param name - Name of the token.
+   * @param symbol - Symbol of the token.
+   * @param decimals - Number of decimals of the token.
+   * @param supply - Initial supply of the token.
+   */
+  init(name: string, symbol: string, decimals: u8, supply: u256): void {
+    const args = new Args().add(name).add(symbol).add(decimals).add(supply);
+    call(this._origin, 'constructor', args, 0);
+  }
+
+  /**
    * Returns the version of the smart contract.
    * This versioning is following the best practices defined in https://semver.org/.
    *
@@ -53,6 +72,16 @@ export class TokenWrapper {
    */
   symbol(): string {
     return bytesToString(call(this._origin, 'symbol', NoArg, 0));
+  }
+
+  /**
+   * Returns the number of decimals of the token.
+   *
+   * @returns number of decimals.
+   */
+  decimals(): u8 {
+    const res = call(this._origin, 'decimals', NoArg, 0);
+    return byteToU8(res);
   }
 
   /**
