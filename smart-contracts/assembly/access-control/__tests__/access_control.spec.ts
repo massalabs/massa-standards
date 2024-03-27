@@ -1,7 +1,61 @@
 import { Address, resetStorage } from '@massalabs/massa-as-sdk';
 import { AccessControl } from '../access_control';
 
-describe('AccessControl', () => {
+describe('AccessControl - use case tests', () => {
+  test('should control access to functions 1', () => {
+    resetStorage();
+
+    expect(() => {
+      const adminAddress = new Address(
+        'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq',
+      );
+      const userAddress = new Address(
+        'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKr',
+      );
+
+      const controller = new AccessControl<u8>(1);
+
+      const ADMIN = controller.newPermission('admin');
+      controller.grantPermission(ADMIN, adminAddress);
+
+      const USER = controller.newPermission('user');
+      controller.grantPermission(USER, userAddress);
+
+      controller.mustHavePermission(ADMIN||USER, adminAddress);
+      controller.mustHavePermission(ADMIN||USER, adminAddress);
+    }).not.toThrow('or on multiple permissions should work');
+  });
+
+  test('should control access to functions 2', () => {
+    resetStorage();
+
+    expect(() => {
+      const adminAddress = new Address(
+        'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq',
+      );
+      const userAddress = new Address(
+        'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKr',
+      );
+      const guestAddress = new Address(
+        'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKs',
+      );
+
+      const controller = new AccessControl<u8>(1);
+
+      const ADMIN = controller.newPermission('admin');
+      controller.grantPermission(ADMIN, adminAddress);
+
+      const USER = controller.newPermission('user');
+      controller.grantPermission(USER, userAddress);
+
+      controller.mustHavePermission(ADMIN||USER, guestAddress);
+    }).toThrow('or on multiple permissions should work');
+  }); 
+});
+    
+
+
+describe('AccessControl - unit tests', () => {
   test('should create new permissions', () => {
     resetStorage();
     const accessControl = new AccessControl<u8>(1);
