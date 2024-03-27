@@ -14,7 +14,7 @@ import { Address, Storage } from "@massalabs/massa-as-sdk";
  */
 export class AccessControl<T> {
   // @ts-ignore non-number type
-  private nextPermissionIndex: T = 1;
+  private permissionIndex: u8 = 0;
   private permissionsName: string[] = [];
   private moduleId: u8;
   private errPermissionDoesNotExist: string = 'Permission does not exist';
@@ -39,38 +39,39 @@ export class AccessControl<T> {
     Storage.set(key, toBytes(access));
   }
 
+  private _permissionIndexToBitmask(permissionIndex: u8): T {
+    return <T>(1 << permissionIndex);
+  }
+
   public newPermission(Permission: string): T {
+    assert(this.permissionIndex < sizeof<T>() * 8, `Maximum number of permissions reached`);
     this.permissionsName.push(Permission);
-    const r = this.nextPermissionIndex;
-    // @ts-ignore arithmetic operations on generic types
-    assert(this.nextPermissionIndex < (1 << ((<u8>sizeof<T>()) * 8 - 1)), 'Permission index overflow');
-    // @ts-ignore arithmetic operations on generic types
-    this.nextPermissionIndex <<= 1;
-    return r;
+    this.permissionIndex += 1;
+    return this._permissionIndexToBitmask(this.permissionIndex -1);
   }
 
   public grantPermissionToUser(permission: T, userAddress: Address): void {
-    assert(permission < this.nextPermissionIndex, this.errPermissionDoesNotExist);
+    assert(permission < this._permissionIndexToBitmask(this.permissionIndex), this.errPermissionDoesNotExist);
 
     const ua = this._getUserAccess(userAddress);
     // @ts-ignore arithmetic operations on generic types
-    assert((ua & permission) != permission, `User already has '${this.permissionsName[permission/2]}' Permission`);
+    assert((ua & permission) != permission, `User already has '${this.permissionsName[permission>>1]}' Permission`);
     // @ts-ignore arithmetic operations on generic types
     this._setUserAccess(userAddress, ua | permission);
   }
 
   public removePermissionFromUser(permission: T, userAddress: Address): void {
-    assert(permission < this.nextPermissionIndex, this.errPermissionDoesNotExist);
+    assert(permission < this._permissionIndexToBitmask(this.permissionIndex), this.errPermissionDoesNotExist);
     
     const ua = this._getUserAccess(userAddress);
     // @ts-ignore arithmetic operations on generic types
-    assert((ua & permission) == permission, `User does not have '${this.permissionsName[permission/2]}' Permission`);
+    assert((ua & permission) == permission, `User does not have '${this.permissionsName[permission>>1]}' Permission`);
     // @ts-ignore arithmetic operations on generic types
     this._setUserAccess(userAddress, ua & ~permission);
   }
 
   public hasPermission(permission: T, userAddress: Address): boolean {
-    assert(permission < this.nextPermissionIndex, this.errPermissionDoesNotExist);
+    assert(permission < this._permissionIndexToBitmask(this.permissionIndex), this.errPermissionDoesNotExist);
 
     const ua = this._getUserAccess(userAddress);
     // @ts-ignore arithmetic operations on generic types
@@ -80,7 +81,7 @@ export class AccessControl<T> {
   public mustHavePermission(permission: T, userAddress: Address): void {
     assert(
       this.hasPermission(permission, userAddress),
-      `User does not have ${this.permissionsName[permission/2]} Permission`
+      `User does not have ${this.permissionsName[permission>>1]} Permission`
     );
   }
 }

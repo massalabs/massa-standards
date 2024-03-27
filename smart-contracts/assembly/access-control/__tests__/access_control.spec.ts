@@ -22,7 +22,7 @@ describe('AccessControl', () => {
     }).toThrow('permission does not exist');
   });
 
-  test('should panic on adding to many permissions', () => {
+  test('should not panic on adding permissions', () => {
     resetStorage();
     expect(() => {
       const accessControl = new AccessControl<u8>(1);
@@ -34,6 +34,22 @@ describe('AccessControl', () => {
       accessControl.newPermission('p6');
       accessControl.newPermission('p7');
       accessControl.newPermission('p8');
+    }).not.toThrow('Up to 8 permissions should be allowed');
+  });
+
+  test('should panic on adding too many permissions', () => {
+    resetStorage();
+    expect(() => {
+      const accessControl = new AccessControl<u8>(1);
+      accessControl.newPermission('p1');
+      accessControl.newPermission('p2');
+      accessControl.newPermission('p3');
+      accessControl.newPermission('p4');
+      accessControl.newPermission('p5');
+      accessControl.newPermission('p6');
+      accessControl.newPermission('p7');
+      accessControl.newPermission('p8');
+      accessControl.newPermission('p9');
     }).toThrow('Permission index overflow');
   });
 
