@@ -1,5 +1,5 @@
-import { Address, resetStorage } from "@massalabs/massa-as-sdk";
-import { AccessControl } from "../access_control";
+import { Address, resetStorage } from '@massalabs/massa-as-sdk';
+import { AccessControl } from '../access_control';
 
 describe('AccessControl', () => {
   test('should create new permissions', () => {
@@ -17,8 +17,10 @@ describe('AccessControl', () => {
     resetStorage();
     expect(() => {
       const accessControl = new AccessControl<u8>(1);
-      const userAddress = new Address('AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq');
-      accessControl.grantPermissionToUser(1, userAddress);
+      const userAddress = new Address(
+        'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq',
+      );
+      accessControl.grantPermission(1, userAddress);
     }).toThrow('permission does not exist');
   });
 
@@ -58,9 +60,11 @@ describe('AccessControl', () => {
     expect(() => {
       const accessControl = new AccessControl<u8>(1);
       const ADMIN = accessControl.newPermission('admin');
-      const userAddress = new Address('AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq');
-      accessControl.grantPermissionToUser(ADMIN, userAddress);
-      accessControl.grantPermissionToUser(ADMIN, userAddress);
+      const userAddress = new Address(
+        'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq',
+      );
+      accessControl.grantPermission(ADMIN, userAddress);
+      accessControl.grantPermission(ADMIN, userAddress);
     }).toThrow('User already has admin permission');
   });
 
@@ -70,8 +74,10 @@ describe('AccessControl', () => {
       const accessControl = new AccessControl<u8>(1);
       const ADMIN = accessControl.newPermission('admin');
       const USER = accessControl.newPermission('user');
-      const userAddress = new Address('AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq');
-      accessControl.grantPermissionToUser(USER, userAddress);
+      const userAddress = new Address(
+        'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq',
+      );
+      accessControl.grantPermission(USER, userAddress);
       accessControl.mustHavePermission(ADMIN, userAddress);
     }).toThrow('User does not have admin permission');
   });
@@ -82,13 +88,21 @@ describe('AccessControl', () => {
     const ADMIN = accessControl.newPermission('admin');
     const USER = accessControl.newPermission('user');
     const GUEST = accessControl.newPermission('guest');
-    const userAddress = new Address('AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq');
-    accessControl.grantPermissionToUser(USER, userAddress);
-    accessControl.grantPermissionToUser(GUEST, userAddress);
+    const userAddress = new Address(
+      'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq',
+    );
+    accessControl.grantPermission(USER, userAddress);
+    accessControl.grantPermission(GUEST, userAddress);
 
-    expect(accessControl.hasPermission(USER, userAddress)).toBeTruthy('User should have user permission');
-    expect(accessControl.hasPermission(GUEST, userAddress)).toBeTruthy('User should have guest permission');
-    expect(accessControl.hasPermission(ADMIN, userAddress)).toBeFalsy('User should not have admin permission');
+    expect(accessControl.hasPermission(USER, userAddress)).toBeTruthy(
+      'User should have user permission',
+    );
+    expect(accessControl.hasPermission(GUEST, userAddress)).toBeTruthy(
+      'User should have guest permission',
+    );
+    expect(accessControl.hasPermission(ADMIN, userAddress)).toBeFalsy(
+      'User should not have admin permission',
+    );
   });
 
   test('should remove permissions from user', () => {
@@ -97,20 +111,34 @@ describe('AccessControl', () => {
     const ADMIN = accessControl.newPermission('admin');
     const USER = accessControl.newPermission('user');
     const GUEST = accessControl.newPermission('guest');
-    const userAddress = new Address('AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq');
-    accessControl.grantPermissionToUser(USER, userAddress);
-    accessControl.grantPermissionToUser(GUEST, userAddress);
-    accessControl.grantPermissionToUser(ADMIN, userAddress);
+    const userAddress = new Address(
+      'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq',
+    );
+    accessControl.grantPermission(USER, userAddress);
+    accessControl.grantPermission(GUEST, userAddress);
+    accessControl.grantPermission(ADMIN, userAddress);
 
-    expect(accessControl.hasPermission(USER, userAddress)).toBeTruthy('User should have user permission');
-    expect(accessControl.hasPermission(GUEST, userAddress)).toBeTruthy('User should have guest permission');
-    expect(accessControl.hasPermission(ADMIN, userAddress)).toBeTruthy('User should have admin permission');
+    expect(accessControl.hasPermission(USER, userAddress)).toBeTruthy(
+      'User should have user permission',
+    );
+    expect(accessControl.hasPermission(GUEST, userAddress)).toBeTruthy(
+      'User should have guest permission',
+    );
+    expect(accessControl.hasPermission(ADMIN, userAddress)).toBeTruthy(
+      'User should have admin permission',
+    );
 
-    accessControl.removePermissionFromUser(USER, userAddress);
+    accessControl.removePermission(USER, userAddress);
 
-    expect(accessControl.hasPermission(USER, userAddress)).toBeFalsy('User should not have user permission');
-    expect(accessControl.hasPermission(GUEST, userAddress)).toBeTruthy('User should have guest permission');
-    expect(accessControl.hasPermission(ADMIN, userAddress)).toBeTruthy('User should have admin permission');
+    expect(accessControl.hasPermission(USER, userAddress)).toBeFalsy(
+      'User should not have user permission',
+    );
+    expect(accessControl.hasPermission(GUEST, userAddress)).toBeTruthy(
+      'User should have guest permission',
+    );
+    expect(accessControl.hasPermission(ADMIN, userAddress)).toBeTruthy(
+      'User should have admin permission',
+    );
   });
 
   test('should return proper throw message', () => {
@@ -119,7 +147,9 @@ describe('AccessControl', () => {
     const ADMIN = accessControl.newPermission('admin');
     const USER = accessControl.newPermission('user');
     const GUEST = accessControl.newPermission('guest');
-    const userAddress = new Address('AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq');
+    const userAddress = new Address(
+      'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq',
+    );
 
     // accessControl.mustHavePermission(ADMIN, userAddress);
     // accessControl.mustHavePermission(USER, userAddress);
@@ -132,12 +162,15 @@ describe('AccessControl', () => {
     const ADMIN = accessControl1.newPermission('admin');
 
     const accessControl2 = new AccessControl<u8>(2);
-    const MECANIC = accessControl2.newPermission('mecanic');
+    const MECHANIC = accessControl2.newPermission('mechanic');
 
-    const userAddress = new Address('AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq');
-    accessControl1.grantPermissionToUser(ADMIN, userAddress);
+    const userAddress = new Address(
+      'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq',
+    );
+    accessControl1.grantPermission(ADMIN, userAddress);
 
-    expect(accessControl2.hasPermission(ADMIN, userAddress)).toBeFalsy('User should not have car mechanic permission');
+    expect(accessControl2.hasPermission(ADMIN, userAddress)).toBeFalsy(
+      'User should not have car mechanic permission',
+    );
   });
-
 });
