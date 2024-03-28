@@ -6,30 +6,8 @@ import {
   mockBalance,
   mockTransferredCoins,
 } from '@massalabs/massa-as-sdk';
-import {
-  Args,
-  stringToBytes,
-  u8toByte,
-  bytesToU256,
-  u256ToBytes,
-} from '@massalabs/as-types';
-import {
-  transfer,
-  balanceOf,
-  totalSupply,
-  name,
-  symbol,
-  decimals,
-  version,
-  transferFrom,
-  allowance,
-  increaseAllowance,
-  decreaseAllowance,
-  constructor,
-  VERSION,
-  deposit,
-  withdraw,
-} from '../WMAS';
+import { Args, u256ToBytes } from '@massalabs/as-types';
+import { balanceOf, constructor, deposit, withdraw } from '../WMAS';
 import { u256 } from 'as-bignum/assembly';
 
 // address of the contract set in vm-mock. must match with contractAddr of @massalabs/massa-as-sdk/vm-mock/vm.js
@@ -46,7 +24,7 @@ const TOTAL_SUPPLY = u256.Zero;
 const amount = 1_000_000_000_000;
 const storageCost = computeStorageCost(new Address(user2Address));
 const amountMinusStorageCost = amount - storageCost;
-const tooLargeAmount = 2*amount;
+const tooLargeAmount = 2 * amount;
 
 function switchUser(user: string): void {
   changeCallStack(user + ' , ' + contractAddr);
@@ -90,14 +68,17 @@ describe('deposit', () => {
     mockTransferredCoins(amount);
     deposit([]);
     expect(balanceOf(new Args().add(user2Address).serialize())).toStrictEqual(
-      u256ToBytes(u256.fromU64(amount+amountMinusStorageCost)),
+      u256ToBytes(u256.fromU64(amount + amountMinusStorageCost)),
     );
   });
-  throws('should throw if transferred amount is not enough to cover storage cost', () => {
-    switchUser(user3Address);
-    mockTransferredCoins(storageCost);
-    deposit([]);
-  });
+  throws(
+    'should throw if transferred amount is not enough to cover storage cost',
+    () => {
+      switchUser(user3Address);
+      mockTransferredCoins(storageCost);
+      deposit([]);
+    },
+  );
   it('should deposit minimum amount', () => {
     switchUser(user3Address);
     mockTransferredCoins(storageCost + 1);
@@ -108,7 +89,7 @@ describe('deposit', () => {
   });
   throws('should throw on underflow', () => {
     switchUser(user3Address);
-    mockTransferredCoins(storageCost-1);
+    mockTransferredCoins(storageCost - 1);
     deposit([]);
   });
 });
@@ -122,7 +103,9 @@ describe('withdraw', () => {
   });
 
   it('should withdraw MAS', () => {
-    withdraw(new Args().add(amountMinusStorageCost).add(user2Address).serialize());
+    withdraw(
+      new Args().add(amountMinusStorageCost).add(user2Address).serialize(),
+    );
     expect(balanceOf(new Args().add(user2Address).serialize())).toStrictEqual(
       u256ToBytes(u256.Zero),
     );
