@@ -12,6 +12,12 @@ import { balanceKey } from './token-internals';
 
 export * from './token';
 
+const STORAGE_BYTE_COST = 100_000;
+const NODE_STORAGE_PREFIX_BYTES = 4;
+const BASE_COST = STORAGE_BYTE_COST * NODE_STORAGE_PREFIX_BYTES;
+const U256_BYTES = 32;
+const VAL_COST = STORAGE_BYTE_COST * U256_BYTES;
+
 /**
  * Wrap wanted value.
  *
@@ -51,15 +57,10 @@ export function withdraw(bs: StaticArray<u8>): void {
 }
 
 function computeStorageCost(receiver: Address): u64 {
-  let cost = 0;
-  if (!Storage.hasOf(Context.callee(), balanceKey(receiver))) {
-    // baseCost = NEW_LEDGER_ENTRY_COST = STORAGE_BYTE_COST * 4 = 100_000 * 4 = 400_000
-    cost = 400_000;
-    // eslint-disable-next-line max-len
-    // keyCost = LEDGER_COST_PER_BYTE * stringToBytes(BALANCE_KEY_PREFIX + receiver).length = 100_000 * (7 + receiver.length)
-    cost += 100_000 * (7 + receiver.toString().length);
-    // valCost = LEDGER_COST_PER_BYTE * u256ToBytes(u256.Zero).length = 100_000 * 32 = 3_200_000
-    cost += 3_200_000;
+  if (Storage.hasOf(Context.callee(), balanceKey(receiver))) {
+    return 0;
   }
-  return cost;
+  return (
+    BASE_COST + VAL_COST + (7 + receiver.toString().length) * STORAGE_BYTE_COST
+  );
 }

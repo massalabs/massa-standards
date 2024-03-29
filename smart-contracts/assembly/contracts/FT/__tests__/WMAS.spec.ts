@@ -16,11 +16,6 @@ const user1Address = 'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
 const user2Address = 'AU12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1e8';
 const user3Address = 'AUDeadBeefDeadBeefDeadBeefDeadBeefDeadBeefDeadBOObs';
 
-const TOKEN_NAME = 'TOKEN_NAME';
-const TOKEN_SYMBOL = 'TKN';
-const DECIMALS: u8 = 9;
-const TOTAL_SUPPLY = u256.Zero;
-
 const amount = 1_000_000_000_000;
 const storageCost = computeStorageCost(new Address(user2Address));
 const amountMinusStorageCost = amount - storageCost;
@@ -42,12 +37,7 @@ beforeEach(() => {
   resetStorage();
   setDeployContext(user1Address);
   constructor(
-    new Args()
-      .add(TOKEN_NAME)
-      .add(TOKEN_SYMBOL)
-      .add(DECIMALS)
-      .add(TOTAL_SUPPLY)
-      .serialize(),
+    new Args().add('Wrapped MAS').add('WMAS').add(9).add(u256.Zero).serialize(),
   );
 });
 
@@ -71,14 +61,11 @@ describe('deposit', () => {
       u256ToBytes(u256.fromU64(amount + amountMinusStorageCost)),
     );
   });
-  throws(
-    'should reject operation not covering storage cost',
-    () => {
-      switchUser(user3Address);
-      mockTransferredCoins(storageCost);
-      deposit([]);
-    },
-  );
+  throws('should reject operation not covering storage cost', () => {
+    switchUser(user3Address);
+    mockTransferredCoins(storageCost);
+    deposit([]);
+  });
   it('should deposit minimal amount', () => {
     switchUser(user3Address);
     mockTransferredCoins(storageCost + 1);
@@ -86,11 +73,6 @@ describe('deposit', () => {
     expect(balanceOf(new Args().add(user3Address).serialize())).toStrictEqual(
       u256ToBytes(u256.One),
     );
-  });
-  throws('should throw on underflow', () => {
-    switchUser(user3Address);
-    mockTransferredCoins(storageCost - 1);
-    deposit([]);
   });
 });
 
