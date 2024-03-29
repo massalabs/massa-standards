@@ -119,7 +119,7 @@ describe('withdraw', () => {
   throws('should throw if amount is greater than balance', () => {
     withdraw(new Args().add(tooLargeAmount).add(user2Address).serialize());
   });
-  throws('should throw if no balance', () => {
+  throws('should reject non-depositor', () => {
     switchUser(user1Address);
     withdraw(new Args().add(amount).add(user1Address).serialize());
   });
