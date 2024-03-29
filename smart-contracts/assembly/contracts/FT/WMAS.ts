@@ -13,10 +13,8 @@ import { balanceKey } from './token-internals';
 export * from './token';
 
 const STORAGE_BYTE_COST = 100_000;
-const NODE_STORAGE_PREFIX_BYTES = 4;
-const BASE_COST = STORAGE_BYTE_COST * NODE_STORAGE_PREFIX_BYTES;
-const U256_BYTES = 32;
-const VAL_COST = STORAGE_BYTE_COST * U256_BYTES;
+const STORAGE_PREFIX_LENGTH = 4;
+const BALANCE_KEY_PREFIX_LENGTH = 7;
 
 /**
  * Wrap wanted value.
@@ -60,7 +58,8 @@ export function computeStorageCost(receiver: Address): u64 {
   if (Storage.hasOf(Context.callee(), balanceKey(receiver))) {
     return 0;
   }
-  return (
-    BASE_COST + VAL_COST + (7 + receiver.toString().length) * STORAGE_BYTE_COST
-  );
+  const baseLength = STORAGE_PREFIX_LENGTH;
+  const keyLength = BALANCE_KEY_PREFIX_LENGTH + receiver.toString().length;
+  const valueLength = sizeof<u256>();
+  return (baseLength + keyLength + valueLength) * STORAGE_BYTE_COST;
 }
