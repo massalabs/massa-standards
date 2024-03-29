@@ -72,7 +72,7 @@ describe('deposit', () => {
     );
   });
   throws(
-    'should throw if transferred amount is not enough to cover storage cost',
+    'should reject operation not covering storage cost',
     () => {
       switchUser(user3Address);
       mockTransferredCoins(storageCost);
