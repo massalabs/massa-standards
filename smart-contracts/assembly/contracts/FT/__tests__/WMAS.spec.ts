@@ -79,7 +79,7 @@ describe('deposit', () => {
       deposit([]);
     },
   );
-  it('should deposit minimum amount', () => {
+  it('should deposit minimal amount', () => {
     switchUser(user3Address);
     mockTransferredCoins(storageCost + 1);
     deposit([]);
