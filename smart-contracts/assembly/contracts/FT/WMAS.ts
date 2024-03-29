@@ -56,7 +56,7 @@ export function withdraw(bs: StaticArray<u8>): void {
   transferCoins(recipient, amount);
 }
 
-function computeStorageCost(receiver: Address): u64 {
+export function computeStorageCost(receiver: Address): u64 {
   if (Storage.hasOf(Context.callee(), balanceKey(receiver))) {
     return 0;
   }

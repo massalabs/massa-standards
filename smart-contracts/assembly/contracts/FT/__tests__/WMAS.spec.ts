@@ -7,7 +7,13 @@ import {
   mockTransferredCoins,
 } from '@massalabs/massa-as-sdk';
 import { Args, u256ToBytes } from '@massalabs/as-types';
-import { balanceOf, constructor, deposit, withdraw } from '../WMAS';
+import {
+  balanceOf,
+  constructor,
+  deposit,
+  withdraw,
+  computeStorageCost,
+} from '../WMAS';
 import { u256 } from 'as-bignum/assembly';
 
 // address of the contract set in vm-mock. must match with contractAddr of @massalabs/massa-as-sdk/vm-mock/vm.js
@@ -23,14 +29,6 @@ const tooLargeAmount = 2 * amount;
 
 function switchUser(user: string): void {
   changeCallStack(user + ' , ' + contractAddr);
-}
-
-function computeStorageCost(receiver: Address): u64 {
-  let cost = 0;
-  cost = 400_000;
-  cost += 100_000 * (7 + receiver.toString().length);
-  cost += 3_200_000;
-  return cost;
 }
 
 beforeEach(() => {
@@ -61,10 +59,12 @@ describe('deposit', () => {
       u256ToBytes(u256.fromU64(amount + amountMinusStorageCost)),
     );
   });
-  throws('should reject operation not covering storage cost', () => {
+  it('should reject operation not covering storage cost', () => {
     switchUser(user3Address);
     mockTransferredCoins(storageCost);
-    deposit([]);
+    expect(() => {
+      deposit([]);
+    }).toThrow('Transferred amount is not enough to cover storage cost');
   });
   it('should deposit minimal amount', () => {
     switchUser(user3Address);
@@ -92,17 +92,25 @@ describe('withdraw', () => {
       u256ToBytes(u256.Zero),
     );
   });
-  throws('should throw if amount is missing', () => {
-    withdraw(new Args().add(user2Address).serialize());
+  it('should throw if amount is missing', () => {
+    expect(() => {
+      withdraw(new Args().add(user2Address).serialize());
+    }).toThrow('amount is missing');
   });
-  throws('should throw if recipient is missing', () => {
-    withdraw(new Args().add(1_000_000_000_000).serialize());
+  it('should throw if recipient is missing', () => {
+    expect(() => {
+      withdraw(new Args().add(amount).serialize());
+    }).toThrow('recipient is missing');
   });
-  throws('should throw if amount is greater than balance', () => {
-    withdraw(new Args().add(tooLargeAmount).add(user2Address).serialize());
+  it('should throw if amount is greater than balance', () => {
+    expect(() => {
+      withdraw(new Args().add(tooLargeAmount).add(user2Address).serialize());
+    }).toThrow('Requested burn amount causes an underflow');
   });
-  throws('should reject non-depositor', () => {
+  it('should reject non-depositor', () => {
     switchUser(user1Address);
-    withdraw(new Args().add(amount).add(user1Address).serialize());
+    expect(() => {
+      withdraw(new Args().add(amount).add(user1Address).serialize());
+    }).toThrow('Requested burn amount causes an underflow');
   });
 });
