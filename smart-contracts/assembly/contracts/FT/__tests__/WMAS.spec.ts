@@ -61,7 +61,7 @@ describe('deposit', () => {
       u256ToBytes(u256.fromU64(amountMinusStorageCost)),
     );
   });
-  it('should not charge for storage if balance already exists', () => {
+  it('should not charge for storage for later deposits', () => {
     switchUser(user2Address);
     mockTransferredCoins(amount);
     deposit([]);
