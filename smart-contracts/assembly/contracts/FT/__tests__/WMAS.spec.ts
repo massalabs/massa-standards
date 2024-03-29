@@ -25,7 +25,6 @@ const user3Address = 'AUDeadBeefDeadBeefDeadBeefDeadBeefDeadBeefDeadBOObs';
 const amount = 1_000_000_000_000;
 const storageCost = computeStorageCost(new Address(user2Address));
 const amountMinusStorageCost = amount - storageCost;
-const tooLargeAmount = 2 * amount;
 
 function switchUser(user: string): void {
   changeCallStack(user + ' , ' + contractAddr);
@@ -104,7 +103,12 @@ describe('withdraw', () => {
   });
   it('should throw if amount is greater than balance', () => {
     expect(() => {
-      withdraw(new Args().add(tooLargeAmount).add(user2Address).serialize());
+      withdraw(
+        new Args()
+          .add(2 * amount)
+          .add(user2Address)
+          .serialize(),
+      );
     }).toThrow('Requested burn amount causes an underflow');
   });
   it('should reject non-depositor', () => {
