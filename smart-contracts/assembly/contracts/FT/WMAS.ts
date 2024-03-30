@@ -24,7 +24,7 @@ const BALANCE_KEY_PREFIX_LENGTH = 7;
 export function deposit(_: StaticArray<u8>): void {
   const recipient = Context.caller();
   const amount = Context.transferredCoins();
-  const storageCost = computeStorageCost(recipient);
+  const storageCost = computeMintStorageCost(recipient);
   assert(
     amount > storageCost,
     'Transferred amount is not enough to cover storage cost',
@@ -54,12 +54,12 @@ export function withdraw(bs: StaticArray<u8>): void {
   transferCoins(recipient, amount);
 }
 
-export function computeStorageCost(receiver: Address): u64 {
+export function computeMintStorageCost(receiver: Address): u64 {
   if (Storage.has(balanceKey(receiver))) {
     return 0;
   }
   const baseLength = STORAGE_PREFIX_LENGTH;
   const keyLength = BALANCE_KEY_PREFIX_LENGTH + receiver.toString().length;
-  const valueLength = sizeof<u256>();
+  const valueLength = 4*sizeof<u64>();
   return (baseLength + keyLength + valueLength) * STORAGE_BYTE_COST;
 }

@@ -12,7 +12,7 @@ import {
   constructor,
   deposit,
   withdraw,
-  computeStorageCost,
+  computeMintStorageCost,
 } from '../WMAS';
 import { u256 } from 'as-bignum/assembly';
 
@@ -23,7 +23,7 @@ const user2Address = 'AU12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1e8';
 const user3Address = 'AUDeadBeefDeadBeefDeadBeefDeadBeefDeadBeefDeadBOObs';
 
 const amount = 1_000_000_000_000;
-const storageCost = computeStorageCost(new Address(user2Address));
+const storageCost = computeMintStorageCost(new Address(user2Address));
 const amountMinusStorageCost = amount - storageCost;
 
 function switchUser(user: string): void {
