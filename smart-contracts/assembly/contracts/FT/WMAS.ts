@@ -55,7 +55,7 @@ export function withdraw(bs: StaticArray<u8>): void {
 }
 
 export function computeStorageCost(receiver: Address): u64 {
-  if (Storage.hasOf(Context.callee(), balanceKey(receiver))) {
+  if (Storage.has(balanceKey(receiver))) {
     return 0;
   }
   const baseLength = STORAGE_PREFIX_LENGTH;
