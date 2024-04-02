@@ -60,6 +60,6 @@ export function computeMintStorageCost(receiver: Address): u64 {
   }
   const baseLength = STORAGE_PREFIX_LENGTH;
   const keyLength = BALANCE_KEY_PREFIX_LENGTH + receiver.toString().length;
-  const valueLength = 4*sizeof<u64>();
+  const valueLength = 4 * sizeof<u64>();
   return (baseLength + keyLength + valueLength) * STORAGE_BYTE_COST;
 }
