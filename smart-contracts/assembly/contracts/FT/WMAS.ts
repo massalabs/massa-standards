@@ -1,10 +1,20 @@
 import { Args, u256ToBytes } from '@massalabs/as-types';
-import { Address, Context, transferCoins } from '@massalabs/massa-as-sdk';
+import {
+  Address,
+  Context,
+  Storage,
+  transferCoins,
+} from '@massalabs/massa-as-sdk';
 import { burn } from './burnable/burn';
 import { u256 } from 'as-bignum/assembly/integer/u256';
 import { _mint } from './mintable/mint-internal';
+import { balanceKey } from './token-internals';
 
 export * from './token';
+
+const STORAGE_BYTE_COST = 100_000;
+const STORAGE_PREFIX_LENGTH = 4;
+const BALANCE_KEY_PREFIX_LENGTH = 7;
 
 /**
  * Wrap wanted value.
@@ -12,12 +22,19 @@ export * from './token';
  * @param _ - unused but mandatory.
  */
 export function deposit(_: StaticArray<u8>): void {
-  const amount = Context.transferredCoins();
-  assert(amount > 0, 'Payment must be more than 0 MAS');
   const recipient = Context.caller();
-
-  const args = new Args().add(recipient).add(u256.fromU64(amount)).serialize();
-  _mint(args);
+  const amount = Context.transferredCoins();
+  const storageCost = computeMintStorageCost(recipient);
+  assert(
+    amount > storageCost,
+    'Transferred amount is not enough to cover storage cost',
+  );
+  _mint(
+    new Args()
+      .add(recipient)
+      .add(u256.fromU64(amount - storageCost))
+      .serialize(),
+  );
 }
 
 /**
@@ -33,9 +50,16 @@ export function withdraw(bs: StaticArray<u8>): void {
   const recipient = new Address(
     args.nextString().expect('recipient is missing'),
   );
-
-  assert(amount > 0, 'Payment must be more than 0 WMAS');
-
   burn(u256ToBytes(u256.fromU64(amount)));
   transferCoins(recipient, amount);
+}
+
+export function computeMintStorageCost(receiver: Address): u64 {
+  if (Storage.has(balanceKey(receiver))) {
+    return 0;
+  }
+  const baseLength = STORAGE_PREFIX_LENGTH;
+  const keyLength = BALANCE_KEY_PREFIX_LENGTH + receiver.toString().length;
+  const valueLength = 4 * sizeof<u64>();
+  return (baseLength + keyLength + valueLength) * STORAGE_BYTE_COST;
 }

@@ -40,7 +40,7 @@ export function _setBalance(address: Address, balance: u256): void {
  * @param address -
  * @returns the key of the balance in the storage for the given address
  */
-function balanceKey(address: Address): StaticArray<u8> {
+export function balanceKey(address: Address): StaticArray<u8> {
   return stringToBytes(BALANCE_KEY_PREFIX + address.toString());
 }
 
