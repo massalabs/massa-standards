@@ -280,6 +280,14 @@ export function _transferFrom(from: string, to: string, tokenId: u256): void {
   _update(to, tokenId, from);
 }
 
+export function _transfer(to: string, tokenId: u256): void {
+  assert(Storage.has(ownerKey(tokenId)), 'Nonexistent token');
+  const from = Context.caller().toString();
+  assert(_ownerOf(tokenId) == from, 'Unauthorized caller');
+  assert(to != '', 'Unauthorized to');
+  _update(to, tokenId, from);
+}
+
 /**
  * TOD0: Implement the safeTransferFrom function.
  * To do so you need to verify that the recipient is a contract and supports the ERC721Receiver interface.

@@ -50,10 +50,10 @@ beforeEach(() => {
 
 describe('Initialization', () => {
   test('get name', () => {
-    expect(name()).toBe(NFTName);
+    expect(bytesToString(name())).toStrictEqual(NFTName);
   });
   test('get symbol', () => {
-    expect(symbol()).toBe(NFTSymbol);
+    expect(bytesToString(symbol())).toStrictEqual(NFTSymbol);
   });
   test('get owner', () => {
     expect(bytesToString(ownerAddress([]))).toBe(contractOwner);
