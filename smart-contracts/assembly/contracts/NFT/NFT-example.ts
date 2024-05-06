@@ -55,12 +55,12 @@ export function constructor(binaryArgs: StaticArray<u8>): void {
   setOwner(new Args().add(Context.caller().toString()).serialize());
 }
 
-export function name(): string {
-  return _name();
+export function name(): StaticArray<u8> {
+  return stringToBytes(_name());
 }
 
-export function symbol(): string {
-  return _symbol();
+export function symbol(): StaticArray<u8> {
+  return stringToBytes(_symbol());
 }
 
 /**
