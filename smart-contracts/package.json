@@ -21,7 +21,7 @@
         "@assemblyscript/loader": "^0.25.2",
         "@massalabs/as-types": "^2.0.0",
         "@massalabs/eslint-config": "^0.0.9",
-        "@massalabs/massa-as-sdk": "^2.5.5-dev",
+        "@massalabs/massa-as-sdk": "^3.0.0",
         "@massalabs/massa-sc-compiler": "^0.1.1-dev",
         "@massalabs/prettier-config-as": "^0.0.2",
         "@types/node": "^18.11.10",
