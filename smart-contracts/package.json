@@ -41,6 +41,6 @@
         "assembly"
     ],
     "dependencies": {
-        "@massalabs/as-transformer": "^0.2.2-dev.20230626150134"
+        "@massalabs/as-transformer": "^0.4.0"
     }
 }
