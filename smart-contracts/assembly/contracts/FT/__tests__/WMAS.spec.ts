@@ -41,6 +41,7 @@ beforeEach(() => {
 describe('deposit', () => {
   it('should deposit MAS', () => {
     switchUser(user2Address);
+    mockBalance(user2Address, amount);
     mockTransferredCoins(amount);
     deposit([]);
     const balance = balanceOf(new Args().add(user2Address).serialize());
@@ -50,8 +51,10 @@ describe('deposit', () => {
   });
   it('should not charge for storage for later deposits', () => {
     switchUser(user2Address);
+    mockBalance(user2Address, amount);
     mockTransferredCoins(amount);
     deposit([]);
+    mockBalance(user2Address, amount);
     mockTransferredCoins(amount);
     deposit([]);
     expect(balanceOf(new Args().add(user2Address).serialize())).toStrictEqual(
@@ -60,6 +63,7 @@ describe('deposit', () => {
   });
   it('should reject operation not covering storage cost', () => {
     switchUser(user3Address);
+    mockBalance(user3Address, storageCost);
     mockTransferredCoins(storageCost);
     expect(() => {
       deposit([]);
@@ -67,6 +71,7 @@ describe('deposit', () => {
   });
   it('should deposit minimal amount', () => {
     switchUser(user3Address);
+    mockBalance(user3Address, storageCost + 1);
     mockTransferredCoins(storageCost + 1);
     deposit([]);
     expect(balanceOf(new Args().add(user3Address).serialize())).toStrictEqual(
@@ -78,6 +83,7 @@ describe('deposit', () => {
 describe('withdraw', () => {
   beforeEach(() => {
     switchUser(user2Address);
+    mockBalance(user2Address, amount);
     mockTransferredCoins(amount);
     deposit([]);
     mockBalance(contractAddr, amount);
