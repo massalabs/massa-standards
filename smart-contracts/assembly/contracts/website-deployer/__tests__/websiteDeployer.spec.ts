@@ -1,4 +1,9 @@
-import { Args, i32ToBytes, unwrapStaticArray } from '@massalabs/as-types';
+import {
+  Args,
+  i32ToBytes,
+  u64ToBytes,
+  unwrapStaticArray,
+} from '@massalabs/as-types';
 import {
   Storage,
   resetStorage,
@@ -6,6 +11,7 @@ import {
 } from '@massalabs/massa-as-sdk';
 import {
   NB_CHUNKS_KEY,
+  NONCE_KEY,
   appendBytesToWebsite,
   constructor,
   deleteWebsite,
@@ -49,6 +55,7 @@ describe('website deployer tests', () => {
     }
 
     expect(Storage.get(NB_CHUNKS_KEY)).toStrictEqual(i32ToBytes(nbChunks));
+    expect(Storage.get(NONCE_KEY)).toStrictEqual(u64ToBytes(0));
   });
 
   test('edit a website (upload missed chunks)', () => {
@@ -63,6 +70,8 @@ describe('website deployer tests', () => {
         unwrapStaticArray(data),
       );
     }
+
+    expect(Storage.get(NONCE_KEY)).toStrictEqual(u64ToBytes(0));
   });
 
   test('delete website', () => {
@@ -72,6 +81,8 @@ describe('website deployer tests', () => {
     for (let chunkId: i32 = 0; chunkId < nbChunks; chunkId++) {
       expect(Storage.has(i32ToBytes(chunkId))).toBeFalsy();
     }
+
+    expect(Storage.get(NONCE_KEY)).toStrictEqual(u64ToBytes(1));
   });
 
   test('update website', () => {
@@ -89,5 +100,6 @@ describe('website deployer tests', () => {
     }
 
     expect(Storage.get(NB_CHUNKS_KEY)).toStrictEqual(i32ToBytes(nbChunks));
+    expect(Storage.get(NONCE_KEY)).toStrictEqual(u64ToBytes(2));
   });
 });
