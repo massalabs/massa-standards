@@ -1,7 +1,7 @@
 import { Address, Storage } from '@massalabs/massa-as-sdk';
 import { balanceKey } from './token-internals';
 
-export function getCoinAddressCreation(
+export function getBalanceEntryCost(
   tokenAddress: string,
   recipient: string,
 ): u64 {
