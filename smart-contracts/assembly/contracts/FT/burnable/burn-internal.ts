@@ -26,7 +26,7 @@ export function _burn(addressToBurn: Address, amount: u256): void {
   // Check underflow
   assert(
     oldRecipientBalance > newRecipientBalance,
-    'Requested burn amount causes an underflow',
+    'Requested burn amount causes an underflow of the recipient balance',
   );
 
   _setBalance(addressToBurn, newRecipientBalance);
@@ -46,7 +46,7 @@ export function _decreaseTotalSupply(amount: u256): void {
   // Check underflow
   assert(
     oldTotalSupply > newTotalSupply,
-    'Requested burn amount causes an underflow',
+    'Requested burn amount causes an underflow of the total supply',
   );
 
   Storage.set(TOTAL_SUPPLY_KEY, u256ToBytes(newTotalSupply));

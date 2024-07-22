@@ -13,7 +13,6 @@ import {
  * @param binaryArgs - byte string with the following format:
  * - the address of the new contract owner (address).
  */
-
 export function setOwner(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
   const newOwner = args
@@ -53,8 +52,6 @@ export function isOwner(binaryArgs: StaticArray<u8>): StaticArray<u8> {
 
 /**
  * Throws if the caller is not the owner.
- *
- * @param address -
  */
 export function onlyOwner(): void {
   _onlyOwner();
