@@ -11,18 +11,15 @@ import {
   Context,
   generateEvent,
   isDeployingContract,
+  KeyIncrementer,
+  ConstantManager,
 } from '@massalabs/massa-as-sdk';
-import {
-  Args,
-  bytesToI32,
-  i32ToBytes,
-  stringToBytes,
-} from '@massalabs/as-types';
+import { Args, i32ToBytes } from '@massalabs/as-types';
 import { onlyOwner } from '../utils';
 import { _setOwner } from '../utils/ownership-internal';
 
-export const NB_CHUNKS_KEY = stringToBytes('NB_CHUNKS');
-
+const KEYER = new KeyIncrementer();
+export const NB_CHUNKS = new ConstantManager<i32>(KEYER);
 /**
  * Constructor function that initializes the contract owner.
  *
@@ -53,11 +50,11 @@ export function appendBytesToWebsite(binaryArgs: StaticArray<u8>): void {
 
   Storage.set(i32ToBytes(chunkNb), chunkData);
 
-  const totalChunks: i32 = Storage.has(NB_CHUNKS_KEY)
-    ? bytesToI32(Storage.get(NB_CHUNKS_KEY))
-    : 0;
+  const result = NB_CHUNKS.tryValue();
+
+  const totalChunks = result.isOk() ? result.unwrap() : 0;
   if (chunkNb >= totalChunks) {
-    Storage.set(NB_CHUNKS_KEY, i32ToBytes(chunkNb + 1));
+    NB_CHUNKS.set(chunkNb + 1);
   }
 
   generateEvent(
@@ -77,8 +74,7 @@ export function appendBytesToWebsite(binaryArgs: StaticArray<u8>): void {
 export function deleteWebsite(_: StaticArray<u8>): void {
   onlyOwner();
 
-  assert(Storage.has(NB_CHUNKS_KEY), 'Website not uploaded yet');
-  const nbChunks = bytesToI32(Storage.get(NB_CHUNKS_KEY));
+  const nbChunks = NB_CHUNKS.mustValue();
 
   for (let i: i32 = 0; i < nbChunks; i++) {
     const key = i32ToBytes(i);
@@ -86,7 +82,7 @@ export function deleteWebsite(_: StaticArray<u8>): void {
       Storage.del(key);
     }
   }
-  Storage.del(NB_CHUNKS_KEY);
+  Storage.del(NB_CHUNKS.key);
 
   generateEvent(`Website ${Context.callee().toString()} deleted successfully`);
 }

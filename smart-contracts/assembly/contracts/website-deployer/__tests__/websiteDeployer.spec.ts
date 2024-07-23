@@ -5,7 +5,7 @@ import {
   setDeployContext,
 } from '@massalabs/massa-as-sdk';
 import {
-  NB_CHUNKS_KEY,
+  NB_CHUNKS,
   appendBytesToWebsite,
   constructor,
   deleteWebsite,
@@ -42,13 +42,13 @@ describe('website deployer tests', () => {
       const argsAppend = new Args().add(chunkId).add(data).serialize();
       appendBytesToWebsite(argsAppend);
 
-      expect(Storage.get(NB_CHUNKS_KEY)).toStrictEqual(i32ToBytes(chunkId + 1));
+      expect(NB_CHUNKS.mustValue()).toStrictEqual(chunkId + 1);
       expect(Storage.get(i32ToBytes(chunkId))).toStrictEqual(
         unwrapStaticArray(data),
       );
     }
 
-    expect(Storage.get(NB_CHUNKS_KEY)).toStrictEqual(i32ToBytes(nbChunks));
+    expect(NB_CHUNKS.mustValue()).toStrictEqual(nbChunks);
   });
 
   test('edit a website (upload missed chunks)', () => {
@@ -67,7 +67,7 @@ describe('website deployer tests', () => {
 
   test('delete website', () => {
     deleteWebsite([]);
-    expect(Storage.has(NB_CHUNKS_KEY)).toBeFalsy();
+    expect(NB_CHUNKS.tryValue().isErr()).toBeTruthy();
     const nbChunks = 20;
     for (let chunkId: i32 = 0; chunkId < nbChunks; chunkId++) {
       expect(Storage.has(i32ToBytes(chunkId))).toBeFalsy();
@@ -82,12 +82,12 @@ describe('website deployer tests', () => {
       const argsAppend = new Args().add(chunkId).add(data).serialize();
       appendBytesToWebsite(argsAppend);
 
-      expect(Storage.get(NB_CHUNKS_KEY)).toStrictEqual(i32ToBytes(chunkId + 1));
+      expect(NB_CHUNKS.mustValue()).toStrictEqual(chunkId + 1);
       expect(Storage.get(i32ToBytes(chunkId))).toStrictEqual(
         unwrapStaticArray(data),
       );
     }
 
-    expect(Storage.get(NB_CHUNKS_KEY)).toStrictEqual(i32ToBytes(nbChunks));
+    expect(NB_CHUNKS.mustValue()).toStrictEqual(nbChunks);
   });
 });
