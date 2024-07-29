@@ -1,23 +1,13 @@
 {
     "targets": {
-        "debug": {
-            "outFile": "build/main.wasm",
-            "sourceMap": true,
-            "debug": true,
-            "transform": ["@massalabs/as-transformer"]
-        },
         "release": {
-            "outFile": "build/main.wasm",
             "sourceMap": true,
             "optimizeLevel": 3,
-            "shrinkLevel": 0,
-            "converge": false,
+            "shrinkLevel": 3,
+            "converge": true,
             "noAssert": false,
-            "transform": ["@massalabs/as-transformer"]
+            "exportRuntime": true,
+            "bindings": false
         }
-    },
-    "options": {
-        "exportRuntime": true,
-        "bindings": "esm"
     }
 }
