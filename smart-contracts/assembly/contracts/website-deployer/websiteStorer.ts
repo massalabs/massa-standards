@@ -13,12 +13,17 @@ import {
   isDeployingContract,
   KeyIncrementer,
   ConstantManager,
+  transferCoins,
+  balanceOf,
 } from '@massalabs/massa-as-sdk';
 import { Args, i32ToBytes } from '@massalabs/as-types';
 import { onlyOwner } from '../utils';
 import { _setOwner } from '../utils/ownership-internal';
 
 const KEYER = new KeyIncrementer();
+
+export const FIRST_CREATION_DATE = new ConstantManager<u64>(KEYER);
+export const LAST_UPDATE_TIMESTAMP = new ConstantManager<u64>(KEYER);
 export const NB_CHUNKS = new ConstantManager<i32>(KEYER);
 /**
  * Constructor function that initializes the contract owner.
@@ -30,6 +35,7 @@ export const NB_CHUNKS = new ConstantManager<i32>(KEYER);
 export function constructor(_: StaticArray<u8>): void {
   assert(isDeployingContract());
   _setOwner(Context.caller().toString());
+  FIRST_CREATION_DATE.set(Context.timestamp());
 }
 
 /**
@@ -60,6 +66,7 @@ export function appendBytesToWebsite(binaryArgs: StaticArray<u8>): void {
   generateEvent(
     `Website chunk ${chunkNb} deployed to ${Context.callee().toString()}`,
   );
+  LAST_UPDATE_TIMESTAMP.set(Context.timestamp());
 }
 
 /**
@@ -83,6 +90,8 @@ export function deleteWebsite(_: StaticArray<u8>): void {
     }
   }
   Storage.del(NB_CHUNKS.key);
+  Storage.del(LAST_UPDATE_TIMESTAMP.key);
 
+  transferCoins(Context.caller(), balanceOf(Context.callee().toString()));
   generateEvent(`Website ${Context.callee().toString()} deleted successfully`);
 }

@@ -5,6 +5,8 @@ import {
   setDeployContext,
 } from '@massalabs/massa-as-sdk';
 import {
+  FIRST_CREATION_DATE,
+  LAST_UPDATE_TIMESTAMP,
   NB_CHUNKS,
   appendBytesToWebsite,
   constructor,
@@ -24,6 +26,10 @@ describe('website deployer tests', () => {
 
   test('owner is set', () => {
     expect(isOwner(new Args().add(user).serialize())).toBeTruthy();
+  });
+
+  test('first creation date is set', () => {
+    expect(FIRST_CREATION_DATE.mustValue());
   });
 
   throws('delete fails if website not created', () => {
@@ -49,6 +55,7 @@ describe('website deployer tests', () => {
     }
 
     expect(NB_CHUNKS.mustValue()).toStrictEqual(nbChunks);
+    LAST_UPDATE_TIMESTAMP.mustValue();
   });
 
   test('edit a website (upload missed chunks)', () => {
@@ -63,6 +70,7 @@ describe('website deployer tests', () => {
         unwrapStaticArray(data),
       );
     }
+    LAST_UPDATE_TIMESTAMP.mustValue();
   });
 
   test('delete website', () => {
@@ -72,6 +80,7 @@ describe('website deployer tests', () => {
     for (let chunkId: i32 = 0; chunkId < nbChunks; chunkId++) {
       expect(Storage.has(i32ToBytes(chunkId))).toBeFalsy();
     }
+    expect(LAST_UPDATE_TIMESTAMP.tryValue().isErr()).toBeTruthy();
   });
 
   test('update website', () => {
@@ -89,5 +98,6 @@ describe('website deployer tests', () => {
     }
 
     expect(NB_CHUNKS.mustValue()).toStrictEqual(nbChunks);
+    LAST_UPDATE_TIMESTAMP.mustValue();
   });
 });
