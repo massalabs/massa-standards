@@ -5,7 +5,9 @@ import {
   setDeployContext,
 } from '@massalabs/massa-as-sdk';
 import {
-  NB_CHUNKS_KEY,
+  FIRST_CREATION_DATE,
+  LAST_UPDATE_TIMESTAMP,
+  NB_CHUNKS,
   appendBytesToWebsite,
   constructor,
   deleteWebsite,
@@ -26,6 +28,10 @@ describe('website deployer tests', () => {
     expect(isOwner(new Args().add(user).serialize())).toBeTruthy();
   });
 
+  test('first creation date is set', () => {
+    expect(FIRST_CREATION_DATE.mustValue());
+  });
+
   throws('delete fails if website not created', () => {
     const chunkId = i32(0);
     const data = new Uint8Array(100);
@@ -42,13 +48,14 @@ describe('website deployer tests', () => {
       const argsAppend = new Args().add(chunkId).add(data).serialize();
       appendBytesToWebsite(argsAppend);
 
-      expect(Storage.get(NB_CHUNKS_KEY)).toStrictEqual(i32ToBytes(chunkId + 1));
+      expect(NB_CHUNKS.mustValue()).toStrictEqual(chunkId + 1);
       expect(Storage.get(i32ToBytes(chunkId))).toStrictEqual(
         unwrapStaticArray(data),
       );
     }
 
-    expect(Storage.get(NB_CHUNKS_KEY)).toStrictEqual(i32ToBytes(nbChunks));
+    expect(NB_CHUNKS.mustValue()).toStrictEqual(nbChunks);
+    LAST_UPDATE_TIMESTAMP.mustValue();
   });
 
   test('edit a website (upload missed chunks)', () => {
@@ -63,15 +70,17 @@ describe('website deployer tests', () => {
         unwrapStaticArray(data),
       );
     }
+    LAST_UPDATE_TIMESTAMP.mustValue();
   });
 
   test('delete website', () => {
     deleteWebsite([]);
-    expect(Storage.has(NB_CHUNKS_KEY)).toBeFalsy();
+    expect(NB_CHUNKS.tryValue().isErr()).toBeTruthy();
     const nbChunks = 20;
     for (let chunkId: i32 = 0; chunkId < nbChunks; chunkId++) {
       expect(Storage.has(i32ToBytes(chunkId))).toBeFalsy();
     }
+    expect(LAST_UPDATE_TIMESTAMP.tryValue().isErr()).toBeTruthy();
   });
 
   test('update website', () => {
@@ -82,12 +91,13 @@ describe('website deployer tests', () => {
       const argsAppend = new Args().add(chunkId).add(data).serialize();
       appendBytesToWebsite(argsAppend);
 
-      expect(Storage.get(NB_CHUNKS_KEY)).toStrictEqual(i32ToBytes(chunkId + 1));
+      expect(NB_CHUNKS.mustValue()).toStrictEqual(chunkId + 1);
       expect(Storage.get(i32ToBytes(chunkId))).toStrictEqual(
         unwrapStaticArray(data),
       );
     }
 
-    expect(Storage.get(NB_CHUNKS_KEY)).toStrictEqual(i32ToBytes(nbChunks));
+    expect(NB_CHUNKS.mustValue()).toStrictEqual(nbChunks);
+    LAST_UPDATE_TIMESTAMP.mustValue();
   });
 });
