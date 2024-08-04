@@ -133,3 +133,5 @@ This section will be updated with links to reference implementations developed b
 These implementations will follow the wallet file format specification to ensure compatibility across different platforms.
 
 By providing these references, we aim to facilitate adoption and promote security and interoperability.
+
+- [Massa Station Wallet Module](https://github.com/massalabs/station-massa-wallet/blob/4a161b95bfe13edcd8e96a1122c15865a04d03b2/pkg/wallet/wallet.go)
