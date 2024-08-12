@@ -15,6 +15,7 @@ import {
   ConstantManager,
   transferCoins,
   balanceOf,
+  setBytecode,
 } from '@massalabs/massa-as-sdk';
 import { Args, i32ToBytes } from '@massalabs/as-types';
 import { onlyOwner } from '../utils';
@@ -94,4 +95,14 @@ export function deleteWebsite(_: StaticArray<u8>): void {
 
   transferCoins(Context.caller(), balanceOf(Context.callee().toString()));
   generateEvent(`Website ${Context.callee().toString()} deleted successfully`);
+}
+
+/**
+ * Upgrade the smart contract bytecode
+ * @param args - new bytecode
+ * @returns void
+ */
+export function upgradeSC(args: StaticArray<u8>): void {
+  onlyOwner();
+  setBytecode(args);
 }
