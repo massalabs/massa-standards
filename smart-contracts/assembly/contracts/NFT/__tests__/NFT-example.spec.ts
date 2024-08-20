@@ -43,9 +43,9 @@ function switchUser(user: string): void {
 
 beforeEach(() => {
   resetStorage();
+  switchUser(contractOwner);
   setDeployContext(contractOwner);
   constructor(new Args().add(NFTName).add(NFTSymbol).serialize());
-  switchUser(contractOwner);
 });
 
 describe('Initialization', () => {
