@@ -41,10 +41,17 @@ export class TokenWrapper {
    * @param symbol - Symbol of the token.
    * @param decimals - Number of decimals of the token.
    * @param supply - Initial supply of the token.
+   * @param coins - Number of coins to send to the smart contract.
    */
-  init(name: string, symbol: string, decimals: u8, supply: u256): void {
+  init(
+    name: string,
+    symbol: string,
+    decimals: u8,
+    supply: u256,
+    coins: u64 = 0,
+  ): void {
     const args = new Args().add(name).add(symbol).add(decimals).add(supply);
-    call(this._origin, 'constructor', args, 0);
+    call(this._origin, 'constructor', args, coins);
   }
 
   /**
@@ -111,9 +118,15 @@ export class TokenWrapper {
    *
    * @param toAccount -
    * @param nbTokens -
+   * @param coins -
    */
-  transfer(toAccount: Address, nbTokens: u256): void {
-    call(this._origin, 'transfer', new Args().add(toAccount).add(nbTokens), 0);
+  transfer(toAccount: Address, nbTokens: u256, coins: u64 = 0): void {
+    call(
+      this._origin,
+      'transfer',
+      new Args().add(toAccount).add(nbTokens),
+      coins,
+    );
   }
 
   /**
@@ -141,13 +154,18 @@ export class TokenWrapper {
    *
    * @param spenderAccount -
    * @param nbTokens -
+   * @param coins -
    */
-  increaseAllowance(spenderAccount: Address, nbTokens: u256): void {
+  increaseAllowance(
+    spenderAccount: Address,
+    nbTokens: u256,
+    coins: u64 = 0,
+  ): void {
     call(
       this._origin,
       'increaseAllowance',
       new Args().add(spenderAccount).add(nbTokens),
-      0,
+      coins,
     );
   }
 
@@ -156,6 +174,7 @@ export class TokenWrapper {
    * by the given amount.
    *
    * This function can only be called by the owner.
+   * Coins is left to zero as this function does not need storage entry creation.
    *
    * @param spenderAccount -
    * @param nbTokens -
@@ -186,12 +205,13 @@ export class TokenWrapper {
     ownerAccount: Address,
     recipientAccount: Address,
     nbTokens: u256,
+    coins: u64 = 0,
   ): void {
     call(
       this._origin,
       'transferFrom',
       new Args().add(ownerAccount).add(recipientAccount).add(nbTokens),
-      0,
+      coins,
     );
   }
 
@@ -200,13 +220,16 @@ export class TokenWrapper {
    *
    * @param toAccount -
    * @param nbTokens -
+   * @param coins -
    */
-  mint(toAccount: Address, nbTokens: u256): void {
-    call(this._origin, 'mint', new Args().add(toAccount).add(nbTokens), 0);
+  mint(toAccount: Address, nbTokens: u256, coins: u64 = 0): void {
+    call(this._origin, 'mint', new Args().add(toAccount).add(nbTokens), coins);
   }
 
   /**
    * Burn nbTokens on the caller address
+   *
+   * Coins is left to zero as this function does not need storage entry creation.
    *
    * @param nbTokens -
    */
