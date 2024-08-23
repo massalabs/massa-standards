@@ -10,7 +10,8 @@ import { OWNER_KEY } from '../utils/ownership-internal';
 
 const baseCostBytes = 4;
 const StorageCostPerByte = 100_000; // 0.0001 MAS
-const CreationTimestampStorageCost = 13; // baseCostBytes + CreationTimestampKeyLen as u8 + CreationTimestampValueLen as u64;
+// baseCostBytes + CreationTimestampKeyLen as u8 + CreationTimestampValueLen as u64;
+const CreationTimestampStorageCost = 13;
 
 /**
  * Creates a new smart contract with the websiteDeployer.wasm file content.
