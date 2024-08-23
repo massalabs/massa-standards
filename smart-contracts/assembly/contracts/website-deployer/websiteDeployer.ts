@@ -6,9 +6,12 @@ import {
   call,
   Context,
 } from '@massalabs/massa-as-sdk';
+import { OWNER_KEY } from '../utils/ownership-internal';
 
-const StorageCostPerByte = 1_000_000;
-const StorageKeyCreation = 10 * StorageCostPerByte;
+const baseCostBytes = 4;
+const StorageCostPerByte = 100_000; // 0.0001 MAS
+// baseCostBytes + CreationTimestampKeyLen as u8 + CreationTimestampValueLen as u64;
+const CreationTimestampStorageCost = 13;
 
 /**
  * Creates a new smart contract with the websiteDeployer.wasm file content.
@@ -20,13 +23,17 @@ export function main(_: StaticArray<u8>): void {
 
   const websiteAddr = createSC(bytes);
 
-  // this will be updated when charging storage key for actual size
-  // const StorageKeyCreation = stringToBytes(OWNER_KEY).length * StorageCostPerByte;
+  const OwnerStorageKeyLen = stringToBytes(OWNER_KEY).length;
+  const OwnerStorageValueLen = stringToBytes(
+    Context.caller().toString(),
+  ).length;
+
+  const OwnerStorageCost =
+    baseCostBytes + OwnerStorageKeyLen + OwnerStorageValueLen;
 
   // cost of storing owner key
   const coins =
-    StorageKeyCreation +
-    StorageCostPerByte * stringToBytes(Context.caller().toString()).length;
+    StorageCostPerByte * (OwnerStorageCost + CreationTimestampStorageCost);
 
   call(websiteAddr, 'constructor', new Args(), coins);
 
