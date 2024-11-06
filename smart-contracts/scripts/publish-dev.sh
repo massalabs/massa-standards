@@ -8,7 +8,4 @@ sed -i "/version/s/dev.0/dev.$TIME/g" package.json
 PUBLISH_VERSION=$(cat package.json | jq -r '.version')
 echo publishing @massalabs/sc-standards@$PUBLISH_VERSION
 
-# disable husky
-npm pkg delete scripts.prepare
-
 npm publish --access public --tag dev
