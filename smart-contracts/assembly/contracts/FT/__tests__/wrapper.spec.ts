@@ -24,10 +24,8 @@ describe('Wrapper tests', () => {
   });
 
   test('token name', () => {
-    const name = tokenName;
-    const nameBytes = stringToBytes(name);
+    const nameBytes = stringToBytes(tokenName);
     mockScCall(nameBytes);
-
     expect(tokenContract.name()).toBe(tokenName);
   });
 
