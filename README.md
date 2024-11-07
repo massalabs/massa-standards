@@ -27,6 +27,26 @@ The [Massa Domain Name Service standard](smart-contracts/assembly/contracts/dns/
 
 This is MassaLabs implementation of [the ENS](https://docs.ens.domains/).
 
+## MRC1155 Token
+
+The [MRC1155](smart-contracts/assembly/contracts/MRC1155/token.ts) standard defines a common set of rules for creating and managing Massa-based tokens that can represent multiple types of assets, both fungible and non-fungible, within a single contract.
+
+This is MassaLabs implementation of [the ERC1155](https://eips.ethereum.org/EIPS/eip-1155).
+
+## Contract utils
+
+### Ownable
+
+The [Ownable standard implementation](smart-contracts/assembly/contracts/utils/ownership.ts) defines a common set of rules for ownership management of Massa-based contracts. It provides basic authorization control functions, simplifying the implementation of user permissions.
+
+This is MassaLabs implementation of [the Ownable pattern](https://docs.openzeppelin.com/contracts/4.x/access-control#ownership-and-ownable).
+
+### Role-Based Access Control
+
+The [Role-Based Access Control standard implementation](smart-contracts/assembly/contracts/utils/accessControl.ts) defines a common set of rules for managing permissions using roles. It allows for the assignment of specific permissions to different roles, which can then be granted to users or other entities.
+
+This is MassaLabs implementation of [the RBAC pattern](https://docs.openzeppelin.com/contracts/4.x/access-control#role-based-access-control).
+
 ## Massa Units
 
 The [Massa Units standard](units.md) defines a set of common units of measurement for use on the Massa blockchain.
