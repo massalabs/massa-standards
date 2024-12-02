@@ -54,7 +54,7 @@ export function _constructor(name: string, symbol: string): void {
  * @param address - address to get the balance for
  * @returns the key of the balance in the storage for the given address
  */
-function balanceKey(address: string): StaticArray<u8> {
+export function balanceKey(address: string): StaticArray<u8> {
   return BALANCE_KEY_PREFIX.concat(stringToBytes(address));
 }
 
@@ -62,7 +62,7 @@ function balanceKey(address: string): StaticArray<u8> {
  * @param tokenId - the tokenID of the owner
  * @returns the key of the owner in the storage for the given tokenId
  */
-function ownerKey(tokenId: u256): StaticArray<u8> {
+export function ownerKey(tokenId: u256): StaticArray<u8> {
   return OWNER_KEY_PREFIX.concat(u256ToBytes(tokenId));
 }
 
@@ -227,8 +227,7 @@ export function _isAuthorized(operator: string, tokenId: u256): bool {
  * For example if you were to wrap this helper in a `transfer` function,
  * you should check that the caller is the owner of the token, and then call the _update function.
  */
-
-export function _update(to: string, tokenId: u256, auth: string): void {
+export function _update(to: string, tokenId: u256, auth: string): string {
   const from = _ownerOf(tokenId);
   assert(to != from, 'The from and to addresses are the same');
   if (auth != '') {
@@ -258,7 +257,10 @@ export function _update(to: string, tokenId: u256, auth: string): void {
     // burn the token
     Storage.del(ownerKey(tokenId));
   }
+
+  return from;
 }
+
 /**
  * Transfers the ownership of an NFT from one address to another address.
  * @param from - The address of the current owner
