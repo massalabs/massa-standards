@@ -1,5 +1,5 @@
 import { bytesToU64 } from '@massalabs/as-types';
-import { getKeys, Storage } from '@massalabs/massa-as-sdk';
+import { getKeys } from '@massalabs/massa-as-sdk';
 import { _getOwnedTokensKeyPrefix } from '../NFTEnumerable-internals';
 
 /**
@@ -12,10 +12,15 @@ import { _getOwnedTokensKeyPrefix } from '../NFTEnumerable-internals';
  */
 export function getOwnedTokens(owner: string): u64[] {
   const tokens: u64[] = [];
-  const keys = getKeys(_getOwnedTokensKeyPrefix(owner));
+  const prefix = _getOwnedTokensKeyPrefix(owner);
+  const keys = getKeys(prefix);
 
   for (let i = 0; i < keys.length; i++) {
-    tokens.push(bytesToU64(Storage.get(keys[i])));
+    const tokenIdBytesArray = keys[i].slice(keys[i].length - sizeof<u64>());
+    const tokenIdBytes = StaticArray.fromArray<u8>(tokenIdBytesArray);
+    const tokenId = bytesToU64(tokenIdBytes);
+    tokens.push(tokenId);
   }
+
   return tokens;
 }

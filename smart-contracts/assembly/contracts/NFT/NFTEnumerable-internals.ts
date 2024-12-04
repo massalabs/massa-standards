@@ -87,7 +87,7 @@ export function _getOwnedTokensKeyPrefix(owner: string): StaticArray<u8> {
  */
 function _addTokenToOwnerEnumeration(owner: string, tokenId: u64): void {
   const key = _getOwnedTokensKeyPrefix(owner).concat(u64ToBytes(tokenId));
-  Storage.set(key, u64ToBytes(tokenId));
+  Storage.set(key, []);
 }
 
 /**
