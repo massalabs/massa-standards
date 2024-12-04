@@ -1,6 +1,5 @@
-import { bytesToU256 } from '@massalabs/as-types';
+import { bytesToU64 } from '@massalabs/as-types';
 import { getKeys, Storage } from '@massalabs/massa-as-sdk';
-import { u256 } from 'as-bignum/assembly';
 import { _getOwnedTokensKeyPrefix } from '../NFTEnumerable-internals';
 
 /**
@@ -8,15 +7,15 @@ import { _getOwnedTokensKeyPrefix } from '../NFTEnumerable-internals';
  *
  * @param owner - The address of the owner.
  *
- * @returns An array of u256 representing the tokens owned by the address.
+ * @returns An array of u64 representing the tokens owned by the address.
  *
  */
-export function getOwnedTokens(owner: string): u256[] {
-  const tokens: u256[] = [];
+export function getOwnedTokens(owner: string): u64[] {
+  const tokens: u64[] = [];
   const keys = getKeys(_getOwnedTokensKeyPrefix(owner));
 
   for (let i = 0; i < keys.length; i++) {
-    tokens.push(bytesToU256(Storage.get(keys[i])));
+    tokens.push(bytesToU64(Storage.get(keys[i])));
   }
   return tokens;
 }

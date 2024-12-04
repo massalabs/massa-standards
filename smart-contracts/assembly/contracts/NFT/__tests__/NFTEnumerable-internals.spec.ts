@@ -1,5 +1,4 @@
 import { resetStorage, setDeployContext } from '@massalabs/massa-as-sdk';
-import { u256 } from 'as-bignum/assembly';
 import {
   _update,
   _balanceOf,
@@ -16,26 +15,20 @@ const caller = 'A12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
 const owner1 = caller;
 const owner2 = 'AU178qZCfaNXkz9tQiXJcVfAEnYGJ27UoNtFFJh3BiT8jTfY8P2D';
 const zeroAddress = '';
-const tokenIds = [
-  u256.fromU32(1),
-  u256.fromU32(2),
-  u256.fromU32(3),
-  u256.fromU32(4),
-  u256.fromU32(5),
-];
+const tokenIds: u64[] = [1, 2, 3, 4, 5];
 
 const NFTName = 'MASSA_NFT';
 const NFTSymbol = 'NFT';
 
-function mint(to: string, tokenId: u256): void {
+function mint(to: string, tokenId: u64): void {
   _update(to, tokenId, zeroAddress);
 }
 
-function transfer(from: string, to: string, tokenId: u256): void {
+function transfer(from: string, to: string, tokenId: u64): void {
   _update(to, tokenId, from);
 }
 
-function burn(owner: string, tokenId: u256): void {
+function burn(owner: string, tokenId: u64): void {
   _update(zeroAddress, tokenId, owner);
 }
 
@@ -48,59 +41,59 @@ describe('NFT Enumerable Internals', () => {
 
   describe('Initialization', () => {
     it('should have zero total supply initially', () => {
-      expect(_totalSupply()).toStrictEqual(u256.Zero);
+      expect(_totalSupply()).toStrictEqual(0);
     });
   });
 
   describe('Total Supply Management', () => {
     it('should update total supply when token is minted', () => {
       mint(owner1, tokenIds[0]);
-      expect(_totalSupply()).toStrictEqual(u256.One);
+      expect(_totalSupply()).toStrictEqual(1);
     });
 
     it('should update total supply when token is burned', () => {
       mint(owner1, tokenIds[0]);
-      expect(_totalSupply()).toStrictEqual(u256.One);
+      expect(_totalSupply()).toStrictEqual(1);
       burn(owner1, tokenIds[0]);
-      expect(_totalSupply()).toStrictEqual(u256.Zero);
+      expect(_totalSupply()).toStrictEqual(0);
     });
 
-    it('should not allow total supply to exceed u256.Max', () => {
-      // Set total supply to u256.Max - 1
-      const nearMaxSupply = u256.sub(u256.Max, u256.One);
-      _increaseTotalSupply(u256.sub(u256.Max, u256.One));
+    it('should not allow total supply to exceed u64.Max', () => {
+      // Set total supply to u64.Max - 1
+      const nearMaxSupply = u64.MAX_VALUE - 1;
+      _increaseTotalSupply(nearMaxSupply);
       expect(_totalSupply()).toStrictEqual(nearMaxSupply);
 
-      // Mint one more token should succeed (totalSupply = u256.Max)
+      // Mint one more token should succeed (totalSupply = u64.Max)
       mint(owner1, tokenIds[0]);
-      expect(_totalSupply()).toStrictEqual(u256.Max);
+      expect(_totalSupply()).toStrictEqual(u64.MAX_VALUE);
 
       // Minting another token should fail due to overflow
       expect(() => {
-        _increaseTotalSupply(u256.One);
+        _increaseTotalSupply(1);
       }).toThrow('Total supply overflow'); // Ensure your contract throws this exact error
     });
 
     it('should not allow total supply to underflow', () => {
       // Ensure total supply is zero
-      expect(_totalSupply()).toStrictEqual(u256.Zero);
+      expect(_totalSupply()).toStrictEqual(0);
 
       // Attempt to decrease supply by 1 should fail
       expect(() => {
-        _decreaseTotalSupply(u256.One);
+        _decreaseTotalSupply(1);
       }).toThrow('Total supply underflow'); // Ensure your contract throws this exact error
 
       // Set total supply to 1
-      _increaseTotalSupply(u256.One);
-      expect(_totalSupply()).toStrictEqual(u256.One);
+      _increaseTotalSupply(1);
+      expect(_totalSupply()).toStrictEqual(1);
 
       // Decrease supply by 1 should succeed
-      _decreaseTotalSupply(u256.One);
-      expect(_totalSupply()).toStrictEqual(u256.Zero);
+      _decreaseTotalSupply(1);
+      expect(_totalSupply()).toStrictEqual(0);
 
       // Attempt to decrease supply by another 1 should fail
       expect(() => {
-        _decreaseTotalSupply(u256.One);
+        _decreaseTotalSupply(1);
       }).toThrow('Total supply underflow'); // Ensure your contract throws this exact error
     });
   });
@@ -111,8 +104,8 @@ describe('NFT Enumerable Internals', () => {
       mint(owner1, tokenIds[1]);
       mint(owner2, tokenIds[2]);
 
-      expect(_balanceOf(owner1)).toStrictEqual(u256.fromU32(2));
-      expect(_balanceOf(owner2)).toStrictEqual(u256.One);
+      expect(_balanceOf(owner1)).toStrictEqual(2);
+      expect(_balanceOf(owner2)).toStrictEqual(1);
 
       const owner1Tokens = getOwnedTokens(owner1);
       expect(owner1Tokens.length).toBe(2);
@@ -130,8 +123,8 @@ describe('NFT Enumerable Internals', () => {
 
       transfer(owner1, owner2, tokenIds[0]);
 
-      expect(_balanceOf(owner1)).toStrictEqual(u256.One);
-      expect(_balanceOf(owner2)).toStrictEqual(u256.One);
+      expect(_balanceOf(owner1)).toStrictEqual(1);
+      expect(_balanceOf(owner2)).toStrictEqual(1);
 
       // Verify ownership
       expect(_ownerOf(tokenIds[0])).toStrictEqual(owner2);
@@ -154,8 +147,8 @@ describe('NFT Enumerable Internals', () => {
       transfer(owner1, owner2, tokenIds[0]);
 
       expect(_ownerOf(tokenIds[0])).toStrictEqual(owner2);
-      expect(_balanceOf(owner1)).toStrictEqual(u256.Zero);
-      expect(_balanceOf(owner2)).toStrictEqual(u256.One);
+      expect(_balanceOf(owner1)).toStrictEqual(0);
+      expect(_balanceOf(owner2)).toStrictEqual(1);
 
       // Verify owned tokens
       const owner1Tokens = getOwnedTokens(owner1);
@@ -173,8 +166,8 @@ describe('NFT Enumerable Internals', () => {
       transfer(owner1, owner2, tokenIds[0]);
 
       expect(_ownerOf(tokenIds[0])).toStrictEqual(owner2);
-      expect(_balanceOf(owner1)).toStrictEqual(u256.Zero);
-      expect(_balanceOf(owner2)).toStrictEqual(u256.fromU32(2));
+      expect(_balanceOf(owner1)).toStrictEqual(0);
+      expect(_balanceOf(owner2)).toStrictEqual(2);
 
       // Verify owned tokens
       const owner1Tokens = getOwnedTokens(owner1);
@@ -194,8 +187,8 @@ describe('NFT Enumerable Internals', () => {
 
       burn(owner1, tokenIds[0]);
 
-      expect(_balanceOf(owner1)).toStrictEqual(u256.One);
-      expect(_totalSupply()).toStrictEqual(u256.One);
+      expect(_balanceOf(owner1)).toStrictEqual(1);
+      expect(_totalSupply()).toStrictEqual(1);
 
       // Verify that accessing the burned token's owner returns zero address
       expect(_ownerOf(tokenIds[0])).toStrictEqual(zeroAddress);
@@ -213,8 +206,8 @@ describe('NFT Enumerable Internals', () => {
       burn(owner1, tokenIds[0]);
       burn(owner1, tokenIds[1]);
 
-      expect(_balanceOf(owner1)).toStrictEqual(u256.Zero);
-      expect(_totalSupply()).toStrictEqual(u256.Zero);
+      expect(_balanceOf(owner1)).toStrictEqual(0);
+      expect(_totalSupply()).toStrictEqual(0);
 
       // Verify owned tokens
       const owner1Tokens = getOwnedTokens(owner1);
@@ -236,11 +229,11 @@ describe('NFT Enumerable Internals', () => {
       burn(owner1, tokenIds[0]);
 
       // Verify total supply
-      expect(_totalSupply()).toStrictEqual(u256.fromU32(2));
+      expect(_totalSupply()).toStrictEqual(2);
 
       // Verify balances
-      expect(_balanceOf(owner1)).toStrictEqual(u256.Zero);
-      expect(_balanceOf(owner2)).toStrictEqual(u256.fromU32(2));
+      expect(_balanceOf(owner1)).toStrictEqual(0);
+      expect(_balanceOf(owner2)).toStrictEqual(2);
 
       // Verify ownership
       expect(_ownerOf(tokenIds[1])).toStrictEqual(owner2);
@@ -293,7 +286,7 @@ describe('NFT Enumerable Internals', () => {
       mint(owner1, tokenIds[0]);
       burn(owner1, tokenIds[0]);
 
-      expect(_totalSupply()).toStrictEqual(u256.Zero);
+      expect(_totalSupply()).toStrictEqual(0);
 
       // Check token ownership has been cleared
       expect(_ownerOf(tokenIds[0])).toStrictEqual(zeroAddress);
@@ -303,14 +296,14 @@ describe('NFT Enumerable Internals', () => {
       expect(owner1Tokens.length).toBe(0);
     });
 
-    it('should mint a token with id=u256.Max', () => {
-      mint(owner1, u256.Max);
-      expect(_totalSupply()).toStrictEqual(u256.One);
-      expect(_balanceOf(owner1)).toStrictEqual(u256.One);
-      expect(_ownerOf(u256.Max)).toStrictEqual(owner1);
+    it('should mint a token with id=u64.Max', () => {
+      mint(owner1, u64.MAX_VALUE);
+      expect(_totalSupply()).toStrictEqual(1);
+      expect(_balanceOf(owner1)).toStrictEqual(1);
+      expect(_ownerOf(u64.MAX_VALUE)).toStrictEqual(owner1);
       const owner1Tokens = getOwnedTokens(owner1);
       expect(owner1Tokens.length).toBe(1);
-      expect(owner1Tokens).toContainEqual(u256.Max);
+      expect(owner1Tokens).toContainEqual(u64.MAX_VALUE);
     });
   });
 });

@@ -19,15 +19,13 @@
 
 import {
   stringToBytes,
-  bytesToU256,
+  bytesToU64,
   bytesToString,
   boolToByte,
   byteToBool,
-  u256ToBytes,
+  u64ToBytes,
 } from '@massalabs/as-types';
 import { Storage, Context } from '@massalabs/massa-as-sdk';
-
-import { u256 } from 'as-bignum/assembly';
 
 export const NAME_KEY: StaticArray<u8> = [0x01];
 export const SYMBOL_KEY: StaticArray<u8> = [0x02];
@@ -62,16 +60,16 @@ export function balanceKey(address: string): StaticArray<u8> {
  * @param tokenId - the tokenID of the owner
  * @returns the key of the owner in the storage for the given tokenId
  */
-export function ownerKey(tokenId: u256): StaticArray<u8> {
-  return OWNER_KEY_PREFIX.concat(u256ToBytes(tokenId));
+export function ownerKey(tokenId: u64): StaticArray<u8> {
+  return OWNER_KEY_PREFIX.concat(u64ToBytes(tokenId));
 }
 
 /**
  * @param tokenId - the tokenID of the approved token
  * @returns the key of the allowance in the storage for the given owner and spender
  */
-function allowanceKey(tokenId: u256): StaticArray<u8> {
-  return ALLOWANCE_KEY_PREFIX.concat(u256ToBytes(tokenId));
+function allowanceKey(tokenId: u64): StaticArray<u8> {
+  return ALLOWANCE_KEY_PREFIX.concat(u64ToBytes(tokenId));
 }
 
 /**
@@ -94,9 +92,9 @@ function operatorAllowanceKey(
  *
  * @param owner - An address for whom to query the balance
  */
-export function _balanceOf(owner: string): u256 {
+export function _balanceOf(owner: string): u64 {
   const key = balanceKey(owner);
-  return Storage.has(key) ? bytesToU256(Storage.get(key)) : u256.Zero;
+  return Storage.has(key) ? bytesToU64(Storage.get(key)) : 0;
 }
 
 /**
@@ -105,7 +103,7 @@ export function _balanceOf(owner: string): u256 {
  * @param tokenId - The identifier for an NFT
  * @returns the address of the owner of the NFT or an empty string if the NFT is not owned
  */
-export function _ownerOf(tokenId: u256): string {
+export function _ownerOf(tokenId: u64): string {
   const key = ownerKey(tokenId);
   return Storage.has(key) ? bytesToString(Storage.get(key)) : '';
 }
@@ -134,7 +132,7 @@ export function _symbol(): string {
  * @remarks If approved is the zero address, the function will clear the approval for the NFT by deleting the key.
  *
  */
-export function _approve(approved: string, tokenId: u256): void {
+export function _approve(approved: string, tokenId: u64): void {
   assert(_isAuthorized(Context.caller().toString(), tokenId), 'Unauthorized');
   const key = allowanceKey(tokenId);
   approved != ''
@@ -149,7 +147,7 @@ export function _approve(approved: string, tokenId: u256): void {
  * @param tokenId - Id of the NFT
  * @returns Address of the approved owner of the NFT or an empty string if no address is approved.
  */
-export function _getApproved(tokenId: u256): string {
+export function _getApproved(tokenId: u64): string {
   const key = allowanceKey(tokenId);
   return Storage.has(key) ? bytesToString(Storage.get(key)) : '';
 }
@@ -161,7 +159,7 @@ export function _getApproved(tokenId: u256): string {
  * @param tokenId - tokenId of the token
  * @returns true if the operator is approved, false if not
  */
-export function _isApproved(operator: string, tokenId: u256): bool {
+export function _isApproved(operator: string, tokenId: u64): bool {
   const allowKey = allowanceKey(tokenId);
   return Storage.has(allowKey)
     ? bytesToString(Storage.get(allowKey)) == operator
@@ -202,7 +200,7 @@ export function _isApprovedForAll(owner: string, operator: string): bool {
  * 2. The operator has been approved by the owner
  * 3. The operator has been approved for all NFTs by the owner
  */
-export function _isAuthorized(operator: string, tokenId: u256): bool {
+export function _isAuthorized(operator: string, tokenId: u64): bool {
   return (
     _ownerOf(tokenId) == operator ||
     _isApproved(operator, tokenId) ||
@@ -227,7 +225,7 @@ export function _isAuthorized(operator: string, tokenId: u256): bool {
  * For example if you were to wrap this helper in a `transfer` function,
  * you should check that the caller is the owner of the token, and then call the _update function.
  */
-export function _update(to: string, tokenId: u256, auth: string): string {
+export function _update(to: string, tokenId: u64, auth: string): string {
   const from = _ownerOf(tokenId);
   assert(to != from, 'The from and to addresses are the same');
   if (auth != '') {
@@ -237,19 +235,19 @@ export function _update(to: string, tokenId: u256, auth: string): string {
     // clear the approval
     _approve('', tokenId);
     // update the balance of the from
-    const fromBalance = bytesToU256(Storage.get(balanceKey(from)));
-    assert(fromBalance > u256.Zero, 'Insufficient balance');
-    Storage.set(balanceKey(from), u256ToBytes(fromBalance - u256.One));
+    const fromBalance = bytesToU64(Storage.get(balanceKey(from)));
+    assert(fromBalance > 0, 'Insufficient balance');
+    Storage.set(balanceKey(from), u64ToBytes(fromBalance - 1));
   }
   if (to != '') {
     const toBalanceKey = balanceKey(to);
     // update the balance of the to
     if (Storage.has(toBalanceKey)) {
-      const toBalance = bytesToU256(Storage.get(toBalanceKey));
-      assert(toBalance < u256.Max, 'Balance overflow');
-      Storage.set(toBalanceKey, u256ToBytes(toBalance + u256.One));
+      const toBalance = bytesToU64(Storage.get(toBalanceKey));
+      assert(toBalance < u64.MAX_VALUE, 'Balance overflow');
+      Storage.set(toBalanceKey, u64ToBytes(toBalance + 1));
     } else {
-      Storage.set(toBalanceKey, u256ToBytes(u256.One));
+      Storage.set(toBalanceKey, u64ToBytes(1));
     }
     // update the owner of the token
     Storage.set(ownerKey(tokenId), stringToBytes(to.toString()));
@@ -271,7 +269,7 @@ export function _update(to: string, tokenId: u256, auth: string): string {
  * If the caller is not the owner, it must be an authorized operator to execute the function.
  *
  **/
-export function _transferFrom(from: string, to: string, tokenId: u256): void {
+export function _transferFrom(from: string, to: string, tokenId: u64): void {
   assert(
     _isAuthorized(Context.caller().toString(), tokenId),
     'Unauthorized caller',

@@ -22,7 +22,7 @@
  *
  *   [TOTAL_SUPPLY_KEY] = totalSupply
  *   - `TOTAL_SUPPLY_KEY`: A constant key for the total supply of tokens.
- *   - `totalSupply`: A `u256` value representing the total number of tokens in existence.
+ *   - `totalSupply`: A `u64` value representing the total number of tokens in existence.
  *
  * - **Owned Tokens:**
  *
@@ -56,7 +56,7 @@ import {
   Args,
   boolToByte,
   stringToBytes,
-  u256ToBytes,
+  u64ToBytes,
 } from '@massalabs/as-types';
 import {
   _approve,
@@ -75,6 +75,9 @@ import {
 import { setOwner, onlyOwner } from '../utils/ownership';
 import { Context, isDeployingContract } from '@massalabs/massa-as-sdk';
 
+const NAME = 'MASSA_NFT';
+const SYMBOL = 'NFT';
+
 /**
  * @param binaryArgs - serialized strings representing the name and the symbol of the NFT
  *
@@ -85,14 +88,9 @@ import { Context, isDeployingContract } from '@massalabs/massa-as-sdk';
  *
  * Finally, it sets the owner of the contract to the caller of the constructor.
  */
-export function constructor(binaryArgs: StaticArray<u8>): void {
+export function constructor(_: StaticArray<u8>): void {
   assert(isDeployingContract());
-  const args = new Args(binaryArgs);
-  const name = args.nextString().expect('name argument is missing or invalid');
-  const symbol = args
-    .nextString()
-    .expect('symbol argument is missing or invalid');
-  _constructor(name, symbol);
+  _constructor(NAME, SYMBOL);
   setOwner(new Args().add(Context.caller().toString()).serialize());
 }
 
@@ -107,38 +105,38 @@ export function symbol(): string {
 /**
  *
  * @param binaryArgs - serialized string representing the address whose balance we want to check
- * @returns a serialized u256 representing the balance of the address
+ * @returns a serialized u64 representing the balance of the address
  */
 export function balanceOf(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   const args = new Args(binaryArgs);
   const address = args
     .nextString()
     .expect('address argument is missing or invalid');
-  return u256ToBytes(_balanceOf(address));
+  return u64ToBytes(_balanceOf(address));
 }
 
 /**
  *
- * @param binaryArgs - serialized u256 representing the tokenId whose owner we want to check
+ * @param binaryArgs - serialized u64 representing the tokenId whose owner we want to check
  * @returns a serialized string representing the address of owner of the tokenId
  */
 export function ownerOf(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   const args = new Args(binaryArgs);
   const tokenId = args
-    .nextU256()
+    .nextU64()
     .expect('tokenId argument is missing or invalid');
   return stringToBytes(_ownerOf(tokenId));
 }
 
 /**
  *
- * @param binaryArgs - serialized u256 representing the tokenId whose approved address we want to check
+ * @param binaryArgs - serialized u64 representing the tokenId whose approved address we want to check
  * @returns a serialized string representing the address of the approved address of the tokenId
  */
 export function getApproved(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   const args = new Args(binaryArgs);
   const tokenId = args
-    .nextU256()
+    .nextU64()
     .expect('tokenId argument is missing or invalid');
   return stringToBytes(_getApproved(tokenId));
 }
@@ -171,7 +169,7 @@ export function approve(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
   const to = args.nextString().expect('to argument is missing or invalid');
   const tokenId = args
-    .nextU256()
+    .nextU64()
     .expect('tokenId argument is missing or invalid');
   _approve(to, tokenId);
 }
@@ -203,7 +201,7 @@ export function transferFrom(binaryArgs: StaticArray<u8>): void {
   const from = args.nextString().expect('from argument is missing or invalid');
   const to = args.nextString().expect('to argument is missing or invalid');
   const tokenId = args
-    .nextU256()
+    .nextU64()
     .expect('tokenId argument is missing or invalid');
   _transferFrom(from, to, tokenId);
 }
@@ -219,14 +217,14 @@ export function mint(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
   const to = args.nextString().expect('to argument is missing or invalid');
   const tokenId = args
-    .nextU256()
+    .nextU64()
     .expect('tokenId argument is missing or invalid');
   _update(to, tokenId, '');
 }
 
 /**
  *
- * @param binaryArgs - serialized u256 representing the tokenId to burn
+ * @param binaryArgs - serialized u64 representing the tokenId to burn
  *
  * @remarks This function is not part of the ERC721 standard.
  * It serves as an example of how to use the NFT-enumerable-internals functions to implement custom features.
@@ -234,17 +232,17 @@ export function mint(binaryArgs: StaticArray<u8>): void {
 export function burn(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
   const tokenId = args
-    .nextU256()
+    .nextU64()
     .expect('tokenId argument is missing or invalid');
   _update('', tokenId, '');
 }
 
 /**
  * Returns the total number of tokens.
- * @returns a serialized u256 representing the total supply
+ * @returns a serialized u64 representing the total supply
  */
 export function totalSupply(_: StaticArray<u8>): StaticArray<u8> {
-  return u256ToBytes(_totalSupply());
+  return u64ToBytes(_totalSupply());
 }
 
 /**

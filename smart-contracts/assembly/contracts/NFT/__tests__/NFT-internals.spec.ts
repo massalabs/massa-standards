@@ -4,7 +4,6 @@ import {
   setDeployContext,
 } from '@massalabs/massa-as-sdk';
 
-import { u256 } from 'as-bignum/assembly';
 import {
   _approve,
   _balanceOf,
@@ -27,7 +26,7 @@ const to = 'AU178qZCfaNXkz9tQiXJcVfAEnYGJ27UoNtFFJh3BiT8jTfY8P2D';
 const approved = 'AU1sF3HSa7fcBoE12bE1Eq2ohKqcRPBHuNRmdqAMfw8WEkHCU3aF';
 const newOwner = 'AU12F7y3PWpw72XcwhSksJztRiTSqAvLxaLacP2qDYhNUEfEXuG4T';
 const zeroAddress = '';
-const tokenId = u256.One;
+const tokenId: u64 = 1;
 
 const NFTName = 'MASSA_NFT';
 const NFTSymbol = 'NFT';
@@ -125,10 +124,10 @@ describe('Transferring NFTs', () => {
     expect(ownerOfToken).toBe(newOwner);
 
     const balanceOfNewOwner = _balanceOf(newOwner);
-    expect(balanceOfNewOwner).toBe(u256.One);
+    expect(balanceOfNewOwner).toBe(1);
 
     const balanceOfOldOwner = _balanceOf(from);
-    expect(balanceOfOldOwner).toBe(u256.Zero);
+    expect(balanceOfOldOwner).toBe(0);
   });
   throws('Transferring a non-existent token should fail', () => {
     _transferFrom(from, to, tokenId);
