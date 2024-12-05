@@ -5,8 +5,8 @@
  */
 
 import { Context, Storage } from '@massalabs/massa-as-sdk';
-
-import { bytesToU64, stringToBytes, u64ToBytes } from '@massalabs/as-types';
+import { u256 } from 'as-bignum/assembly';
+import { bytesToU256, stringToBytes, u256ToBytes } from '@massalabs/as-types';
 import {
   _isAuthorized,
   _ownerOf,
@@ -27,7 +27,7 @@ export const OWNED_TOKENS_KEY: StaticArray<u8> = stringToBytes('ownedTokens');
  */
 export function _constructor(name: string, symbol: string): void {
   _constructorBase(name, symbol);
-  Storage.set(TOTAL_SUPPLY_KEY, u64ToBytes(0));
+  Storage.set(TOTAL_SUPPLY_KEY, u256ToBytes(u256.Zero));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -37,22 +37,22 @@ export function _constructor(name: string, symbol: string): void {
 /**
  * Returns the total number of tokens in existence.
  */
-export function _totalSupply(): u64 {
-  return bytesToU64(Storage.get(TOTAL_SUPPLY_KEY));
+export function _totalSupply(): u256 {
+  return bytesToU256(Storage.get(TOTAL_SUPPLY_KEY));
 }
 
 /**
  * Increases the total supply by the given delta.
  * @param delta - The amount to increase the total supply by.
  *
- * @throws Will throw an error if the addition of delta to currentSupply exceeds u64.Max.
+ * @throws Will throw an error if the addition of delta to currentSupply exceeds u256.Max.
  */
-export function _increaseTotalSupply(delta: u64): void {
+export function _increaseTotalSupply(delta: u256): void {
   const currentSupply = _totalSupply();
-  const maxAllowedDelta = u64.MAX_VALUE - currentSupply;
-  assert(delta <= maxAllowedDelta, 'Total supply overflow');
-  const newSupply = currentSupply + delta;
-  Storage.set(TOTAL_SUPPLY_KEY, u64ToBytes(newSupply));
+  const maxAllowedDelta = u256.sub(u256.Max, currentSupply);
+  assert(u256.le(delta, maxAllowedDelta), 'Total supply overflow');
+  const newSupply = u256.add(currentSupply, delta);
+  Storage.set(TOTAL_SUPPLY_KEY, u256ToBytes(newSupply));
 }
 
 /**
@@ -61,11 +61,11 @@ export function _increaseTotalSupply(delta: u64): void {
  *
  * @throws Will throw an error if `delta` exceeds the current total supply, causing an underflow.
  */
-export function _decreaseTotalSupply(delta: u64): void {
+export function _decreaseTotalSupply(delta: u256): void {
   const currentSupply = _totalSupply();
-  assert(delta <= currentSupply, 'Total supply underflow');
-  const newSupply = currentSupply - delta;
-  Storage.set(TOTAL_SUPPLY_KEY, u64ToBytes(newSupply));
+  assert(u256.le(delta, currentSupply), 'Total supply underflow');
+  const newSupply = u256.sub(currentSupply, delta);
+  Storage.set(TOTAL_SUPPLY_KEY, u256ToBytes(newSupply));
 }
 
 /* -------------------------------------------------------------------------- */
@@ -85,8 +85,8 @@ export function _getOwnedTokensKeyPrefix(owner: string): StaticArray<u8> {
  * @param owner - The owner's address.
  * @param tokenId - The token ID to add.
  */
-function _addTokenToOwnerEnumeration(owner: string, tokenId: u64): void {
-  const key = _getOwnedTokensKeyPrefix(owner).concat(u64ToBytes(tokenId));
+function _addTokenToOwnerEnumeration(owner: string, tokenId: u256): void {
+  const key = _getOwnedTokensKeyPrefix(owner).concat(u256ToBytes(tokenId));
   Storage.set(key, []);
 }
 
@@ -95,8 +95,8 @@ function _addTokenToOwnerEnumeration(owner: string, tokenId: u64): void {
  * @param owner - The owner's address.
  * @param tokenId - The token ID to remove.
  */
-function _removeTokenFromOwnerEnumeration(owner: string, tokenId: u64): void {
-  const key = _getOwnedTokensKeyPrefix(owner).concat(u64ToBytes(tokenId));
+function _removeTokenFromOwnerEnumeration(owner: string, tokenId: u256): void {
+  const key = _getOwnedTokensKeyPrefix(owner).concat(u256ToBytes(tokenId));
   Storage.del(key);
 }
 
@@ -110,13 +110,13 @@ function _removeTokenFromOwnerEnumeration(owner: string, tokenId: u64): void {
  * @param tokenId - The token ID.
  * @param auth - The address authorized to perform the update.
  */
-export function _update(to: string, tokenId: u64, auth: string): void {
+export function _update(to: string, tokenId: u256, auth: string): void {
   const previousOwner = _updateBase(to, tokenId, auth);
 
   // Mint
   if (previousOwner == '') {
     _addTokenToOwnerEnumeration(to, tokenId);
-    _increaseTotalSupply(1);
+    _increaseTotalSupply(u256.One);
   } else {
     // Transfer
     if (to != '' && to != previousOwner) {
@@ -126,7 +126,7 @@ export function _update(to: string, tokenId: u64, auth: string): void {
     // Burn
     else if (to == '') {
       _removeTokenFromOwnerEnumeration(previousOwner, tokenId);
-      _decreaseTotalSupply(1);
+      _decreaseTotalSupply(u256.One);
     }
   }
 }
@@ -141,7 +141,7 @@ export function _update(to: string, tokenId: u64, auth: string): void {
  * @param to - The new owner's address.
  * @param tokenId - The token ID to transfer.
  */
-export function _transferFrom(from: string, to: string, tokenId: u64): void {
+export function _transferFrom(from: string, to: string, tokenId: u256): void {
   assert(
     _isAuthorized(Context.caller().toString(), tokenId),
     'Unauthorized caller',

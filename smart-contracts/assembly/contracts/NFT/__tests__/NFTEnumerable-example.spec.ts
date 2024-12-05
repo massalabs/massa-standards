@@ -6,11 +6,11 @@ import {
 
 import {
   Args,
-  NoArg,
   byteToBool,
   bytesToString,
-  bytesToU64,
+  bytesToU256,
 } from '@massalabs/as-types';
+import { u256 } from 'as-bignum/assembly';
 import {
   approve,
   balanceOf,
@@ -38,7 +38,13 @@ const from = 'AU12CzoKEASaeBHnxGLnHDG2u73dLzWWfgvW6bc4L1UfMA5Uc5Fg7';
 const to = 'AU178qZCfaNXkz9tQiXJcVfAEnYGJ27UoNtFFJh3BiT8jTfY8P2D';
 const approved = 'AU1sF3HSa7fcBoE12bE1Eq2ohKqcRPBHuNRmdqAMfw8WEkHCU3aF';
 const zeroAddress = '';
-const tokenIds: u64[] = [1, 2, 3, 4, 5];
+const tokenIds = [
+  u256.One,
+  u256.fromU32(2),
+  u256.fromU32(3),
+  u256.fromU32(4),
+  u256.fromU32(5),
+];
 
 function switchUser(user: string): void {
   changeCallStack(user + ' , ' + tokenAddress);
@@ -48,7 +54,7 @@ beforeEach(() => {
   resetStorage();
   switchUser(contractOwner);
   setDeployContext(contractOwner);
-  constructor(NoArg.serialize());
+  constructor(new Args().add(NFTName).add(NFTSymbol).serialize());
 });
 
 describe('NFT Enumerable Contract', () => {
@@ -69,24 +75,24 @@ describe('NFT Enumerable Contract', () => {
         bytesToString(ownerOf(new Args().add(tokenIds[0]).serialize())),
       ).toBe(to);
       expect(
-        bytesToU64(balanceOf(new Args().add(to).serialize())),
-      ).toStrictEqual(1);
-      expect(bytesToU64(totalSupply([]))).toStrictEqual(1);
+        bytesToU256(balanceOf(new Args().add(to).serialize())),
+      ).toStrictEqual(u256.One);
+      expect(bytesToU256(totalSupply([]))).toStrictEqual(u256.One);
     });
 
     it('should mint multiple tokens to different addresses', () => {
       mint(new Args().add(to).add(tokenIds[0]).serialize());
       mint(new Args().add(from).add(tokenIds[1]).serialize());
       expect(
-        bytesToU64(balanceOf(new Args().add(to).serialize())),
-      ).toStrictEqual(1);
+        bytesToU256(balanceOf(new Args().add(to).serialize())),
+      ).toStrictEqual(u256.One);
       expect(
-        bytesToU64(balanceOf(new Args().add(from).serialize())),
-      ).toStrictEqual(1);
-      expect(bytesToU64(totalSupply([]))).toStrictEqual(u64(2));
+        bytesToU256(balanceOf(new Args().add(from).serialize())),
+      ).toStrictEqual(u256.One);
+      expect(bytesToU256(totalSupply([]))).toStrictEqual(u256.fromU32(2));
     });
 
-    it('should mint to an invalid address', () => {
+    it('should not mint to an invalid address', () => {
       expect(() => {
         mint(new Args().add(zeroAddress).add(tokenIds[0]).serialize());
       }).toThrow('Unauthorized to');
@@ -158,11 +164,11 @@ describe('NFT Enumerable Contract', () => {
         bytesToString(ownerOf(new Args().add(tokenIds[0]).serialize())),
       ).toBe(to);
       expect(
-        bytesToU64(balanceOf(new Args().add(to).serialize())),
-      ).toStrictEqual(1);
+        bytesToU256(balanceOf(new Args().add(to).serialize())),
+      ).toStrictEqual(u256.One);
       expect(
-        bytesToU64(balanceOf(new Args().add(from).serialize())),
-      ).toStrictEqual(0);
+        bytesToU256(balanceOf(new Args().add(from).serialize())),
+      ).toStrictEqual(u256.Zero);
     });
 
     it('should transfer approved token', () => {
@@ -206,7 +212,7 @@ describe('NFT Enumerable Contract', () => {
         [],
       );
 
-      expect(bytesToU64(totalSupply([]))).toStrictEqual(0);
+      expect(bytesToU256(totalSupply([]))).toStrictEqual(u256.Zero);
     });
 
     it('should burn a token with approval', () => {
@@ -218,7 +224,7 @@ describe('NFT Enumerable Contract', () => {
       expect(ownerOf(new Args().add(tokenIds[0]).serialize())).toStrictEqual(
         [],
       );
-      expect(bytesToU64(totalSupply([]))).toStrictEqual(0);
+      expect(bytesToU256(totalSupply([]))).toStrictEqual(u256.Zero);
     });
 
     it('should burn a token using approval for all', () => {
@@ -230,7 +236,7 @@ describe('NFT Enumerable Contract', () => {
       expect(ownerOf(new Args().add(tokenIds[0]).serialize())).toStrictEqual(
         [],
       );
-      expect(bytesToU64(totalSupply([]))).toStrictEqual(0);
+      expect(bytesToU256(totalSupply([]))).toStrictEqual(u256.Zero);
     });
 
     it('should not burn token without approval', () => {
@@ -244,11 +250,11 @@ describe('NFT Enumerable Contract', () => {
 
   describe('Enumeration', () => {
     it('should return correct total supply', () => {
-      expect(bytesToU64(totalSupply([]))).toStrictEqual(0);
+      expect(bytesToU256(totalSupply([]))).toStrictEqual(u256.Zero);
       mint(new Args().add(from).add(tokenIds[0]).serialize());
-      expect(bytesToU64(totalSupply([]))).toStrictEqual(1);
+      expect(bytesToU256(totalSupply([]))).toStrictEqual(u256.One);
       mint(new Args().add(to).add(tokenIds[1]).serialize());
-      expect(bytesToU64(totalSupply([]))).toStrictEqual(2);
+      expect(bytesToU256(totalSupply([]))).toStrictEqual(u256.fromU32(2));
     });
 
     it('should return correct tokens owned by an address', () => {
@@ -298,7 +304,7 @@ describe('NFT Enumerable Contract', () => {
       expect(fromTokens).toContainEqual(tokenIds[1]);
 
       // Total supply should be updated
-      expect(bytesToU64(totalSupply([]))).toStrictEqual(1);
+      expect(bytesToU256(totalSupply([]))).toStrictEqual(u256.One);
     });
   });
 });

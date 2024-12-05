@@ -20,11 +20,11 @@ import {
 } from '../NFT-example';
 import {
   Args,
-  NoArg,
   byteToBool,
   bytesToString,
-  bytesToU64,
+  bytesToU256,
 } from '@massalabs/as-types';
+import { u256 } from 'as-bignum/assembly';
 
 const NFTName = 'MASSA_NFT';
 const NFTSymbol = 'NFT';
@@ -35,7 +35,7 @@ const to = 'AU178qZCfaNXkz9tQiXJcVfAEnYGJ27UoNtFFJh3BiT8jTfY8P2D';
 const approved = 'AU1sF3HSa7fcBoE12bE1Eq2ohKqcRPBHuNRmdqAMfw8WEkHCU3aF';
 const newOwner = 'AU12F7y3PWpw72XcwhSksJztRiTSqAvLxaLacP2qDYhNUEfEXuG4T';
 const zeroAddress = '';
-const tokenId: u64 = 1;
+const tokenId = u256.One;
 
 function switchUser(user: string): void {
   changeCallStack(user + ' , ' + tokenAddress);
@@ -45,7 +45,7 @@ beforeEach(() => {
   resetStorage();
   switchUser(contractOwner);
   setDeployContext(contractOwner);
-  constructor(NoArg.serialize());
+  constructor(new Args().add(NFTName).add(NFTSymbol).serialize());
 });
 
 describe('Initialization', () => {
@@ -67,9 +67,9 @@ describe('Minting', () => {
     expect(bytesToString(ownerOf(new Args().add(tokenId).serialize()))).toBe(
       to,
     );
-    expect(bytesToU64(balanceOf(new Args().add(to).serialize()))).toStrictEqual(
-      1,
-    );
+    expect(
+      bytesToU256(balanceOf(new Args().add(to).serialize())),
+    ).toStrictEqual(u256.One);
   });
   throws('Minting from not owner should fail', () => {
     switchUser(from);
@@ -84,23 +84,23 @@ describe('Minting', () => {
   });
   test('Mint multiple tokens to an address', () => {
     mint(new Args().add(to).add(tokenId).serialize());
-    mint(new Args().add(to).add(u64(2)).serialize());
-    expect(bytesToU64(balanceOf(new Args().add(to).serialize()))).toStrictEqual(
-      2,
-    );
+    mint(new Args().add(to).add(new u256(2)).serialize());
+    expect(
+      bytesToU256(balanceOf(new Args().add(to).serialize())),
+    ).toStrictEqual(new u256(2));
   });
   test('Mint multiple tokens to different addresses', () => {
     mint(new Args().add(to).add(tokenId).serialize());
-    mint(new Args().add(from).add(u64(2)).serialize());
-    expect(bytesToU64(balanceOf(new Args().add(to).serialize()))).toStrictEqual(
-      1,
-    );
-    expect(bytesToString(ownerOf(new Args().add(u64(2)).serialize()))).toBe(
-      from,
-    );
+    mint(new Args().add(from).add(new u256(2)).serialize());
     expect(
-      bytesToU64(balanceOf(new Args().add(from).serialize())),
-    ).toStrictEqual(1);
+      bytesToU256(balanceOf(new Args().add(to).serialize())),
+    ).toStrictEqual(u256.One);
+    expect(
+      bytesToString(ownerOf(new Args().add(new u256(2)).serialize())),
+    ).toBe(from);
+    expect(
+      bytesToU256(balanceOf(new Args().add(from).serialize())),
+    ).toStrictEqual(u256.One);
     expect(bytesToString(ownerOf(new Args().add(tokenId).serialize()))).toBe(
       to,
     );
