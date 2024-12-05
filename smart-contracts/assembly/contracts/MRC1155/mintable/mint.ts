@@ -6,7 +6,7 @@
  *
  */
 
-import { _mint, _mintBatch } from '../token-internal';
+import { _mint, _mintBatch } from '../MRC1155-internal';
 import { Args } from '@massalabs/as-types';
 
 import { u256 } from 'as-bignum/assembly';

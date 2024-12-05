@@ -15,9 +15,9 @@ import {
   balanceOfBatch,
   constructor,
   setApprovalForAll,
-} from '../token';
+} from '../MRC1155';
 import { u256 } from 'as-bignum/assembly';
-import { _mint, _mintBatch } from '../token-internal';
+import { _mint, _mintBatch } from '../MRC1155-internal';
 import { burn, burnBatch } from '..';
 
 // address of the contract set in vm-mock. must match with contractAddr of @massalabs/massa-as-sdk/vm-mock/vm.js

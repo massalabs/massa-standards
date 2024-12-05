@@ -1,5 +1,5 @@
-export * from './token';
-export * from './token-internal';
+export * from './MRC1155';
+export * from './MRC1155-internal';
 export * from './burnable';
 export * from './mintable';
 

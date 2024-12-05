@@ -11,7 +11,7 @@ import {
   _burn,
   _burnBatch,
   _isApprovedForAll,
-} from '../token-internal';
+} from '../MRC1155-internal';
 import { Context } from '@massalabs/massa-as-sdk';
 
 import { u256 } from 'as-bignum/assembly';
