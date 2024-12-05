@@ -28,7 +28,7 @@ import {
   symbol,
   totalSupply,
   transferFrom,
-} from '../../enumerable/MRC721Enumerable';
+} from '../enumerable/MRC721Enumerable';
 
 import { getOwnedTokens } from './helpers';
 

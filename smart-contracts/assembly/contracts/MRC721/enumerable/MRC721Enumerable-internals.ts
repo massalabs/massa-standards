@@ -49,9 +49,12 @@ export function _totalSupply(): u256 {
  */
 export function _increaseTotalSupply(delta: u256): void {
   const currentSupply = _totalSupply();
-  const maxAllowedDelta = u256.sub(u256.Max, currentSupply);
+  // @ts-ignore
+  const maxAllowedDelta = u256.Max - currentSupply;
+  // @ts-ignore
   assert(u256.le(delta, maxAllowedDelta), 'Total supply overflow');
-  const newSupply = u256.add(currentSupply, delta);
+  // @ts-ignore
+  const newSupply = currentSupply + delta;
   Storage.set(TOTAL_SUPPLY_KEY, u256ToBytes(newSupply));
 }
 
@@ -64,7 +67,9 @@ export function _increaseTotalSupply(delta: u256): void {
 export function _decreaseTotalSupply(delta: u256): void {
   const currentSupply = _totalSupply();
   assert(u256.le(delta, currentSupply), 'Total supply underflow');
-  const newSupply = u256.sub(currentSupply, delta);
+  // @ts-ignore
+  const newSupply = currentSupply - delta;
+  // @ts-ignore
   Storage.set(TOTAL_SUPPLY_KEY, u256ToBytes(newSupply));
 }
 

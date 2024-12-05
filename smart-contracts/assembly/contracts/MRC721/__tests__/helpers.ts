@@ -1,7 +1,7 @@
 import { bytesToU256 } from '@massalabs/as-types';
 import { getKeys } from '@massalabs/massa-as-sdk';
 import { u256 } from 'as-bignum/assembly';
-import { _getOwnedTokensKeyPrefix } from '../../enumerable/MRC721Enumerable-internals';
+import { _getOwnedTokensKeyPrefix } from '../enumerable/MRC721Enumerable-internals';
 
 const SIZE_OF_U256 = 32;
 

@@ -239,7 +239,8 @@ export function _update(to: string, tokenId: u256, auth: string): string {
     // update the balance of the from
     const fromBalance = bytesToU256(Storage.get(balanceKey(from)));
     assert(fromBalance > u256.Zero, 'Insufficient balance');
-    Storage.set(balanceKey(from), u256ToBytes(u256.sub(fromBalance, u256.One)));
+    // @ts-ignore
+    Storage.set(balanceKey(from), u256ToBytes(fromBalance - u256.One));
   }
   if (to != '') {
     const toBalanceKey = balanceKey(to);
@@ -247,7 +248,8 @@ export function _update(to: string, tokenId: u256, auth: string): string {
     if (Storage.has(toBalanceKey)) {
       const toBalance = bytesToU256(Storage.get(toBalanceKey));
       assert(toBalance < u256.Max, 'Balance overflow');
-      Storage.set(toBalanceKey, u256ToBytes(u256.add(toBalance, u256.One)));
+      // @ts-ignore
+      Storage.set(toBalanceKey, u256ToBytes(toBalance + u256.One));
     } else {
       Storage.set(toBalanceKey, u256ToBytes(u256.One));
     }

@@ -180,7 +180,8 @@ export function _update(
         : u256.Zero;
       assert(fromBalance >= value, ERC1155_INSUFFICIENT_BALANCE_ERROR);
 
-      Storage.set(fromBalanceKey, u256ToBytes(u256.sub(fromBalance, value)));
+      // @ts-ignore
+      Storage.set(fromBalanceKey, u256ToBytes(fromBalance - value));
     }
 
     if (to != '') {
@@ -188,7 +189,8 @@ export function _update(
       const toBalance = Storage.has(toBalanceKey)
         ? bytesToU256(Storage.get(toBalanceKey))
         : u256.Zero;
-      const result = u256.add(toBalance, value);
+      // @ts-ignore
+      const result = toBalance + value;
       // check if toBalance + value overflow
       assert(result >= toBalance, ERC1155_BALANCE_OVERFLOW_ERROR);
 

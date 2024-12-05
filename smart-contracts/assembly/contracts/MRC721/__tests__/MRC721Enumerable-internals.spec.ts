@@ -9,7 +9,7 @@ import {
   _transferFrom,
   _decreaseTotalSupply,
   _increaseTotalSupply,
-} from '../../enumerable/MRC721Enumerable-internals';
+} from '../enumerable/MRC721Enumerable-internals';
 import { getOwnedTokens } from './helpers';
 
 const caller = 'A12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
@@ -67,8 +67,11 @@ describe('NFT Enumerable Internals', () => {
 
     it('should not allow total supply to exceed u256.Max', () => {
       // Set total supply to u256.Max - 1
-      const nearMaxSupply = u256.sub(u256.Max, u256.One);
-      _increaseTotalSupply(u256.sub(u256.Max, u256.One));
+      // @ts-ignore
+      const nearMaxSupply = u256.Max - u256.One;
+      // @ts-ignore
+      _increaseTotalSupply(nearMaxSupply);
+      // @ts-ignore
       expect(_totalSupply()).toStrictEqual(nearMaxSupply);
 
       // Mint one more token should succeed (totalSupply = u256.Max)
