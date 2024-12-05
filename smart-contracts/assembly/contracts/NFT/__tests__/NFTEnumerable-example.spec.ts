@@ -6,9 +6,11 @@ import {
 
 import {
   Args,
+  NoArg,
   byteToBool,
   bytesToString,
   bytesToU256,
+  stringToBytes,
 } from '@massalabs/as-types';
 import { u256 } from 'as-bignum/assembly';
 import {
@@ -54,14 +56,14 @@ beforeEach(() => {
   resetStorage();
   switchUser(contractOwner);
   setDeployContext(contractOwner);
-  constructor(new Args().add(NFTName).add(NFTSymbol).serialize());
+  constructor(NoArg.serialize());
 });
 
 describe('NFT Enumerable Contract', () => {
   describe('Initialization', () => {
     it('should return correct name and symbol', () => {
-      expect(name()).toBe(NFTName);
-      expect(symbol()).toBe(NFTSymbol);
+      expect(name()).toStrictEqual(stringToBytes(NFTName));
+      expect(symbol()).toStrictEqual(stringToBytes(NFTSymbol));
     });
     it('should return correct contract owner', () => {
       expect(bytesToString(ownerAddress([]))).toBe(contractOwner);

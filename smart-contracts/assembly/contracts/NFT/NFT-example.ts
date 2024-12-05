@@ -30,9 +30,10 @@ import {
   _update,
   _transferFrom,
 } from './NFT-internals';
-import { setOwner, onlyOwner } from '../utils/ownership';
+import { onlyOwner } from '../utils/ownership';
 
 import { Context, isDeployingContract } from '@massalabs/massa-as-sdk';
+import { _setOwner } from '../utils/ownership-internal';
 
 /**
  * @param binaryArgs - serialized strings representing the name and the symbol of the NFT
@@ -52,7 +53,7 @@ export function constructor(binaryArgs: StaticArray<u8>): void {
     .nextString()
     .expect('symbol argument is missing or invalid');
   _constructor(name, symbol);
-  setOwner(new Args().add(Context.caller().toString()).serialize());
+  _setOwner(Context.caller().toString());
 }
 
 export function name(): string {
