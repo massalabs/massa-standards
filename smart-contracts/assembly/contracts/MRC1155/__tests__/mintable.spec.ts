@@ -4,9 +4,9 @@ import {
   setDeployContext,
 } from '@massalabs/massa-as-sdk';
 import { Args, stringToBytes, u256ToBytes } from '@massalabs/as-types';
-import { balanceOf, constructor } from '../token';
+import { balanceOf, constructor } from '../MRC1155';
 import { u256 } from 'as-bignum/assembly';
-import { _balanceOfBatch } from '../token-internal';
+import { _balanceOfBatch } from '../MRC1155-internal';
 import { MINTER_ROLE, mint, mintBatch } from '..';
 import { grantRole } from '../../utils/accessControl';
 
@@ -90,7 +90,7 @@ describe('mintBatch', () => {
     );
   });
 
-  throws('ERC1155InvalidArrayLength', () => {
+  throws('MRC1155InvalidArrayLength', () => {
     const ids = [u256.One];
     const values = [u256.from(10), u256.from(20)];
     const data = stringToBytes('mint data');

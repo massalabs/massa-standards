@@ -15,9 +15,9 @@ import {
   balanceOfBatch,
   constructor,
   setApprovalForAll,
-} from '../token';
+} from '../MRC1155';
 import { u256 } from 'as-bignum/assembly';
-import { _mint, _mintBatch } from '../token-internal';
+import { _mint, _mintBatch } from '../MRC1155-internal';
 import { burn, burnBatch } from '..';
 
 // address of the contract set in vm-mock. must match with contractAddr of @massalabs/massa-as-sdk/vm-mock/vm.js
@@ -100,7 +100,7 @@ describe('burn', () => {
     ).toStrictEqual(u256ToBytes(u256.Zero));
   });
 
-  throws('ERC1155MissingApprovalForAll', () => {
+  throws('MRC1155MissingApprovalForAll', () => {
     const id = u256.One;
     const value = u256.from(10);
     const data = stringToBytes('burn data');
@@ -185,7 +185,7 @@ describe('burnBatch', () => {
     );
   });
 
-  throws('ERC1155MissingApprovalForAll', () => {
+  throws('MRC1155MissingApprovalForAll', () => {
     const ids = [u256.One, u256.from(2), u256.from(3)];
     const values = [u256.from(10), u256.from(20), u256.from(30)];
     const data = stringToBytes('burn data');

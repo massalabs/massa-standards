@@ -1,6 +1,6 @@
 import { resetStorage, setDeployContext } from '@massalabs/massa-as-sdk';
 import { Args, stringToBytes } from '@massalabs/as-types';
-import { constructor } from '../token';
+import { constructor } from '../MRC1155';
 import { u256 } from 'as-bignum/assembly';
 import {
   _baseURI,

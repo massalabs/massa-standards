@@ -1,7 +1,7 @@
 import { bytesToString, stringToBytes, u256ToBytes } from '@massalabs/as-types';
 import { Storage, createEvent, generateEvent } from '@massalabs/massa-as-sdk';
 import { u256 } from 'as-bignum/assembly';
-import { URI_EVENT, _uri as superUri } from '../token-internal';
+import { URI_EVENT, _uri as superUri } from '../MRC1155-internal';
 
 export const BASE_URI_KEY = stringToBytes('BASE_URI');
 export const TOKENS_URI_KEY = stringToBytes('TOKENS_URI');

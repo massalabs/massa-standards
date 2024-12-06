@@ -1,17 +1,17 @@
 /**
  *
- * This is an extension to the ERC1155 standard.
+ * This is an extension to the MRC1155 standard.
  *
  * It allows to burn tokens in a permissionless way
  */
 
 import { Args } from '@massalabs/as-types';
 import {
-  ERC1155_MISSING_APPROVAL_FOR_ALL_ERROR,
+  MRC1155_MISSING_APPROVAL_FOR_ALL_ERROR,
   _burn,
   _burnBatch,
   _isApprovedForAll,
-} from '../token-internal';
+} from '../MRC1155-internal';
 import { Context } from '@massalabs/massa-as-sdk';
 
 import { u256 } from 'as-bignum/assembly';
@@ -36,7 +36,7 @@ export function burn(binaryArgs: StaticArray<u8>): void {
   const value = args.nextU256().expect('value argument is missing or invalid');
   assert(
     account == sender || _isApprovedForAll(account, sender),
-    ERC1155_MISSING_APPROVAL_FOR_ALL_ERROR,
+    MRC1155_MISSING_APPROVAL_FOR_ALL_ERROR,
   );
 
   _burn(account, id, value);
@@ -66,7 +66,7 @@ export function burnBatch(binaryArgs: StaticArray<u8>): void {
     .expect('values argument is missing or invalid');
   assert(
     account == sender || _isApprovedForAll(account, sender),
-    ERC1155_MISSING_APPROVAL_FOR_ALL_ERROR,
+    MRC1155_MISSING_APPROVAL_FOR_ALL_ERROR,
   );
 
   _burnBatch(account, ids, values);

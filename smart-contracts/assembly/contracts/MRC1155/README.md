@@ -8,7 +8,7 @@ On top of that it also includes multiples extensions to the standard to allow fo
 - [mintable](./assembly/contracts/mintable.sol)
 - [metadata](./assembly/contracts/metadata.sol)
 
-It can be easily merged into massa-standards as this repository contains a set of smart contracts that are fully compatible with the ERC1155 standard with the only common depencies being ownership contract.
+It can be easily merged into massa-standards as this repository contains a set of smart contracts that are fully compatible with the ERC1155 standard with the only common dependencies being ownership contract.
 
 ## Documentation
 

@@ -1,12 +1,12 @@
 /**
  *
- * This is an extension to the ERC1155 standard.
+ * This is an extension to the MRC1155 standard.
  *
  * It allows to mint tokens only by the minter role
  *
  */
 
-import { _mint, _mintBatch } from '../token-internal';
+import { _mint, _mintBatch } from '../MRC1155-internal';
 import { Args } from '@massalabs/as-types';
 
 import { u256 } from 'as-bignum/assembly';
