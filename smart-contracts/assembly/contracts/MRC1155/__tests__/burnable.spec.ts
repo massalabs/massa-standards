@@ -100,7 +100,7 @@ describe('burn', () => {
     ).toStrictEqual(u256ToBytes(u256.Zero));
   });
 
-  throws('ERC1155MissingApprovalForAll', () => {
+  throws('MRC1155MissingApprovalForAll', () => {
     const id = u256.One;
     const value = u256.from(10);
     const data = stringToBytes('burn data');
@@ -185,7 +185,7 @@ describe('burnBatch', () => {
     );
   });
 
-  throws('ERC1155MissingApprovalForAll', () => {
+  throws('MRC1155MissingApprovalForAll', () => {
     const ids = [u256.One, u256.from(2), u256.from(3)];
     const values = [u256.from(10), u256.from(20), u256.from(30)];
     const data = stringToBytes('burn data');

@@ -124,7 +124,7 @@ describe('balanceOfBatch', () => {
     ).toStrictEqual(fixedSizeArrayToBytes<u256>([u256.Zero, u256.Zero]));
   });
 
-  throws('ERC1155InvalidArrayLengths', () => {
+  throws('MRC1155InvalidArrayLengths', () => {
     balanceOfBatch(
       new Args().add([contractAddr, contractAddr]).add([u256.Zero]).serialize(),
     );
@@ -222,7 +222,7 @@ describe('safeTransferFrom', () => {
     ).toStrictEqual(u256ToBytes(transferAmount));
   });
 
-  throws('ERC1155InsufficientBalance', () => {
+  throws('MRC1155InsufficientBalance', () => {
     const invalidAmount = u256.One;
     safeTransferFrom(
       new Args()
@@ -235,7 +235,7 @@ describe('safeTransferFrom', () => {
     );
   });
 
-  throws('ERC1155MissingApprovalForAll', () => {
+  throws('MRC1155MissingApprovalForAll', () => {
     const transferAmount = u256.from(100);
     const transferId = u256.Zero;
 
@@ -253,7 +253,7 @@ describe('safeTransferFrom', () => {
     );
   });
 
-  throws('ERC1155InvalidReceiver', () => {
+  throws('MRC1155InvalidReceiver', () => {
     _mint(user1Address, u256.Zero, u256.from(100), []);
     safeTransferFrom(
       new Args()
@@ -266,7 +266,7 @@ describe('safeTransferFrom', () => {
     );
   });
 
-  throws('ERC1155InvalidSender', () => {
+  throws('MRC1155InvalidSender', () => {
     _mint(user1Address, u256.Zero, u256.from(100), []);
     safeTransferFrom(
       new Args()
@@ -279,7 +279,7 @@ describe('safeTransferFrom', () => {
     );
   });
 
-  throws('ERC1155BalanceOverflow', () => {
+  throws('MRC1155BalanceOverflow', () => {
     _mint(user1Address, u256.Zero, u256.Max, []);
     _mint(user2Address, u256.Zero, u256.Max, []);
 
@@ -375,7 +375,7 @@ describe('safeBatchTransferFrom', () => {
     ).toStrictEqual(u256ToBytes(transferAmount2));
   });
 
-  throws('ERC1155InsufficientBalance', () => {
+  throws('MRC1155InsufficientBalance', () => {
     const invalidAmount = u256.One;
     safeBatchTransferFrom(
       new Args()
@@ -388,7 +388,7 @@ describe('safeBatchTransferFrom', () => {
     );
   });
 
-  throws('ERC1155MissingApprovalForAll', () => {
+  throws('MRC1155MissingApprovalForAll', () => {
     const transferAmount1 = u256.from(100);
     const transferAmount2 = u256.from(200);
     const transferId1 = u256.Zero;
@@ -409,7 +409,7 @@ describe('safeBatchTransferFrom', () => {
     );
   });
 
-  throws('ERC1155InvalidReceiver', () => {
+  throws('MRC1155InvalidReceiver', () => {
     _mint(user1Address, u256.Zero, u256.from(100), []);
     safeBatchTransferFrom(
       new Args()
@@ -422,7 +422,7 @@ describe('safeBatchTransferFrom', () => {
     );
   });
 
-  throws('ERC1155InvalidSender', () => {
+  throws('MRC1155InvalidSender', () => {
     _mint(user1Address, u256.Zero, u256.from(100), []);
     safeBatchTransferFrom(
       new Args()
@@ -435,7 +435,7 @@ describe('safeBatchTransferFrom', () => {
     );
   });
 
-  throws('ERC1155BalanceOverflow', () => {
+  throws('MRC1155BalanceOverflow', () => {
     _mint(user1Address, u256.Zero, u256.Max, []);
     _mint(user2Address, u256.Zero, u256.Max, []);
 
@@ -450,7 +450,7 @@ describe('safeBatchTransferFrom', () => {
     );
   });
 
-  throws('ERC1155InvalidArrayLengths', () => {
+  throws('MRC1155InvalidArrayLengths', () => {
     safeBatchTransferFrom(
       new Args()
         .add(user1Address)
@@ -511,7 +511,7 @@ describe('_mintBatch', () => {
     ).toStrictEqual(u256ToBytes(mintAmount2));
   });
 
-  throws('ERC1155InvalidArrayLengths', () => {
+  throws('MRC1155InvalidArrayLengths', () => {
     _mintBatch(user1Address, [u256.Zero], [u256.Zero, u256.One], []);
   });
 });
@@ -552,7 +552,7 @@ describe('_burnBatch', () => {
     ).toStrictEqual(u256ToBytes(u256.Zero));
   });
 
-  throws('ERC1155InvalidArrayLengths', () => {
+  throws('MRC1155InvalidArrayLengths', () => {
     _burnBatch(user1Address, [u256.Zero], [u256.Zero, u256.One]);
   });
 });

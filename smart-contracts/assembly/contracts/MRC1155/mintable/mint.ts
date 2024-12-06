@@ -1,6 +1,6 @@
 /**
  *
- * This is an extension to the ERC1155 standard.
+ * This is an extension to the MRC1155 standard.
  *
  * It allows to mint tokens only by the minter role
  *

@@ -90,7 +90,7 @@ describe('mintBatch', () => {
     );
   });
 
-  throws('ERC1155InvalidArrayLength', () => {
+  throws('MRC1155InvalidArrayLength', () => {
     const ids = [u256.One];
     const values = [u256.from(10), u256.from(20)];
     const data = stringToBytes('mint data');

@@ -3,7 +3,7 @@ import { createEvent, generateEvent } from '@massalabs/massa-as-sdk';
 
 import { u256 } from 'as-bignum/assembly';
 
-export function onERC1155BatchReceived(
+export function onMRC1155BatchReceived(
   binaryArgs: StaticArray<u8>,
 ): StaticArray<u8> {
   const args = new Args(binaryArgs);
@@ -20,7 +20,7 @@ export function onERC1155BatchReceived(
   const data = args.nextBytes().expect('data argument is missing or invalid');
 
   generateEvent(
-    createEvent('ERC1155BatchReceived', [
+    createEvent('MRC1155BatchReceived', [
       operator,
       from,
       ids.map<string>((id: u256) => id.toString()).join(';'),
@@ -28,10 +28,10 @@ export function onERC1155BatchReceived(
       data.toString(),
     ]),
   );
-  return new Args().add('bc197c81').serialize();
+  return new Args().add('wrong').serialize();
 }
 
-export function onERC1155Received(
+export function OnMRC1155Received(
   binaryArgs: StaticArray<u8>,
 ): StaticArray<u8> {
   const args = new Args(binaryArgs);
@@ -44,7 +44,7 @@ export function onERC1155Received(
   const data = args.nextBytes().expect('data argument is missing or invalid');
 
   generateEvent(
-    createEvent('ERC1155Received', [
+    createEvent('MRC1155Received', [
       operator,
       from,
       id.toString(),
@@ -52,5 +52,5 @@ export function onERC1155Received(
       data.toString(),
     ]),
   );
-  return new Args().add('f23a6e61').serialize();
+  return new Args().add('wrong').serialize();
 }

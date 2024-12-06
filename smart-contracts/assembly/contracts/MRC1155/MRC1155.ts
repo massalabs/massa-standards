@@ -1,6 +1,6 @@
 /**
  *
- * This file contains the implementation of the ERC1155 token standard.
+ * This file contains the implementation of the MRC1155 token standard.
  *
  * It can be extended with the following extensions:
  * - mintable
@@ -28,8 +28,8 @@ import {
   _isApprovedForAll,
   _safeTransferFrom,
   _safeBatchTransferFrom,
-  ERC1155_MISSING_APPROVAL_FOR_ALL_ERROR,
-  ERC1155_INVALID_ARRAY_LENGTH_ERROR,
+  MRC1155_MISSING_APPROVAL_FOR_ALL_ERROR,
+  MRC1155_INVALID_ARRAY_LENGTH_ERROR,
 } from './MRC1155-internal';
 
 import { Context, isDeployingContract } from '@massalabs/massa-as-sdk';
@@ -104,7 +104,7 @@ export function balanceOfBatch(binaryArgs: StaticArray<u8>): StaticArray<u8> {
   const ids = args
     .nextFixedSizeArray<u256>()
     .expect('ids argument is missing or invalid');
-  assert(owners.length == ids.length, ERC1155_INVALID_ARRAY_LENGTH_ERROR);
+  assert(owners.length == ids.length, MRC1155_INVALID_ARRAY_LENGTH_ERROR);
 
   const balances = _balanceOfBatch(owners, ids);
   return fixedSizeArrayToBytes<u256>(balances);
@@ -156,7 +156,7 @@ export function isApprovedForAll(binaryArgs: StaticArray<u8>): StaticArray<u8> {
 /**
  *
  * Safe transfer of a specific amount of tokens to an address.
- * The receiving address can implement the onERC1155Received interface to be called once a transfer happens.
+ * The receiving address can implement the OnMRC1155Received interface to be called once a transfer happens.
  *
  * Emits a TransferSingle event.
  *
@@ -176,7 +176,7 @@ export function safeTransferFrom(binaryArgs: StaticArray<u8>): void {
   const data = args.nextBytes().expect('data argument is missing or invalid');
   assert(
     from == sender || _isApprovedForAll(from, sender),
-    ERC1155_MISSING_APPROVAL_FOR_ALL_ERROR,
+    MRC1155_MISSING_APPROVAL_FOR_ALL_ERROR,
   );
 
   _safeTransferFrom(from, to, id, value, data);
@@ -185,7 +185,7 @@ export function safeTransferFrom(binaryArgs: StaticArray<u8>): void {
 /**
  *
  * Safe transfer of a batch of tokens to an address.
- * The receiving address can implement the onERC1155BatchReceived interface to be called once a transfer happens.
+ * The receiving address can implement the onMRC1155BatchReceived interface to be called once a transfer happens.
  *
  * Emits a TransferBatch event.
  *
@@ -209,7 +209,7 @@ export function safeBatchTransferFrom(binaryArgs: StaticArray<u8>): void {
   const data = args.nextBytes().expect('data argument is missing or invalid');
   assert(
     from == sender || _isApprovedForAll(from, sender),
-    ERC1155_MISSING_APPROVAL_FOR_ALL_ERROR,
+    MRC1155_MISSING_APPROVAL_FOR_ALL_ERROR,
   );
 
   _safeBatchTransferFrom(from, to, ids, values, data);

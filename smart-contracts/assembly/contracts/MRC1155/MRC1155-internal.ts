@@ -31,15 +31,15 @@ export const TRANSFER_BATCH_EVENT: string = 'TransferBatch';
 export const URI_EVENT: string = 'URI';
 
 export const INVALID_OPERATOR_ERROR: string = 'InvalidOperator';
-export const ERC1155_BALANCE_OVERFLOW_ERROR: string = 'ERC1155BalanceOverflow';
-export const ERC1155_INSUFFICIENT_BALANCE_ERROR: string =
-  'ERC1155InsufficientBalance';
-export const ERC1155_INVALID_ARRAY_LENGTH_ERROR: string =
-  'ERC1155InvalidArrayLength';
-export const ERC1155_INVALID_RECEIVER_ERROR: string = 'ERC1155InvalidReceiver';
-export const ERC1155_INVALID_SENDER_ERROR: string = 'ERC1155InvalidSender';
-export const ERC1155_MISSING_APPROVAL_FOR_ALL_ERROR: string =
-  'ERC1155MissingApprovalForAll';
+export const MRC1155_BALANCE_OVERFLOW_ERROR: string = 'MRC1155BalanceOverflow';
+export const MRC1155_INSUFFICIENT_BALANCE_ERROR: string =
+  'MRC1155InsufficientBalance';
+export const MRC1155_INVALID_ARRAY_LENGTH_ERROR: string =
+  'MRC1155InvalidArrayLength';
+export const MRC1155_INVALID_RECEIVER_ERROR: string = 'MRC1155InvalidReceiver';
+export const MRC1155_INVALID_SENDER_ERROR: string = 'MRC1155InvalidSender';
+export const MRC1155_MISSING_APPROVAL_FOR_ALL_ERROR: string =
+  'MRC1155MissingApprovalForAll';
 
 /**
  * Constructs a new Multi-NFT contract.
@@ -99,7 +99,7 @@ export function _balanceOfBatch(owners: string[], ids: u256[]): u256[] {
 }
 
 /**
- * @param id - the id of the token - it is not used in this implementation but mandatory for the ERC1155 standard
+ * @param id - the id of the token - it is not used in this implementation but mandatory for the MRC1155 standard
  * @returns the URI for the token
  */
 export function _uri(_: u256): string {
@@ -165,7 +165,7 @@ export function _update(
   ids: u256[],
   values: u256[],
 ): void {
-  assert(ids.length == values.length, ERC1155_INVALID_ARRAY_LENGTH_ERROR);
+  assert(ids.length == values.length, MRC1155_INVALID_ARRAY_LENGTH_ERROR);
 
   const operator = Context.caller().toString();
 
@@ -178,7 +178,7 @@ export function _update(
       const fromBalance = Storage.has(fromBalanceKey)
         ? bytesToU256(Storage.get(fromBalanceKey))
         : u256.Zero;
-      assert(fromBalance >= value, ERC1155_INSUFFICIENT_BALANCE_ERROR);
+      assert(fromBalance >= value, MRC1155_INSUFFICIENT_BALANCE_ERROR);
 
       // @ts-ignore
       Storage.set(fromBalanceKey, u256ToBytes(fromBalance - value));
@@ -192,7 +192,7 @@ export function _update(
       // @ts-ignore
       const result = toBalance + value;
       // check if toBalance + value overflow
-      assert(result >= toBalance, ERC1155_BALANCE_OVERFLOW_ERROR);
+      assert(result >= toBalance, MRC1155_BALANCE_OVERFLOW_ERROR);
 
       Storage.set(toBalanceKey, u256ToBytes(result));
     }
@@ -224,7 +224,7 @@ export function _update(
 /**
  * Update the balances of the sender and receiver
  *
- * It also calls the onERC1155Received or onERC1155BatchReceived function if the receiver is a contract
+ * It also calls the OnMRC1155Received or onMRC1155BatchReceived function if the receiver is a contract
  *
  * @param from - the address of the sender
  * @param to - the address of the receiver
@@ -249,15 +249,15 @@ export function _updateWithAcceptanceCheck(
       // use startsWith as a workaround for isAddressEoa which is not mocked in tests
       if (
         to.startsWith('AS') &&
-        functionExists(toAddress, 'onERC1155Received')
+        functionExists(toAddress, 'OnMRC1155Received')
       ) {
         const output = call(
           toAddress,
-          'onERC1155Received',
+          'OnMRC1155Received',
           new Args().add(operator).add(from).add(id).add(value).add(data),
           0,
         );
-        // Check if the returned value is bytes4(keccak256("onERC1155Received(address,address,uint256,uint256,bytes)"))
+        // Check if the returned value is bytes4(keccak256("OnMRC1155Received(address,address,uint256,uint256,bytes)"))
         assert(
           output.toString() ==
             new Args().add('f23a6e61').serialize().toString(),
@@ -266,16 +266,16 @@ export function _updateWithAcceptanceCheck(
     } else {
       if (
         to.startsWith('AS') &&
-        functionExists(toAddress, 'onERC1155BatchReceived')
+        functionExists(toAddress, 'onMRC1155BatchReceived')
       ) {
         const output = call(
           toAddress,
-          'onERC1155BatchReceived',
+          'onMRC1155BatchReceived',
           new Args().add(operator).add(from).add(ids).add(values).add(data),
           0,
         );
         // Check if the returned value is
-        // bytes4(keccak256("onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))
+        // bytes4(keccak256("onMRC1155BatchReceived(address,address,uint256[],uint256[],bytes)"))
         assert(
           output.toString() ==
             new Args().add('bc197c81').serialize().toString(),
@@ -299,8 +299,8 @@ export function _safeTransferFrom(
   value: u256,
   data: StaticArray<u8>,
 ): void {
-  assert(to != '', ERC1155_INVALID_RECEIVER_ERROR);
-  assert(from != '', ERC1155_INVALID_SENDER_ERROR);
+  assert(to != '', MRC1155_INVALID_RECEIVER_ERROR);
+  assert(from != '', MRC1155_INVALID_SENDER_ERROR);
 
   _updateWithAcceptanceCheck(from, to, [id], [value], data);
 }
@@ -319,8 +319,8 @@ export function _safeBatchTransferFrom(
   values: u256[],
   data: StaticArray<u8>,
 ): void {
-  assert(to != '', ERC1155_INVALID_RECEIVER_ERROR);
-  assert(from != '', ERC1155_INVALID_SENDER_ERROR);
+  assert(to != '', MRC1155_INVALID_RECEIVER_ERROR);
+  assert(from != '', MRC1155_INVALID_SENDER_ERROR);
 
   _updateWithAcceptanceCheck(from, to, ids, values, data);
 }
@@ -337,7 +337,7 @@ export function _mint(
   value: u256,
   data: StaticArray<u8>,
 ): void {
-  assert(to != '', ERC1155_INVALID_RECEIVER_ERROR);
+  assert(to != '', MRC1155_INVALID_RECEIVER_ERROR);
 
   _updateWithAcceptanceCheck('', to, [id], [value], data);
 }
@@ -354,7 +354,7 @@ export function _mintBatch(
   values: u256[],
   data: StaticArray<u8>,
 ): void {
-  assert(to != '', ERC1155_INVALID_RECEIVER_ERROR);
+  assert(to != '', MRC1155_INVALID_RECEIVER_ERROR);
 
   _updateWithAcceptanceCheck('', to, ids, values, data);
 }
@@ -365,7 +365,7 @@ export function _mintBatch(
  * @param value - the amount of tokens to burn
  */
 export function _burn(from: string, id: u256, value: u256): void {
-  assert(from != '', ERC1155_INVALID_SENDER_ERROR);
+  assert(from != '', MRC1155_INVALID_SENDER_ERROR);
 
   _updateWithAcceptanceCheck(from, '', [id], [value], []);
 }
@@ -377,7 +377,7 @@ export function _burn(from: string, id: u256, value: u256): void {
  * @param data - additional data to pass to the receiver
  */
 export function _burnBatch(from: string, ids: u256[], values: u256[]): void {
-  assert(from != '', ERC1155_INVALID_SENDER_ERROR);
+  assert(from != '', MRC1155_INVALID_SENDER_ERROR);
 
   _updateWithAcceptanceCheck(from, '', ids, values, []);
 }

@@ -1,6 +1,6 @@
 /**
  *
- * This is an extension to the ERC1155 standard.
+ * This is an extension to the MRC1155 standard.
  *
  * It allows to store uri for each token id
  * It should be used with the internal functions from metadata-internal
