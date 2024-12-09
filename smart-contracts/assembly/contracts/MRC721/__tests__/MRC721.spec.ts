@@ -45,7 +45,7 @@ beforeEach(() => {
   resetStorage();
   switchUser(contractOwner);
   setDeployContext(contractOwner);
-  constructor([]);
+  constructor(NFTName, NFTSymbol);
 });
 
 describe('Initialization', () => {

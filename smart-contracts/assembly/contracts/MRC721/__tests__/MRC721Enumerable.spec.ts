@@ -56,7 +56,7 @@ beforeEach(() => {
   resetStorage();
   switchUser(contractOwner);
   setDeployContext(contractOwner);
-  constructor(NoArg.serialize());
+  constructor(NFTName, NFTSymbol);
 });
 
 describe('NFT Enumerable Contract', () => {
