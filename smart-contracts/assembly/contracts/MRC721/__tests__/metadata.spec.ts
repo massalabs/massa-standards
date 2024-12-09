@@ -13,8 +13,6 @@ import {
 
 const user1Address = 'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
 
-const TOKEN_URI = 'ipfs://QmW77ZQQ7Jm9q8WuLbH8YZg2K7T9Qnjbzm7jYVQQrJY5Yd';
-
 beforeEach(() => {
   resetStorage();
   setDeployContext(user1Address);
