@@ -65,9 +65,6 @@ import { onlyOwner } from '../../utils/ownership';
 import { _setOwner } from '../../utils/ownership-internal';
 import { Context, isDeployingContract } from '@massalabs/massa-as-sdk';
 
-const NAME = 'MASSA_NFT';
-const SYMBOL = 'NFT';
-
 /**
  * @param binaryArgs - serialized strings representing the name and the symbol of the NFT
  *
@@ -78,9 +75,9 @@ const SYMBOL = 'NFT';
  *
  * Finally, it sets the owner of the contract to the caller of the constructor.
  */
-export function constructor(_: StaticArray<u8>): void {
+export function constructor(name: string, symbol: string): void {
   assert(isDeployingContract());
-  _constructor(NAME, SYMBOL);
+  _constructor(name, symbol);
   _setOwner(Context.caller().toString());
 }
 
