@@ -35,9 +35,10 @@ import { onlyOwner } from '../utils/ownership';
 import { Context, isDeployingContract } from '@massalabs/massa-as-sdk';
 import { _setOwner } from '../utils/ownership-internal';
 
+const NAME = 'MASSA_NFT';
+const SYMBOL = 'NFT';
+
 /**
- * @param binaryArgs - serialized strings representing the name and the symbol of the NFT
- *
  * @remarks This is the constructor of the contract. It can only be called once, when the contract is being deployed.
  * It expects two serialized arguments: the name and the symbol of the NFT.
  * Once the constructor has handled the deserialization, of the arguments,
@@ -45,14 +46,9 @@ import { _setOwner } from '../utils/ownership-internal';
  *
  * Finally, it sets the owner of the contract to the caller of the constructor.
  */
-export function constructor(binaryArgs: StaticArray<u8>): void {
+export function constructor(_: StaticArray<u8>): void {
   assert(isDeployingContract());
-  const args = new Args(binaryArgs);
-  const name = args.nextString().expect('name argument is missing or invalid');
-  const symbol = args
-    .nextString()
-    .expect('symbol argument is missing or invalid');
-  _constructor(name, symbol);
+  _constructor(NAME, SYMBOL);
   _setOwner(Context.caller().toString());
 }
 

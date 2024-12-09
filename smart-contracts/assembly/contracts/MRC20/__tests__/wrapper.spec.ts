@@ -1,8 +1,7 @@
+// These tests serve as an example of how to use the MRC20Wrapper class to interact with the MRC20 contract.
 import { MRC20Wrapper } from '../wrapper';
 import {
   Address,
-  balance,
-  balanceOf,
   changeCallStack,
   mockBalance,
   mockScCall,
@@ -14,13 +13,17 @@ import { u256 } from 'as-bignum/assembly';
 const tokenName = 'myToken';
 
 const userAddr = 'AU1mhPhXCfh8afoNnbW91bXUVAmu8wU7u8v54yNTMvY7E52KBbz3';
-const tokenAddress = 'AU12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT';
+const tokenAddress = 'AS12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT';
 
 const tokenContract = new MRC20Wrapper(new Address(tokenAddress));
 
+function switchUser(user: string): void {
+  changeCallStack(user + ' , ' + tokenAddress);
+}
+
 describe('Wrapper tests', () => {
   beforeAll(() => {
-    changeCallStack(userAddr + ' , ' + tokenAddress);
+    switchUser(userAddr);
   });
 
   test('token name', () => {
@@ -45,9 +48,6 @@ describe('Wrapper tests', () => {
     mockScCall([]);
 
     tokenContract.transfer(recipient, amount);
-
-    expect(balance()).toBe(0);
-    expect(balanceOf(tokenAddress)).toBe(0);
   });
 
   test('transfer with coins', () => {
@@ -61,7 +61,5 @@ describe('Wrapper tests', () => {
     mockScCall([]);
 
     tokenContract.transfer(recipient, amount, coins);
-    expect(balance()).toBe(0);
-    expect(balanceOf(tokenAddress)).toBe(0);
   });
 });

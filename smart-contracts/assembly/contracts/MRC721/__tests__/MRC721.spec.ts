@@ -45,7 +45,7 @@ beforeEach(() => {
   resetStorage();
   switchUser(contractOwner);
   setDeployContext(contractOwner);
-  constructor(new Args().add(NFTName).add(NFTSymbol).serialize());
+  constructor([]);
 });
 
 describe('Initialization', () => {

@@ -61,7 +61,8 @@ import {
   _transferFrom,
   _totalSupply,
 } from './MRC721Enumerable-internals';
-import { setOwner, onlyOwner } from '../../utils/ownership';
+import { onlyOwner } from '../../utils/ownership';
+import { _setOwner } from '../../utils/ownership-internal';
 import { Context, isDeployingContract } from '@massalabs/massa-as-sdk';
 
 const NAME = 'MASSA_NFT';
@@ -80,7 +81,7 @@ const SYMBOL = 'NFT';
 export function constructor(_: StaticArray<u8>): void {
   assert(isDeployingContract());
   _constructor(NAME, SYMBOL);
-  setOwner(new Args().add(Context.caller().toString()).serialize());
+  _setOwner(Context.caller().toString());
 }
 
 /**
