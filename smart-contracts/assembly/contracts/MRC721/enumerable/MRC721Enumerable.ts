@@ -61,26 +61,19 @@ import {
   _transferFrom,
   _totalSupply,
 } from './MRC721Enumerable-internals';
-import { setOwner, onlyOwner } from '../../utils/ownership';
+import { onlyOwner } from '../../utils/ownership';
+import { _setOwner } from '../../utils/ownership-internal';
 import { Context, isDeployingContract } from '@massalabs/massa-as-sdk';
 
-const NAME = 'MASSA_NFT';
-const SYMBOL = 'NFT';
-
 /**
- * @param binaryArgs - serialized strings representing the name and the symbol of the NFT
- *
- * @remarks This is the constructor of the contract. It can only be called once, when the contract is being deployed.
- * It expects two serialized arguments: the name and the symbol of the NFT.
- * Once the constructor has handled the deserialization of the arguments,
- * it calls the _constructor function from the NFT-enumerable-internals.
- *
- * Finally, it sets the owner of the contract to the caller of the constructor.
+ * @param name - the name of the NFT
+ * @param symbol - the symbol of the NFT
+ * @remarks You must call this function in your contract's constructor or re-write it to fit your needs !
  */
-export function constructor(_: StaticArray<u8>): void {
+export function mrc721Constructor(name: string, symbol: string): void {
   assert(isDeployingContract());
-  _constructor(NAME, SYMBOL);
-  setOwner(new Args().add(Context.caller().toString()).serialize());
+  _constructor(name, symbol);
+  _setOwner(Context.caller().toString());
 }
 
 /**

@@ -23,7 +23,7 @@ import {
   allowance,
   increaseAllowance,
   decreaseAllowance,
-  constructor,
+  mrc20Constructor,
   VERSION,
 } from '../MRC20';
 import { u256 } from 'as-bignum/assembly';
@@ -49,14 +49,7 @@ function switchUser(user: string): void {
 beforeAll(() => {
   resetStorage();
   setDeployContext(user1Address);
-  constructor(
-    new Args()
-      .add(TOKEN_NAME)
-      .add(TOKEN_SYMBOL)
-      .add(DECIMALS)
-      .add(TOTAL_SUPPLY)
-      .serialize(),
-  );
+  mrc20Constructor(TOKEN_NAME, TOKEN_SYMBOL, DECIMALS, TOTAL_SUPPLY);
 });
 
 describe('Initialization', () => {

@@ -6,7 +6,7 @@ import {
 import {
   name,
   symbol,
-  constructor,
+  mrc721Constructor,
   mint,
   ownerOf,
   balanceOf,
@@ -45,7 +45,7 @@ beforeEach(() => {
   resetStorage();
   switchUser(contractOwner);
   setDeployContext(contractOwner);
-  constructor(new Args().add(NFTName).add(NFTSymbol).serialize());
+  mrc721Constructor(NFTName, NFTSymbol);
 });
 
 describe('Initialization', () => {

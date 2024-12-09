@@ -1,6 +1,6 @@
 import { resetStorage, setDeployContext } from '@massalabs/massa-as-sdk';
 import { Args, stringToBytes } from '@massalabs/as-types';
-
+import { mrc721Constructor } from '../MRC721';
 import { u256 } from 'as-bignum/assembly';
 import {
   _baseURI,
@@ -10,16 +10,13 @@ import {
   _uri,
   uri,
 } from '../metadata';
-import { mrc1155Constructor } from '../MRC1155';
 
 const user1Address = 'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
-
-const TOKEN_URI = 'ipfs://QmW77ZQQ7Jm9q8WuLbH8YZg2K7T9Qnjbzm7jYVQQrJY5Yd';
 
 beforeEach(() => {
   resetStorage();
   setDeployContext(user1Address);
-  mrc1155Constructor(TOKEN_URI);
+  mrc721Constructor('MassaNft', 'MNFT');
 });
 
 describe('_setBaseURI', () => {
@@ -54,11 +51,6 @@ describe('_uri', () => {
     _setBaseURI('ipfs://');
     expect(_uri(id)).toStrictEqual('ipfs://' + newUri);
   });
-
-  test('should return super URI', () => {
-    const id = u256.One;
-    expect(_uri(id)).toStrictEqual(TOKEN_URI);
-  });
 });
 
 describe('uri', () => {
@@ -80,13 +72,6 @@ describe('uri', () => {
     _setBaseURI('ipfs://');
     expect(uri(new Args().add(id).serialize())).toStrictEqual(
       stringToBytes('ipfs://' + newUri),
-    );
-  });
-
-  test('should return super URI', () => {
-    const id = u256.One;
-    expect(uri(new Args().add(id).serialize())).toStrictEqual(
-      stringToBytes(TOKEN_URI),
     );
   });
 });

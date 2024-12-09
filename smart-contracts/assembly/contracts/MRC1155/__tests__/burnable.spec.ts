@@ -13,7 +13,7 @@ import {
 import {
   balanceOf,
   balanceOfBatch,
-  constructor,
+  mrc1155Constructor,
   setApprovalForAll,
 } from '../MRC1155';
 import { u256 } from 'as-bignum/assembly';
@@ -37,7 +37,7 @@ beforeEach(() => {
   switchUser(user1Address);
   resetStorage();
   setDeployContext(user1Address);
-  constructor(new Args().add(stringToBytes(TOKEN_URI)).serialize());
+  mrc1155Constructor(TOKEN_URI);
 });
 
 describe('burn', () => {

@@ -40,15 +40,13 @@ import { _setOwner } from '../utils/ownership-internal';
 /**
  * Constructs a new Multi-NFT contract.
  *
+ * @remarks You must call this function in your contract's constructor or re-write it to fit your needs !
+ *
  * @param uri - the URI for the NFT contract
  */
-export function constructor(binaryArgs: StaticArray<u8>): void {
+export function mrc1155Constructor(uri: string): void {
   assert(isDeployingContract());
-  const args = new Args(binaryArgs);
-  const uri = args.nextString().expect('uri argument is missing or invalid');
-
   _setOwner(Context.caller().toString());
-
   _constructor(uri);
 }
 
