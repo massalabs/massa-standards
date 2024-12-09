@@ -4,14 +4,10 @@ import { onlyOwner } from '../../utils';
 import { isDeployingContract } from '@massalabs/massa-as-sdk';
 import { constructor as mrc721Constructor } from '../enumerable';
 
-const NAME = 'MassaNft';
-const SYMBOL = 'MNFT';
-const BASE_URI = 'ipfs://QmW77ZQQ7Jm9q8WuLbH8YZg2K7T9Qnjbzm7jYVQQrJY5Yd';
-
 export function constructor(_binaryArgs: StaticArray<u8>): void {
   assert(isDeployingContract());
-  mrc721Constructor(NAME, SYMBOL);
-  _setBaseURI(BASE_URI);
+  mrc721Constructor('MassaNft', 'MNFT');
+  _setBaseURI('ipfs://QmW77ZQQ7Jm9q8WuLbH8YZg2K7T9Qnjbzm7jYVQQrJY5Yd');
 }
 
 /**
