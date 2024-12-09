@@ -13,6 +13,8 @@ export function constructor(_binaryArgs: StaticArray<u8>): void {
 /**
  * Set the base URI for all token IDs
  * @param newBaseUri - the new base URI
+ *
+ * @remarks This function is optional and can be removed if you don't need to change the base URI
  */
 export function setBaseURI(_args: StaticArray<u8>): void {
   onlyOwner();
