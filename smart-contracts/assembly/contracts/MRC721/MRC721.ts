@@ -36,14 +36,9 @@ import { Context, isDeployingContract } from '@massalabs/massa-as-sdk';
 import { _setOwner } from '../utils/ownership-internal';
 
 /**
- * @param binaryArgs - serialized strings representing the name and the symbol of the NFT
- *
- * @remarks This is the constructor of the contract. It can only be called once, when the contract is being deployed.
- * It expects two serialized arguments: the name and the symbol of the NFT.
- * Once the constructor has handled the deserialization, of the arguments,
- * it calls the _constructor function from the NFT-internals.
- *
- * Finally, it sets the owner of the contract to the caller of the constructor.
+ * @param name - the name of the NFT
+ * @param symbol - the symbol of the NFT
+ * @remarks You must call this function in your contract's constructor !!!
  */
 export function constructor(name: string, symbol: string): void {
   assert(isDeployingContract());
