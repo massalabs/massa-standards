@@ -22,55 +22,29 @@ export const DECIMALS_KEY = stringToBytes('DECIMALS');
 
 /**
  * Initialize the ERC20 contract
- * Can be called only once
  *
- * @example
- * ```typescript
- *   constructor(
- *   new Args()
- *     .add('TOKEN_NAME')
- *     .add('TOKEN_SYMBOL')
- *     .add(3) // decimals
- *     .add(1000) // total supply
- *     .serialize(),
- *   );
- * ```
+ * @remarks You must call this function in your contract's constructor or re-write it to fit your needs !
  *
- * @param stringifyArgs - Args object serialized as a string containing:
- * - the token name (string)
- * - the token symbol (string).
- * - the decimals (u8).
- * - the totalSupply (u256)
- * - first owner (address)e
+ * @param name - the name of the token
+ * @param symbol - the symbol of the token
+ * @param decimals - the number of decimals
+ * @param totalSupply - the total supply of the token
  */
-export function constructor(stringifyArgs: StaticArray<u8>): void {
+export function mrc20Constructor(
+  name: string,
+  symbol: string,
+  decimals: u8,
+  totalSupply: u256,
+): void {
   assert(isDeployingContract());
 
-  const args = new Args(stringifyArgs);
-
-  // initialize token name
-  const name = args.nextString().expect('Error while initializing tokenName');
   Storage.set(NAME_KEY, stringToBytes(name));
-
-  // initialize token symbol
-  const symbol = args
-    .nextString()
-    .expect('Error while initializing tokenSymbol');
   Storage.set(SYMBOL_KEY, stringToBytes(symbol));
-
-  // initialize token decimals
-  const decimals = args
-    .nextU8()
-    .expect('Error while initializing tokenDecimals');
   Storage.set(DECIMALS_KEY, [decimals]);
-
-  // initialize totalSupply
-  const totalSupply = args
-    .nextU256()
-    .expect('Error while initializing totalSupply');
   Storage.set(TOTAL_SUPPLY_KEY, u256ToBytes(totalSupply));
 
   setOwner(new Args().add(Context.caller().toString()).serialize());
+
   _setBalance(Context.caller(), totalSupply);
 }
 

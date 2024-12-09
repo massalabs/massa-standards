@@ -1,6 +1,6 @@
 import { resetStorage, setDeployContext } from '@massalabs/massa-as-sdk';
 import { Args, stringToBytes } from '@massalabs/as-types';
-import { constructor } from '../MRC1155';
+
 import { u256 } from 'as-bignum/assembly';
 import {
   _baseURI,
@@ -10,6 +10,7 @@ import {
   _uri,
   uri,
 } from '../metadata';
+import { mrc1155Constructor } from '../MRC1155';
 
 const user1Address = 'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
 
@@ -18,7 +19,7 @@ const TOKEN_URI = 'ipfs://QmW77ZQQ7Jm9q8WuLbH8YZg2K7T9Qnjbzm7jYVQQrJY5Yd';
 beforeEach(() => {
   resetStorage();
   setDeployContext(user1Address);
-  constructor(new Args().add(stringToBytes(TOKEN_URI)).serialize());
+  mrc1155Constructor(TOKEN_URI);
 });
 
 describe('_setBaseURI', () => {

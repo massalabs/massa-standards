@@ -2,7 +2,7 @@ import { Args } from '@massalabs/as-types';
 import { _setBaseURI } from '../metadata/metadata-internal';
 import { onlyOwner } from '../../utils';
 import { isDeployingContract } from '@massalabs/massa-as-sdk';
-import { constructor as mrc721Constructor } from '../enumerable';
+import { mrc721Constructor } from '../enumerable';
 
 export function constructor(_binaryArgs: StaticArray<u8>): void {
   assert(isDeployingContract());

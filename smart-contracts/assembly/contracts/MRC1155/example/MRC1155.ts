@@ -1,6 +1,6 @@
 import { Args, stringToBytes } from '@massalabs/as-types';
 import { u256 } from 'as-bignum/assembly';
-import * as token from '../MRC1155';
+import { mrc1155Constructor } from '../MRC1155';
 import * as mint from '../mintable/mint';
 import { Context } from '@massalabs/massa-as-sdk';
 import { grantRole } from '../../utils/accessControl';
@@ -14,7 +14,9 @@ export function constructor(binaryArgs: StaticArray<u8>): void {
   const amounts = args
     .nextFixedSizeArray<u256>()
     .expect('amounts argument is missing or invalid');
-  token.constructor(new Args().add(uri).serialize());
+
+  mrc1155Constructor(uri);
+
   grantRole(
     new Args()
       .add(mint.MINTER_ROLE)

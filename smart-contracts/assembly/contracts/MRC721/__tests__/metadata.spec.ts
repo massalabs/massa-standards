@@ -1,6 +1,6 @@
 import { resetStorage, setDeployContext } from '@massalabs/massa-as-sdk';
 import { Args, stringToBytes } from '@massalabs/as-types';
-import { constructor } from '../MRC721';
+import { mrc721Constructor } from '../MRC721';
 import { u256 } from 'as-bignum/assembly';
 import {
   _baseURI,
@@ -16,7 +16,7 @@ const user1Address = 'AU12UBnqTHDQALpocVBnkPNy7y5CndUJQTLutaVDDFgMJcq5kQiKq';
 beforeEach(() => {
   resetStorage();
   setDeployContext(user1Address);
-  constructor('MassaNft', 'MNFT');
+  mrc721Constructor('MassaNft', 'MNFT');
 });
 
 describe('_setBaseURI', () => {

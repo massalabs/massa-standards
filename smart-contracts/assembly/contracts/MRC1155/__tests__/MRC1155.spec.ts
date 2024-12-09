@@ -15,8 +15,8 @@ import {
 import {
   balanceOf,
   balanceOfBatch,
-  constructor,
   isApprovedForAll,
+  mrc1155Constructor,
   safeBatchTransferFrom,
   safeTransferFrom,
   setApprovalForAll,
@@ -48,7 +48,7 @@ beforeEach(() => {
   switchUser(user1Address);
   resetStorage();
   setDeployContext(user1Address);
-  constructor(new Args().add(stringToBytes(TOKEN_URI)).serialize());
+  mrc1155Constructor(TOKEN_URI);
 });
 
 describe('Initialization', () => {

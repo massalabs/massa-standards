@@ -18,7 +18,7 @@ import {
   symbol,
   decimals,
   version,
-  constructor,
+  mrc20Constructor,
   increaseAllowance,
   transfer,
   allowance,
@@ -51,14 +51,7 @@ const DECIMALS: u8 = 2;
 const TOTAL_SUPPLY = new u256(10000, 0, 0, 100);
 
 describe('ERC20 BURN - Initialization', () => {
-  constructor(
-    new Args()
-      .add(TOKEN_NAME)
-      .add(TOKEN_SYMBOL)
-      .add(DECIMALS)
-      .add(TOTAL_SUPPLY)
-      .serialize(),
-  );
+  mrc20Constructor(TOKEN_NAME, TOKEN_SYMBOL, DECIMALS, TOTAL_SUPPLY);
 
   test('total supply is properly initialized', () => {
     expect(totalSupply([])).toStrictEqual(u256ToBytes(TOTAL_SUPPLY));

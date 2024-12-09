@@ -38,9 +38,9 @@ import { _setOwner } from '../utils/ownership-internal';
 /**
  * @param name - the name of the NFT
  * @param symbol - the symbol of the NFT
- * @remarks You must call this function in your contract's constructor !!!
+ * @remarks You must call this function in your contract's constructor or re-write it to fit your needs !
  */
-export function constructor(name: string, symbol: string): void {
+export function mrc721Constructor(name: string, symbol: string): void {
   assert(isDeployingContract());
 
   _constructor(name, symbol);

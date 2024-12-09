@@ -9,7 +9,7 @@ import {
 import { Args, u256ToBytes } from '@massalabs/as-types';
 import {
   balanceOf,
-  constructor,
+  mrc20Constructor,
   deposit,
   withdraw,
   computeMintStorageCost,
@@ -33,9 +33,7 @@ function switchUser(user: string): void {
 beforeEach(() => {
   resetStorage();
   setDeployContext(user1Address);
-  constructor(
-    new Args().add('Wrapped MAS').add('WMAS').add(9).add(u256.Zero).serialize(),
-  );
+  mrc20Constructor('Wrapped MAS', 'WMAS', 9, u256.Zero);
 });
 
 describe('deposit', () => {

@@ -6,7 +6,6 @@ import {
 
 import {
   Args,
-  NoArg,
   byteToBool,
   bytesToString,
   bytesToU256,
@@ -17,7 +16,6 @@ import {
   approve,
   balanceOf,
   burn,
-  constructor,
   getApproved,
   isApprovedForAll,
   mint,
@@ -28,6 +26,7 @@ import {
   symbol,
   totalSupply,
   transferFrom,
+  mrc721Constructor,
 } from '../enumerable/MRC721Enumerable';
 
 import { getOwnedTokens } from './helpers';
@@ -56,7 +55,7 @@ beforeEach(() => {
   resetStorage();
   switchUser(contractOwner);
   setDeployContext(contractOwner);
-  constructor(NFTName, NFTSymbol);
+  mrc721Constructor(NFTName, NFTSymbol);
 });
 
 describe('NFT Enumerable Contract', () => {

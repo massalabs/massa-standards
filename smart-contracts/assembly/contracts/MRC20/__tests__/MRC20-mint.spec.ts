@@ -14,7 +14,7 @@ import { mint } from '../mintable/mint';
 import {
   VERSION,
   balanceOf,
-  constructor,
+  mrc20Constructor,
   decimals,
   name,
   symbol,
@@ -43,14 +43,7 @@ const TOTAL_SUPPLY = new u256(10000, 1000, 100, 10);
 beforeAll(() => {
   resetStorage();
   setDeployContext(user1Address);
-  constructor(
-    new Args()
-      .add(TOKEN_NAME)
-      .add(TOKEN_SYMBOL)
-      .add(DECIMALS)
-      .add(TOTAL_SUPPLY)
-      .serialize(),
-  );
+  mrc20Constructor(TOKEN_NAME, TOKEN_SYMBOL, DECIMALS, TOTAL_SUPPLY);
 });
 
 describe('ERC20 MINT - Initialization', () => {
