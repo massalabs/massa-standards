@@ -11,13 +11,13 @@ If you're interested in learning more about Massa and its capabilities, check ou
 
 ## Fungible Token
 
-The [Fungible Token standard implementation](smart-contracts/assembly/contracts/FT) defines a common set of rules for creating and managing Massa-based tokens that are fungible (i.e. interchangeable).
+The [Fungible Token standard implementation](smart-contracts/assembly/contracts/MRC20) defines a common set of rules for creating and managing Massa-based tokens that are fungible (i.e. interchangeable).
 
 This is MassaLabs implementation of [the ERC20](https://ethereum.org/en/developers/docs/standards/tokens/erc-20/).
 
 ## Non-Fungible Token
 
-The [Non-Fungible Token standard implementation](smart-contracts/assembly/contracts/NFT) defines a common set of rules for creating and managing Massa-based tokens that are non-fungible (i.e. unique).
+The [Non-Fungible Token standard implementation](smart-contracts/assembly/contracts/MRC721) defines a common set of rules for creating and managing Massa-based tokens that are non-fungible (i.e. unique).
 
 This is MassaLabs implementation of [the ERC721](https://ethereum.org/en/developers/docs/standards/tokens/erc-721/).
 

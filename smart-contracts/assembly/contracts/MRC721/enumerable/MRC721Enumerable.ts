@@ -1,5 +1,5 @@
 /**
- * This is an example of an NFT contract that uses the `NFTEnumerable-internals`
+ * This is an example of an MRC721 contract that uses the `MRC721Enumerable-internals`
  * helper functions to implement enumeration functionality similar to the ERC-721 Enumerable extension.
  *
  * @remarks
@@ -46,12 +46,12 @@
  *  enabling efficient data retrieval.
  *
  * **This file does two things:**
- * 1. It wraps the `NFTEnumerable-internals` functions, manages the deserialization/serialization of the arguments
+ * 1. It wraps the `MRC721Enumerable-internals` functions, manages the deserialization/serialization of the arguments
  *    and return values, and exposes them to the outside world.
  * 2. It implements some custom features that are not part of the ERC-721 standard,
  *    such as `mint`, `burn`, or ownership management.
  *
- * **Important:** The `NFTEnumerable-internals` functions are not supposed to be re-exported by this file.
+ * **Important:** The `MRC721Enumerable-internals` functions are not supposed to be re-exported by this file.
  */
 
 import { Args, u256ToBytes } from '@massalabs/as-types';
