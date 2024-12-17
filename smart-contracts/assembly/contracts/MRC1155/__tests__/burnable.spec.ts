@@ -18,7 +18,7 @@ import {
 } from '../MRC1155';
 import { u256 } from 'as-bignum/assembly';
 import { _mint, _mintBatch } from '../MRC1155-internal';
-import { burn, burnBatch } from '..';
+import { burn, burnBatch } from '../burnable';
 
 // address of the contract set in vm-mock. must match with contractAddr of @massalabs/massa-as-sdk/vm-mock/vm.js
 const contractAddr = 'AS12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT';
