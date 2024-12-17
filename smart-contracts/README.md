@@ -1,7 +1,7 @@
 # Massa Smart-contract Standards
 
-- [fungible token](assembly/contracts/FT): implementation of the ERC20 token.
-- [non-fungible token](assembly/contracts/NFT)
+- [fungible token](assembly/contracts/MRC20): implementation of the ERC20 token.
+- [non-fungible token](assembly/contracts/MRC721)
 
 ## Documentation
 
@@ -22,8 +22,8 @@ npm i @massalabs/sc-standards
 ```typescript
 import { Args } from '@massalabs/as-types';
 import { callerHasWriteAccess } from '@massalabs/massa-as-sdk';
-import * as FT from '@massalabs/sc-standards/assembly/contracts/FT/index';
-export * from '@massalabs/sc-standards/assembly/contracts/FT/token';
+import * as MRC20 from '@massalabs/sc-standards/assembly/contracts/MRC20/index';
+export * from '@massalabs/sc-standards/assembly/contracts/MRC20/token';
 
 /**
  * This function is meant to be called only one time: when the contract is deployed.
@@ -37,7 +37,7 @@ export function constructor(_: StaticArray<u8>): StaticArray<u8> {
     return [];
   }
 
-  FT.constructor(
+  MRC20.constructor(
     new Args().add('MY_TOKEN').add('MTK').add(4).add(100000).serialize(),
   );
 

@@ -1,2 +1,2 @@
 export * from './MRC20';
-export * from './wrapper';
+// Internal functions must not be exported

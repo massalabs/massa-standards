@@ -1,19 +1,19 @@
 /**
- * This file contains the internals functions of an NFT contract as defined by the ERC721 standard.
+ * This file contains the internals functions of a MRC721 contract as defined by the ERC721 standard.
  * https://eips.ethereum.org/EIPS/eip-721
  *
  * DO NOT DEPLOY THIS CONTRACT.
  *
  * This file is NOT meant to be deployed on its own.
- * The functions exposed by this file are meant to be imported and used inside an NFT implementation contract.
- * This file can be seen as a library of helper functions that can be used to implement an NFT contract.
+ * The functions exposed by this file are meant to be imported and used inside an MRC721 implementation contract.
+ * This file can be seen as a library of helper functions that can be used to implement an MRC721 contract.
  *
- * The goal of having one separate file for the internals of the NFT contract is
+ * The goal of having one separate file for the internals of the MC721 contract is
  * 1. To abstract the complexity of storage access.
  * 2. To guarantee that the storage is accessed in a consistent and gas efficient way.
- * 3. To allow developers to focus on the business logic of their NFT contracts.
+ * 3. To allow developers to focus on the business logic of their MRC721 contracts.
  *
- * Please check the NFT-example.ts file for an example of how to use this file.
+ * Please check the ./MRC721.ts file for an example of how to use this file.
  *
  */
 
@@ -38,12 +38,12 @@ export const ALLOWANCE_KEY_PREFIX: StaticArray<u8> = [0x05];
 export const OPERATOR_ALLOWANCE_KEY_PREFIX: StaticArray<u8> = [0x06];
 
 /**
- * Constructs a new NFT contract.
+ * Constructs a new MRC721 contract.
  * @param binaryArgs - the binary arguments name and symbol
  *
  * @remarks This function shouldn't be directly exported by the implementation contract.
  * It is meant to be called by the constructor of the implementation contract.
- * Please check the NFT-example.ts file for an example of how to use this function.
+ * Please check the MRC721.ts file for an example of how to use this function.
  */
 export function _constructor(name: string, symbol: string): void {
   Storage.set(NAME_KEY, stringToBytes(name));

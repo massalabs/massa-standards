@@ -107,7 +107,7 @@ export function _uri(_: u256): string {
 }
 
 /**
- * Set the URI for the NFT contract
+ * Set the URI for the MRC721 contract
  * @param newUri - the new URI
  */
 export function _setURI(newUri: string): void {

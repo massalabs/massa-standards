@@ -7,7 +7,7 @@ import { Args, stringToBytes, u256ToBytes } from '@massalabs/as-types';
 import { balanceOf, mrc1155Constructor } from '../MRC1155';
 import { u256 } from 'as-bignum/assembly';
 import { _balanceOfBatch } from '../MRC1155-internal';
-import { MINTER_ROLE, mint, mintBatch } from '..';
+import { MINTER_ROLE, mint, mintBatch } from '../mintable';
 import { grantRole } from '../../utils/accessControl';
 
 // address of the contract set in vm-mock. must match with contractAddr of @massalabs/massa-as-sdk/vm-mock/vm.js

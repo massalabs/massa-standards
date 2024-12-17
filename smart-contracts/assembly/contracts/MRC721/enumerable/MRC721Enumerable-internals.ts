@@ -1,5 +1,5 @@
 /**
- * This file provides internal functions to support token enumeration functionality for the NFT contract on Massa.
+ * This file provides internal functions to support token enumeration functionality for the MRC721 contract on Massa.
  * It utilizes key prefix querying to retrieve all token IDs and tokens owned by specific addresses
  * in the datastore without maintaining explicit indices.
  */
@@ -18,12 +18,12 @@ export const TOTAL_SUPPLY_KEY: StaticArray<u8> = stringToBytes('totalSupply');
 export const OWNED_TOKENS_KEY: StaticArray<u8> = stringToBytes('ownedTokens');
 
 /**
- * Constructs a new NFT contract.
+ * Constructs a new MRC721 contract.
  * @param binaryArgs - the binary arguments name and symbol
  *
  * @remarks This function shouldn't be directly exported by the implementation contract.
  * It is meant to be called by the constructor of the implementation contract.
- * Please check the NFTEnumerable-example.ts file for an example of how to use this function.
+ * Please check the MRC721Enumerable.ts file for an example of how to use this function.
  */
 export function _constructor(name: string, symbol: string): void {
   _constructorBase(name, symbol);
