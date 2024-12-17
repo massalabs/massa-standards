@@ -17,3 +17,5 @@ export {
   decreaseAllowance,
   transferFrom,
 } from '../MRC20';
+
+export { setOwner, onlyOwner, isOwner } from '../../utils/ownership';
