@@ -29,7 +29,7 @@ This is MassaLabs implementation of [the ENS](https://docs.ens.domains/).
 
 ## MRC1155 Token
 
-The [MRC1155](smart-contracts/assembly/contracts/MRC1155/token.ts) standard defines a common set of rules for creating and managing Massa-based tokens that can represent multiple types of assets, both fungible and non-fungible, within a single contract.
+The [MRC1155](smart-contracts/assembly/contracts/MRC1155/) standard defines a common set of rules for creating and managing Massa-based tokens that can represent multiple types of assets, both fungible and non-fungible, within a single contract.
 
 This is MassaLabs implementation of [the ERC1155](https://eips.ethereum.org/EIPS/eip-1155).
 
