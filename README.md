@@ -35,6 +35,14 @@ This is MassaLabs implementation of [the ERC1155](https://eips.ethereum.org/EIPS
 
 ## Contract utils
 
+### Deployer
+
+The [Deployer smart contract](smart-contracts/assembly/contracts/deployer/deployer.ts) automates the deployment of multiple smart contracts in a single operation. It retrieves the necessary information (bytecode, constructor arguments, and coins) from the operation datastore, deploys the contracts, and calls their constructor functions if available.
+
+This utility simplifies the process of deploying and initializing multiple smart contracts in a single transaction and allow to call a constructor function in the deployed contract(s).
+
+For more details, refer to the [Deployer Documentation](smart-contracts/assembly/contracts/deployer/README.md).
+
 ### Ownable
 
 The [Ownable standard implementation](smart-contracts/assembly/contracts/utils/ownership.ts) defines a common set of rules for ownership management of Massa-based contracts. It provides basic authorization control functions, simplifying the implementation of user permissions.
