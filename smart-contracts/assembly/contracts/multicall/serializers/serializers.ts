@@ -17,7 +17,7 @@ export class Call implements Serializable {
       .serialize();
   }
 
-  deserialize(data: StaticArray<u8>, offset: i32): Result<i32> {
+  deserialize(data: StaticArray<u8>, offset: i32 = 0): Result<i32> {
     const args = new Args(data, offset);
 
     this.contract = args.nextString().expect("Can't deserialize contract.");
@@ -38,7 +38,7 @@ export class CallResult implements Serializable {
     return new Args().add(this.res).serialize();
   }
 
-  deserialize(data: StaticArray<u8>, offset: i32): Result<i32> {
+  deserialize(data: StaticArray<u8>, offset: i32 = 0): Result<i32> {
     const args = new Args(data, offset);
     this.res = args.nextBytes().expect("Can't deserialize call result.");
 
