@@ -38,6 +38,7 @@ describe('Multicall Contract Tests', () => {
     const resArray = new Args(res)
       .nextSerializableObjectArray<CallResult>()
       .unwrap();
+    expect(resArray.length).toBe(1);
     expect(resArray[0]).toStrictEqual(new CallResult(call1Result));
   });
 
@@ -66,6 +67,7 @@ describe('Multicall Contract Tests', () => {
     const resArray = new Args(res)
       .nextSerializableObjectArray<CallResult>()
       .unwrap();
+    expect(resArray.length).toBe(2);
     expect(resArray[0]).toStrictEqual(new CallResult(call1Result));
     expect(resArray[1]).toStrictEqual(new CallResult(call2Result));
   });
