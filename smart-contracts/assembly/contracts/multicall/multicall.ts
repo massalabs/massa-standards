@@ -28,14 +28,13 @@ function deserializeCalls(): Call[] {
   const calls: Call[] = [];
 
   let i: i32 = 0;
-  while (true) {
-    const key = callKey(i);
-    if (!hasOpKey(key)) {
-      return calls;
-    }
+  let key = callKey(i);
+  while (hasOpKey(key)) {
     const call = new Call();
     call.deserialize(getOpData(key));
     calls.push(call);
-    ++i;
+    i++;
+    key = callKey(i);
   }
+  return calls;
 }

@@ -65,6 +65,10 @@ The multicall contract is designed to be used in an `ExecuteSC` context. It is n
 
 This utility is useful for reducing the number of transactions and for atomic execution of multiple contract calls within a single operation.
 
+**Important:**
+Due to current node limitation, multicall read cannot be achieved because the returnet data of main function is ignored
+see: https://github.com/massalabs/massa/issues/4913
+
 ## Massa Units
 
 The [Massa Units standard](units.md) defines a set of common units of measurement for use on the Massa blockchain.
