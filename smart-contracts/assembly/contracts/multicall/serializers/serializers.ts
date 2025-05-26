@@ -32,15 +32,15 @@ export class Call implements Serializable {
 }
 
 export class CallResult implements Serializable {
-  constructor(public res: StaticArray<u8> = []) {}
+  constructor(public data: StaticArray<u8> = []) {}
 
   serialize(): StaticArray<u8> {
-    return new Args().add(this.res).serialize();
+    return new Args().add(this.data).serialize();
   }
 
   deserialize(data: StaticArray<u8>, offset: i32 = 0): Result<i32> {
     const args = new Args(data, offset);
-    this.res = args.nextBytes().expect("Can't deserialize call result.");
+    this.data = args.nextBytes().expect("Can't deserialize call result.");
 
     return new Result(args.offset);
   }
