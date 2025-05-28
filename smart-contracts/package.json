@@ -38,7 +38,7 @@
     ],
     "dependencies": {
         "@massalabs/as-types": "^2.1.0",
-        "@massalabs/massa-as-sdk": "^3.0.1-dev",
+        "@massalabs/massa-as-sdk": "^3.0.2",
         "as-bignum": "^0.3.1"
     }
 }

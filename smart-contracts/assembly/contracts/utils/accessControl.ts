@@ -1,5 +1,4 @@
 import { Args, boolToByte } from '@massalabs/as-types';
-import { onlyOwner } from './ownership';
 import {
   _grantRole,
   _hasRole,
@@ -7,6 +6,7 @@ import {
   _onlyRole,
   _revokeRole,
 } from './accessControl-internal';
+import { balance, transferRemaining } from '@massalabs/massa-as-sdk';
 
 /**
  *  Set the role for account
@@ -15,7 +15,8 @@ import {
  * @param account - account address string
  */
 export function grantRole(binaryArgs: StaticArray<u8>): void {
-  onlyOwner();
+  const initBal = balance();
+
   const args = new Args(binaryArgs);
   const role = args.nextString().expect('role argument is missing or invalid');
   const account = args
@@ -23,6 +24,8 @@ export function grantRole(binaryArgs: StaticArray<u8>): void {
     .expect('account argument is missing or invalid');
 
   _grantRole(role, account);
+
+  transferRemaining(initBal);
 }
 
 /**
@@ -61,6 +64,8 @@ export function hasRole(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  * @param account - account address string
  */
 export function revokeRole(binaryArgs: StaticArray<u8>): void {
+  const initBal = balance();
+
   const args = new Args(binaryArgs);
   const role = args.nextString().expect('role argument is missing or invalid');
   const account = args
@@ -68,6 +73,7 @@ export function revokeRole(binaryArgs: StaticArray<u8>): void {
     .expect('account argument is missing or invalid');
 
   _revokeRole(role, account);
+  transferRemaining(initBal);
 }
 
 /**
