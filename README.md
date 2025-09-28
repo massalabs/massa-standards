@@ -59,7 +59,7 @@ These units include:
 
 ## DApps <> Wallet Provider Communication
 
-The [DApps <> Wallet Provider Communication standard](wallet/dapps-communication.md) defines a common interface for communication between Massa-based decentralized applications (DApps) and wallet providers.
+The [DApps <> Wallet Provider Communication standard](https://github.com/massalabs/massa-standards/tree/proposal/dapp-wallet-communication-standard) defines a common interface for communication between Massa-based decentralized applications (DApps) and wallet providers.
 
 This standard aims to simplify the process of integrating Massa-based DApps with various wallet providers, making it easier for end-users to access and use these applications.
 
