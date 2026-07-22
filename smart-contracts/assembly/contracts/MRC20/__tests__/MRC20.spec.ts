@@ -118,7 +118,28 @@ describe('Transfer', () => {
     transfer(new Args().add(user2Address).add(u256.Max).serialize()),
   );
 
-  throws('Self transfer', () =>
+  test('Self transfer is a balance-preserving no-op', () => {
+    const before = balanceOf(new Args().add(user1Address).serialize());
+    transfer(new Args().add(user1Address).add(new u256(5, 5)).serialize());
+    expect(balanceOf(new Args().add(user1Address).serialize())).toStrictEqual(
+      before,
+    );
+  });
+
+  throws('Self transfer exceeding balance reverts', () => {
+    const currentBalance = bytesToU256(
+      balanceOf(new Args().add(user1Address).serialize()),
+    );
+    transfer(
+      // @ts-ignore
+      new Args()
+        .add(user1Address)
+        .add(currentBalance + u256.One)
+        .serialize(),
+    );
+  });
+
+  throws('Missing amount argument', () =>
     transfer(new Args().add(user1Address).serialize()),
   );
 });
