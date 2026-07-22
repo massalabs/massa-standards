@@ -75,14 +75,20 @@ export function balanceKey(address: Address): StaticArray<u8> {
  * @param amount - number of tokens to transfer
  */
 export function _transfer(from: Address, to: Address, amount: u256): void {
-  assert(from != to, 'Transfer failed: cannot send tokens to own account');
-
   const currentFromBalance = _balance(from);
+  assert(currentFromBalance >= amount, 'Transfer failed: insufficient funds');
+
+  // A self-transfer is a balance-preserving no-op (ERC20-compatible). It is
+  // handled explicitly because this function caches both balances before
+  // writing: without this early return, `from == to` would overwrite the debit
+  // with the credit and inflate the account by `amount`.
+  if (from == to) {
+    return;
+  }
+
   const currentToBalance = _balance(to);
   // @ts-ignore
   const newToBalance = currentToBalance + amount;
-
-  assert(currentFromBalance >= amount, 'Transfer failed: insufficient funds');
   assert(newToBalance >= currentToBalance, 'Transfer failed: overflow');
   // @ts-ignore
   _setBalance(from, currentFromBalance - amount);
