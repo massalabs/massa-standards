@@ -12,12 +12,12 @@ import {
   mrc20Constructor,
   deposit,
   withdraw,
-  computeMintStorageCost,
   transfer,
   transferFrom,
   increaseAllowance,
 } from '../WMAS';
 import { u256 } from 'as-bignum/assembly';
+import { computeMintStorageCost } from '../MRC20-external';
 
 // address of the contract set in vm-mock. must match with contractAddr of @massalabs/massa-as-sdk/vm-mock/vm.js
 const contractAddr = 'AS12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT';
