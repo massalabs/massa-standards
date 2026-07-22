@@ -2,6 +2,7 @@ import {
   changeCallStack,
   resetStorage,
   setDeployContext,
+  Storage,
 } from '@massalabs/massa-as-sdk';
 
 import { u256 } from 'as-bignum/assembly';
@@ -18,6 +19,7 @@ import {
   _symbol,
   _transferFrom,
   _update,
+  balanceKey,
 } from '../MRC721-internals';
 
 const tokenAddress = 'AS12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT';
@@ -63,6 +65,26 @@ describe('update', () => {
   throws('Minting an already existing tokenId should fail', () => {
     _update(to, tokenId, zeroAddress);
     _update(to, tokenId, zeroAddress);
+  });
+  test('deletes the balance entry when it reaches zero', () => {
+    // mint to `caller` so the caller is authorized to transfer it away
+    _update(caller, tokenId, zeroAddress);
+    expect(Storage.has(balanceKey(caller))).toBe(true);
+    // transfer the only token away: `caller` balance goes 1 -> 0
+    _update(to, tokenId, zeroAddress);
+    expect(_balanceOf(caller)).toBe(u256.Zero);
+    // the zero-balance entry must be reclaimed, not left dangling
+    expect(Storage.has(balanceKey(caller))).toBe(false);
+    expect(_balanceOf(to)).toBe(u256.One);
+  });
+  test('keeps the balance entry when it stays above zero', () => {
+    const tokenId2 = u256.fromU32(2);
+    _update(caller, tokenId, zeroAddress);
+    _update(caller, tokenId2, zeroAddress);
+    // transfer one of two tokens: `caller` balance goes 2 -> 1
+    _update(to, tokenId, zeroAddress);
+    expect(_balanceOf(caller)).toBe(u256.One);
+    expect(Storage.has(balanceKey(caller))).toBe(true);
   });
 });
 
