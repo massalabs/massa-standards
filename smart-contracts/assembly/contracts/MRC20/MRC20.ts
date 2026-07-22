@@ -18,7 +18,7 @@ import {
 import { setOwner } from '../utils/ownership';
 import { u256 } from 'as-bignum/assembly';
 
-export const VERSION = stringToBytes('0.0.1');
+export const VERSION = stringToBytes('0.1.0');
 
 const TRANSFER_EVENT_NAME = 'TRANSFER SUCCESS';
 const APPROVAL_EVENT_NAME = 'APPROVAL SUCCESS';
