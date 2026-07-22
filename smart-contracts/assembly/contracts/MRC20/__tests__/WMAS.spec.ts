@@ -12,9 +12,12 @@ import {
   mrc20Constructor,
   deposit,
   withdraw,
-  computeMintStorageCost,
+  transfer,
+  transferFrom,
+  increaseAllowance,
 } from '../WMAS';
 import { u256 } from 'as-bignum/assembly';
+import { computeMintStorageCost } from '../MRC20-external';
 
 // address of the contract set in vm-mock. must match with contractAddr of @massalabs/massa-as-sdk/vm-mock/vm.js
 const contractAddr = 'AS12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT';
@@ -25,6 +28,7 @@ const user3Address = 'AUDeadBeefDeadBeefDeadBeefDeadBeefDeadBeefDeadBOObs';
 const amount = 1_000_000_000_000;
 const storageCost = computeMintStorageCost(new Address(user2Address));
 const amountMinusStorageCost = amount - storageCost;
+const transferAmount = u256.fromU64(1_000);
 
 function switchUser(user: string): void {
   changeCallStack(user + ' , ' + contractAddr);
@@ -120,5 +124,51 @@ describe('withdraw', () => {
     expect(() => {
       withdraw(new Args().add(amount).add(user1Address).serialize());
     }).toThrow('Requested burn amount causes an underflow');
+  });
+});
+
+describe('transfer', () => {
+  beforeEach(() => {
+    // Give user2 some WMAS to transfer around.
+    switchUser(user2Address);
+    mockBalance(user2Address, amount);
+    mockTransferredCoins(amount);
+    deposit([]);
+    mockTransferredCoins(0);
+  });
+
+  it('should transfer WMAS to another account', () => {
+    transfer(new Args().add(user1Address).add(transferAmount).serialize());
+    expect(balanceOf(new Args().add(user1Address).serialize())).toStrictEqual(
+      u256ToBytes(transferAmount),
+    );
+  });
+
+  it('should transfer WMAS when coins are attached to cover storage', () => {
+    // Attaching coins is what a caller must do when the recipient's balance
+    // entry does not exist yet. The excess is refunded via transferRemaining.
+    mockBalance(user2Address, storageCost);
+    mockTransferredCoins(storageCost);
+    transfer(new Args().add(user1Address).add(transferAmount).serialize());
+    expect(balanceOf(new Args().add(user1Address).serialize())).toStrictEqual(
+      u256ToBytes(transferAmount),
+    );
+  });
+
+  it('should transferFrom WMAS using an allowance', () => {
+    increaseAllowance(
+      new Args().add(user1Address).add(transferAmount).serialize(),
+    );
+    switchUser(user1Address);
+    transferFrom(
+      new Args()
+        .add(user2Address)
+        .add(user3Address)
+        .add(transferAmount)
+        .serialize(),
+    );
+    expect(balanceOf(new Args().add(user3Address).serialize())).toStrictEqual(
+      u256ToBytes(transferAmount),
+    );
   });
 });

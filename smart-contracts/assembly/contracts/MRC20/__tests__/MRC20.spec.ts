@@ -3,6 +3,7 @@ import {
   changeCallStack,
   resetStorage,
   setDeployContext,
+  Storage,
 } from '@massalabs/massa-as-sdk';
 import {
   Args,
@@ -26,6 +27,7 @@ import {
   mrc20Constructor,
   VERSION,
 } from '../MRC20';
+import { balanceKey } from '../MRC20-internals';
 import { u256 } from 'as-bignum/assembly';
 
 // address of the contract set in vm-mock. must match with contractAddr of @massalabs/massa-as-sdk/vm-mock/vm.js
@@ -116,7 +118,28 @@ describe('Transfer', () => {
     transfer(new Args().add(user2Address).add(u256.Max).serialize()),
   );
 
-  throws('Self transfer', () =>
+  test('Self transfer is a balance-preserving no-op', () => {
+    const before = balanceOf(new Args().add(user1Address).serialize());
+    transfer(new Args().add(user1Address).add(new u256(5, 5)).serialize());
+    expect(balanceOf(new Args().add(user1Address).serialize())).toStrictEqual(
+      before,
+    );
+  });
+
+  throws('Self transfer exceeding balance reverts', () => {
+    const currentBalance = bytesToU256(
+      balanceOf(new Args().add(user1Address).serialize()),
+    );
+    transfer(
+      // @ts-ignore
+      new Args()
+        .add(user1Address)
+        .add(currentBalance + u256.One)
+        .serialize(),
+    );
+  });
+
+  throws('Missing amount argument', () =>
     transfer(new Args().add(user1Address).serialize()),
   );
 });
@@ -235,5 +258,31 @@ describe('transferFrom', () => {
     expect(
       allowance(new Args().add(user1Address).add(user3Address).serialize()),
     ).toStrictEqual(u256ToBytes(u256.Zero));
+  });
+});
+
+describe('balance entry cleanup', () => {
+  beforeEach(() => {
+    resetStorage();
+    setDeployContext(user1Address);
+    mrc20Constructor(TOKEN_NAME, TOKEN_SYMBOL, DECIMALS, TOTAL_SUPPLY);
+  });
+
+  test('deletes the sender entry when its balance reaches zero', () => {
+    // user1 holds the full supply; send all of it to user2
+    transfer(new Args().add(user2Address).add(TOTAL_SUPPLY).serialize());
+
+    expect(balanceOf(new Args().add(user1Address).serialize())).toStrictEqual(
+      u256ToBytes(u256.Zero),
+    );
+    // the zero-balance entry must be reclaimed, not left dangling
+    expect(Storage.has(balanceKey(new Address(user1Address)))).toBe(false);
+    expect(Storage.has(balanceKey(new Address(user2Address)))).toBe(true);
+  });
+
+  test('keeps the sender entry when its balance stays above zero', () => {
+    transfer(new Args().add(user2Address).add(new u256(10, 10)).serialize());
+
+    expect(Storage.has(balanceKey(new Address(user1Address)))).toBe(true);
   });
 });

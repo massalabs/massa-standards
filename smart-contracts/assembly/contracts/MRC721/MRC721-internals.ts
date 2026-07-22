@@ -240,7 +240,15 @@ export function _update(to: string, tokenId: u256, auth: string): string {
     const fromBalance = bytesToU256(Storage.get(balanceKey(from)));
     assert(fromBalance > u256.Zero, 'Insufficient balance');
     // @ts-ignore
-    Storage.set(balanceKey(from), u256ToBytes(fromBalance - u256.One));
+    const newFromBalance = fromBalance - u256.One;
+    // When the balance reaches zero, delete the entry to reclaim its storage
+    // instead of leaving a dangling zero-value entry (which would let a token
+    // bounced across fresh addresses accumulate permanent storage).
+    if (newFromBalance == u256.Zero) {
+      Storage.del(balanceKey(from));
+    } else {
+      Storage.set(balanceKey(from), u256ToBytes(newFromBalance));
+    }
   }
   if (to != '') {
     const toBalanceKey = balanceKey(to);

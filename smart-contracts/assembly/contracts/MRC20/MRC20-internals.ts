@@ -29,11 +29,24 @@ export function _balance(address: Address): u256 {
 /**
  * Sets the balance of a given address.
  *
+ * When the balance is zero the entry is deleted to reclaim its storage instead
+ * of leaving a dangling zero-value entry: {@link _balance} already treats a
+ * missing key as zero, and without this a token could accumulate permanent
+ * storage from balances that have been fully spent (e.g. transferring dust to a
+ * stream of fresh addresses).
+ *
  * @param address - address to set the balance for
  * @param balance -
  */
 export function _setBalance(address: Address, balance: u256): void {
-  Storage.set(balanceKey(address), u256ToBytes(balance));
+  const key = balanceKey(address);
+  if (balance == u256.Zero) {
+    if (Storage.has(key)) {
+      Storage.del(key);
+    }
+  } else {
+    Storage.set(key, u256ToBytes(balance));
+  }
 }
 
 /**
@@ -42,6 +55,44 @@ export function _setBalance(address: Address, balance: u256): void {
  */
 export function balanceKey(address: Address): StaticArray<u8> {
   return stringToBytes(BALANCE_KEY_PREFIX + address.toString());
+}
+
+/**
+ * Moves `amount` tokens from `from` to `to`.
+ *
+ * This is the storage-mutating core of a transfer. Unlike the exported
+ * {@link transfer} entry point, it does NOT call `transferRemaining`, so it is
+ * safe to compose: a contract that inherits MRC20 should build on `_transfer`
+ * (and `_approve`/`_allowance`) inside its own methods and perform a single
+ * `transferRemaining` at its outer boundary. Calling the exported `transfer`
+ * from within another method that also reconciles would nest two
+ * `transferRemaining` calls in the same execution — they share the same
+ * `Context.transferredCoins()` and would misaccount (typically reverting with
+ * `SPENT_MORE_COINS_THAN_SENT`).
+ *
+ * @param from - sender address
+ * @param to - recipient address
+ * @param amount - number of tokens to transfer
+ */
+export function _transfer(from: Address, to: Address, amount: u256): void {
+  const currentFromBalance = _balance(from);
+  assert(currentFromBalance >= amount, 'Transfer failed: insufficient funds');
+
+  // A self-transfer is a balance-preserving no-op (ERC20-compatible). It is
+  // handled explicitly because this function caches both balances before
+  // writing: without this early return, `from == to` would overwrite the debit
+  // with the credit and inflate the account by `amount`.
+  if (from == to) {
+    return;
+  }
+
+  const currentToBalance = _balance(to);
+  // @ts-ignore
+  const newToBalance = currentToBalance + amount;
+  assert(newToBalance >= currentToBalance, 'Transfer failed: overflow');
+  // @ts-ignore
+  _setBalance(from, currentFromBalance - amount);
+  _setBalance(to, newToBalance);
 }
 
 /**
