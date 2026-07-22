@@ -32,7 +32,12 @@ import {
 } from './MRC721-internals';
 import { onlyOwner } from '../utils/ownership';
 
-import { Context, isDeployingContract } from '@massalabs/massa-as-sdk';
+import {
+  balance,
+  Context,
+  isDeployingContract,
+  transferRemaining,
+} from '@massalabs/massa-as-sdk';
 import { _setOwner } from '../utils/ownership-internal';
 
 export const VERSION = stringToBytes('0.1.0');
@@ -128,14 +133,23 @@ export function isApprovedForAll(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  * @remarks This function is only callable by the owner of the tokenId or an approved operator.
  * Indeed, this will be checked by the _approve function of the MRC721-internals.
  *
+ * Writing the approval entry may create new storage, whose cost is charged to
+ * this contract's own coins. We use {@link transferRemaining} so the caller pays
+ * for that storage instead (any excess coins are refunded). It must be the
+ * outermost/only reconciliation in an execution: to compose inside your own
+ * method, use `_approve` from `MRC721-internals` and reconcile once at your
+ * outer boundary.
+ *
  */
 export function approve(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   const args = new Args(binaryArgs);
   const to = args.nextString().expect('to argument is missing or invalid');
   const tokenId = args
     .nextU256()
     .expect('tokenId argument is missing or invalid');
   _approve(to, tokenId);
+  transferRemaining(initialBalance);
 }
 
 /**
@@ -143,14 +157,23 @@ export function approve(binaryArgs: StaticArray<u8>): void {
  * @param binaryArgs - serialized arguments representing the address of the operator and a boolean value indicating
  * if the operator should be approved for all the caller's tokens
  *
+ * @remarks Reconciles coins via {@link transferRemaining} so the caller pays for
+ * any storage created (a new operator-approval entry) instead of the contract;
+ * without it, a token holding coins could be drained by approving a stream of
+ * fresh operators. It must be the outermost/only reconciliation: to compose,
+ * use `_setApprovalForAll` from `MRC721-internals` and reconcile once at your
+ * outer boundary.
+ *
  */
 export function setApprovalForAll(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   const args = new Args(binaryArgs);
   const to = args.nextString().expect('to argument is missing or invalid');
   const approved = args
     .nextBool()
     .expect('approved argument is missing or invalid');
   _setApprovalForAll(to, approved);
+  transferRemaining(initialBalance);
 }
 
 /**
@@ -160,8 +183,16 @@ export function setApprovalForAll(binaryArgs: StaticArray<u8>): void {
  *
  * @remarks This function is only callable by the owner of the tokenId or an approved operator.
  *
+ * Writing the recipient's balance entry may create new storage, whose cost is
+ * charged to this contract's own coins. We use {@link transferRemaining} so the
+ * caller pays for that storage instead (any excess coins are refunded). It must
+ * be the outermost/only reconciliation in an execution: to compose inside your
+ * own method, use `_transferFrom` from `MRC721-internals` and reconcile once at
+ * your outer boundary.
+ *
  */
 export function transferFrom(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   const args = new Args(binaryArgs);
   const from = args.nextString().expect('from argument is missing or invalid');
   const to = args.nextString().expect('to argument is missing or invalid');
@@ -169,6 +200,7 @@ export function transferFrom(binaryArgs: StaticArray<u8>): void {
     .nextU256()
     .expect('tokenId argument is missing or invalid');
   _transferFrom(from, to, tokenId);
+  transferRemaining(initialBalance);
 }
 
 /**
@@ -187,6 +219,7 @@ export function transferFrom(binaryArgs: StaticArray<u8>): void {
  *
  */
 export function mint(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   onlyOwner();
   const args = new Args(binaryArgs);
   const to = args.nextString().expect('to argument is missing or invalid');
@@ -194,6 +227,7 @@ export function mint(binaryArgs: StaticArray<u8>): void {
     .nextU256()
     .expect('tokenId argument is missing or invalid');
   _update(to, tokenId, '');
+  transferRemaining(initialBalance);
 }
 
 /**
@@ -210,11 +244,13 @@ export function mint(binaryArgs: StaticArray<u8>): void {
  *
  */
 export function burn(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   const args = new Args(binaryArgs);
   const tokenId = args
     .nextU256()
     .expect('tokenId argument is missing or invalid');
   _update('', tokenId, '');
+  transferRemaining(initialBalance);
 }
 
 /**
