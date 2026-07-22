@@ -45,6 +45,38 @@ export function balanceKey(address: Address): StaticArray<u8> {
 }
 
 /**
+ * Moves `amount` tokens from `from` to `to`.
+ *
+ * This is the storage-mutating core of a transfer. Unlike the exported
+ * {@link transfer} entry point, it does NOT call `transferRemaining`, so it is
+ * safe to compose: a contract that inherits MRC20 should build on `_transfer`
+ * (and `_approve`/`_allowance`) inside its own methods and perform a single
+ * `transferRemaining` at its outer boundary. Calling the exported `transfer`
+ * from within another method that also reconciles would nest two
+ * `transferRemaining` calls in the same execution — they share the same
+ * `Context.transferredCoins()` and would misaccount (typically reverting with
+ * `SPENT_MORE_COINS_THAN_SENT`).
+ *
+ * @param from - sender address
+ * @param to - recipient address
+ * @param amount - number of tokens to transfer
+ */
+export function _transfer(from: Address, to: Address, amount: u256): void {
+  assert(from != to, 'Transfer failed: cannot send tokens to own account');
+
+  const currentFromBalance = _balance(from);
+  const currentToBalance = _balance(to);
+  // @ts-ignore
+  const newToBalance = currentToBalance + amount;
+
+  assert(currentFromBalance >= amount, 'Transfer failed: insufficient funds');
+  assert(newToBalance >= currentToBalance, 'Transfer failed: overflow');
+  // @ts-ignore
+  _setBalance(from, currentFromBalance - amount);
+  _setBalance(to, newToBalance);
+}
+
+/**
  * Sets the allowance of the spender on the owner's account.
  *
  * @param owner - owner address

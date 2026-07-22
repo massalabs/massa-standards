@@ -1,12 +1,20 @@
 import {
   Address,
+  balance,
   Context,
   generateEvent,
   Storage,
   isDeployingContract,
+  transferRemaining,
 } from '@massalabs/massa-as-sdk';
 import { Args, stringToBytes, u256ToBytes } from '@massalabs/as-types';
-import { _balance, _setBalance, _approve, _allowance } from './MRC20-internals';
+import {
+  _balance,
+  _setBalance,
+  _approve,
+  _allowance,
+  _transfer,
+} from './MRC20-internals';
 import { setOwner } from '../utils/ownership';
 import { u256 } from 'as-bignum/assembly';
 
@@ -131,11 +139,27 @@ export function balanceOf(binaryArgs: StaticArray<u8>): StaticArray<u8> {
 /**
  * Transfers tokens from the caller's account to the recipient's account.
  *
+ * Writing the recipient's balance entry may create new storage, whose cost is
+ * charged to this contract's own coins. We use {@link transferRemaining} so that
+ * the caller pays for that storage instead: without it, a token holding coins
+ * (e.g. wrapped MAS) could be drained by repeatedly transferring to fresh
+ * addresses. Any coins the caller sent beyond the storage cost are refunded.
+ *
+ * @remarks
+ * This entry point reconciles coins via `transferRemaining` and must be the
+ * outermost (and only) reconciliation in an execution. Do NOT call it from
+ * within another method that also calls `transferRemaining`: both would read
+ * the same `Context.transferredCoins()` and misaccount (typically reverting
+ * with `SPENT_MORE_COINS_THAN_SENT`). To compose a transfer inside your own
+ * method, use the non-reconciling `_transfer` from `MRC20-internals` and
+ * reconcile once at your outer boundary.
+ *
  * @param binaryArgs - Args object serialized as a string containing:
  * - the recipient's account (address)
  * - the number of tokens (u256).
  */
 export function transfer(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   const owner = Context.caller();
 
   const args = new Args(binaryArgs);
@@ -149,30 +173,8 @@ export function transfer(binaryArgs: StaticArray<u8>): void {
   _transfer(owner, toAddress, amount);
 
   generateEvent(TRANSFER_EVENT_NAME);
-}
 
-/**
- * Transfers tokens from the caller's account to the recipient's account.
- *
- * @param from - sender address
- * @param to - recipient address
- * @param amount - number of token to transfer
- *
- * @returns true if the transfer is successful
- */
-function _transfer(from: Address, to: Address, amount: u256): void {
-  assert(from != to, 'Transfer failed: cannot send tokens to own account');
-
-  const currentFromBalance = _balance(from);
-  const currentToBalance = _balance(to);
-  // @ts-ignore
-  const newToBalance = currentToBalance + amount;
-
-  assert(currentFromBalance >= amount, 'Transfer failed: insufficient funds');
-  assert(newToBalance >= currentToBalance, 'Transfer failed: overflow');
-  // @ts-ignore
-  _setBalance(from, currentFromBalance - amount);
-  _setBalance(to, newToBalance);
+  transferRemaining(initialBalance);
 }
 
 // ==================================================== //
@@ -203,11 +205,18 @@ export function allowance(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  *
  * This function can only be called by the owner.
  *
+ * @remarks
+ * Reconciles coins via `transferRemaining`; it must be the outermost/only
+ * reconciliation in an execution. To compose inside your own method, use
+ * `_approve`/`_allowance` from `MRC20-internals` and reconcile once at your
+ * outer boundary (see {@link transfer}).
+ *
  * @param binaryArgs - Args object serialized as a string containing:
  * - the spender's account (address);
  * - the amount (u256).
  */
 export function increaseAllowance(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   const owner = Context.caller();
 
   const args = new Args(binaryArgs);
@@ -227,6 +236,8 @@ export function increaseAllowance(binaryArgs: StaticArray<u8>): void {
   _approve(owner, spenderAddress, newAllowance);
 
   generateEvent(APPROVAL_EVENT_NAME);
+
+  transferRemaining(initialBalance);
 }
 
 /**
@@ -234,11 +245,18 @@ export function increaseAllowance(binaryArgs: StaticArray<u8>): void {
  *
  * This function can only be called by the owner.
  *
+ * @remarks
+ * Reconciles coins via `transferRemaining`; it must be the outermost/only
+ * reconciliation in an execution. To compose inside your own method, use
+ * `_approve`/`_allowance` from `MRC20-internals` and reconcile once at your
+ * outer boundary (see {@link transfer}).
+ *
  * @param binaryArgs - Args object serialized as a string containing:
  * - the spender's account (address);
  * - the amount (u256).
  */
 export function decreaseAllowance(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   const owner = Context.caller();
 
   const args = new Args(binaryArgs);
@@ -261,6 +279,8 @@ export function decreaseAllowance(binaryArgs: StaticArray<u8>): void {
   _approve(owner, spenderAddress, newAllowance);
 
   generateEvent(APPROVAL_EVENT_NAME);
+
+  transferRemaining(initialBalance);
 }
 
 /**
@@ -272,12 +292,19 @@ export function decreaseAllowance(binaryArgs: StaticArray<u8>): void {
  * - both allowance and transfer are executed if possible;
  * - or if allowance or transfer is not possible, both are discarded.
  *
+ * @remarks
+ * Reconciles coins via `transferRemaining`; it must be the outermost/only
+ * reconciliation in an execution. To compose inside your own method, use
+ * `_transfer`/`_approve` from `MRC20-internals` and reconcile once at your
+ * outer boundary (see {@link transfer}).
+ *
  * @param binaryArgs - Args object serialized as a string containing:
  * - the owner's account (address);
  * - the recipient's account (address);
  * - the amount (u256).
  */
 export function transferFrom(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   const spenderAddress = Context.caller();
 
   const args = new Args(binaryArgs);
@@ -304,4 +331,6 @@ export function transferFrom(binaryArgs: StaticArray<u8>): void {
   _approve(owner, spenderAddress, spenderAllowance - amount);
 
   generateEvent(TRANSFER_EVENT_NAME);
+
+  transferRemaining(initialBalance);
 }
