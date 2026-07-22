@@ -63,7 +63,12 @@ import {
 } from './MRC721Enumerable-internals';
 import { onlyOwner } from '../../utils/ownership';
 import { _setOwner } from '../../utils/ownership-internal';
-import { Context, isDeployingContract } from '@massalabs/massa-as-sdk';
+import {
+  balance,
+  Context,
+  isDeployingContract,
+  transferRemaining,
+} from '@massalabs/massa-as-sdk';
 
 /**
  * @param name - the name of the NFT
@@ -82,8 +87,16 @@ export function mrc721Constructor(name: string, symbol: string): void {
  * the address of the recipient, and the tokenId to transfer.
  *
  * @remarks This function is only callable by the owner of the tokenId or an approved operator.
+ *
+ * Writing the recipient's balance and enumeration entries may create new
+ * storage, whose cost is charged to this contract's own coins. We use
+ * {@link transferRemaining} so the caller pays for that storage instead (excess
+ * coins are refunded). It must be the outermost/only reconciliation: to compose,
+ * use `_transferFrom` from `MRC721Enumerable-internals` and reconcile once at
+ * your outer boundary.
  */
 export function transferFrom(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   const args = new Args(binaryArgs);
   const from = args.nextString().expect('from argument is missing or invalid');
   const to = args.nextString().expect('to argument is missing or invalid');
@@ -91,6 +104,7 @@ export function transferFrom(binaryArgs: StaticArray<u8>): void {
     .nextU256()
     .expect('tokenId argument is missing or invalid');
   _transferFrom(from, to, tokenId);
+  transferRemaining(initialBalance);
 }
 
 /**
@@ -98,8 +112,12 @@ export function transferFrom(binaryArgs: StaticArray<u8>): void {
  * @param binaryArgs - serialized arguments representing the address of the recipient and the tokenId to mint
  *
  * @remarks This function is only callable by the owner of the contract.
+ * Reconciles coins via {@link transferRemaining} so the caller pays for the
+ * storage created by minting instead of the contract; it must be the
+ * outermost/only reconciliation (compose via `_update`).
  */
 export function mint(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   onlyOwner();
   const args = new Args(binaryArgs);
   const to = args.nextString().expect('to argument is missing or invalid');
@@ -107,6 +125,7 @@ export function mint(binaryArgs: StaticArray<u8>): void {
     .nextU256()
     .expect('tokenId argument is missing or invalid');
   _update(to, tokenId, '');
+  transferRemaining(initialBalance);
 }
 
 /**
@@ -115,13 +134,17 @@ export function mint(binaryArgs: StaticArray<u8>): void {
  *
  * @remarks This function is not part of the ERC721 standard.
  * It serves as an example of how to use the NFT-enumerable-internals functions to implement custom features.
+ * Reconciles coins via {@link transferRemaining} (refunding the storage freed by
+ * burning); it must be the outermost/only reconciliation (compose via `_update`).
  */
 export function burn(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   const args = new Args(binaryArgs);
   const tokenId = args
     .nextU256()
     .expect('tokenId argument is missing or invalid');
   _update('', tokenId, '');
+  transferRemaining(initialBalance);
 }
 
 /**
