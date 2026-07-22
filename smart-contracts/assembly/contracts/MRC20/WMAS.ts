@@ -1,20 +1,11 @@
 import { Args, u256ToBytes } from '@massalabs/as-types';
-import {
-  Address,
-  Context,
-  Storage,
-  transferCoins,
-} from '@massalabs/massa-as-sdk';
+import { Address, Context, transferCoins } from '@massalabs/massa-as-sdk';
 import { burn } from './burnable/burn';
 import { u256 } from 'as-bignum/assembly/integer/u256';
 import { _mint } from './mintable/mint-internal';
-import { balanceKey } from './MRC20-internals';
+import { computeMintStorageCost } from './MRC20-external';
 
 export * from './MRC20';
-
-const STORAGE_BYTE_COST = 100_000;
-const STORAGE_PREFIX_LENGTH = 4;
-const BALANCE_KEY_PREFIX_LENGTH = 7;
 
 /**
  * Wrap wanted value.
@@ -52,14 +43,4 @@ export function withdraw(bs: StaticArray<u8>): void {
   );
   burn(u256ToBytes(u256.fromU64(amount)));
   transferCoins(recipient, amount);
-}
-
-export function computeMintStorageCost(receiver: Address): u64 {
-  if (Storage.has(balanceKey(receiver))) {
-    return 0;
-  }
-  const baseLength = STORAGE_PREFIX_LENGTH;
-  const keyLength = BALANCE_KEY_PREFIX_LENGTH + receiver.toString().length;
-  const valueLength = 4 * sizeof<u64>();
-  return (baseLength + keyLength + valueLength) * STORAGE_BYTE_COST;
 }
