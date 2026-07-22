@@ -29,11 +29,24 @@ export function _balance(address: Address): u256 {
 /**
  * Sets the balance of a given address.
  *
+ * When the balance is zero the entry is deleted to reclaim its storage instead
+ * of leaving a dangling zero-value entry: {@link _balance} already treats a
+ * missing key as zero, and without this a token could accumulate permanent
+ * storage from balances that have been fully spent (e.g. transferring dust to a
+ * stream of fresh addresses).
+ *
  * @param address - address to set the balance for
  * @param balance -
  */
 export function _setBalance(address: Address, balance: u256): void {
-  Storage.set(balanceKey(address), u256ToBytes(balance));
+  const key = balanceKey(address);
+  if (balance == u256.Zero) {
+    if (Storage.has(key)) {
+      Storage.del(key);
+    }
+  } else {
+    Storage.set(key, u256ToBytes(balance));
+  }
 }
 
 /**
