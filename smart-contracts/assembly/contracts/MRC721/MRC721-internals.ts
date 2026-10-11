@@ -135,6 +135,7 @@ export function _symbol(): string {
  *
  */
 export function _approve(approved: string, tokenId: u256): void {
+  assert(_ownerOf(tokenId) != '', 'Nonexistent token');
   assert(_isAuthorized(Context.caller().toString(), tokenId), 'Unauthorized');
   const key = allowanceKey(tokenId);
   approved != ''
@@ -177,6 +178,7 @@ export function _isApproved(operator: string, tokenId: u256): bool {
  * @remarks deletes the key if approved is false
  */
 export function _setApprovalForAll(operator: string, approved: bool): void {
+  assert(operator != '', 'Invalid operator');
   const key = operatorAllowanceKey(Context.caller().toString(), operator);
   approved ? Storage.set(key, boolToByte(true)) : Storage.del(key);
 }
@@ -203,10 +205,14 @@ export function _isApprovedForAll(owner: string, operator: string): bool {
  * 3. The operator has been approved for all NFTs by the owner
  */
 export function _isAuthorized(operator: string, tokenId: u256): bool {
+  const owner = _ownerOf(tokenId);
+  if (owner == '') {
+    return false;
+  }
   return (
-    _ownerOf(tokenId) == operator ||
+    owner == operator ||
     _isApproved(operator, tokenId) ||
-    _isApprovedForAll(_ownerOf(tokenId), operator)
+    _isApprovedForAll(owner, operator)
   );
 }
 
@@ -241,6 +247,12 @@ export function _update(to: string, tokenId: u256, auth: string): string {
     assert(fromBalance > u256.Zero, 'Insufficient balance');
     // @ts-ignore
     Storage.set(balanceKey(from), u256ToBytes(fromBalance - u256.One));
+  } else {
+    // A token with no owner must not keep an allowance from before it existed.
+    const key = allowanceKey(tokenId);
+    if (Storage.has(key)) {
+      Storage.del(key);
+    }
   }
   if (to != '') {
     const toBalanceKey = balanceKey(to);
