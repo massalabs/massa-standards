@@ -2,7 +2,9 @@ import {
   changeCallStack,
   resetStorage,
   setDeployContext,
+  Storage,
 } from '@massalabs/massa-as-sdk';
+import { stringToBytes, u256ToBytes } from '@massalabs/as-types';
 
 import { u256 } from 'as-bignum/assembly';
 import {
@@ -12,12 +14,14 @@ import {
   _getApproved,
   _isApproved,
   _isApprovedForAll,
+  _isAuthorized,
   _name,
   _ownerOf,
   _setApprovalForAll,
   _symbol,
   _transferFrom,
   _update,
+  ALLOWANCE_KEY_PREFIX,
 } from '../MRC721-internals';
 
 const tokenAddress = 'AS12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT';
@@ -64,6 +68,13 @@ describe('update', () => {
     _update(to, tokenId, zeroAddress);
     _update(to, tokenId, zeroAddress);
   });
+  test('mint clears an allowance stored before the token exists', () => {
+    const key = ALLOWANCE_KEY_PREFIX.concat(u256ToBytes(tokenId));
+    Storage.set(key, stringToBytes(approved));
+    _update(to, tokenId, zeroAddress);
+    expect(_ownerOf(tokenId)).toBe(to);
+    expect(_getApproved(tokenId)).toBe('');
+  });
 });
 
 describe('Approval', () => {
@@ -93,6 +104,14 @@ describe('Approval', () => {
     switchUser(from);
     _approve(approved, tokenId);
   });
+
+  throws('Approving a token that does not exist should fail', () => {
+    _approve(approved, tokenId);
+  });
+
+  test('a missing token is not authorized', () => {
+    expect(_isAuthorized(caller, tokenId)).toBe(false);
+  });
 });
 
 describe('Operator Approval', () => {
@@ -111,6 +130,10 @@ describe('Operator Approval', () => {
     _setApprovalForAll(to, false);
     const isApprovedForAll = _isApprovedForAll(caller, to);
     expect(isApprovedForAll).toBe(false);
+  });
+
+  throws('setting an empty operator should fail', () => {
+    _setApprovalForAll(zeroAddress, true);
   });
 });
 
