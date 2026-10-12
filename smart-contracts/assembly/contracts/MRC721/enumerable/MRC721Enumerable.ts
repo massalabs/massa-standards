@@ -142,6 +142,8 @@ export { ownerAddress } from '../../utils/ownership';
 export {
   name,
   symbol,
+  version,
+  VERSION,
   balanceOf,
   ownerOf,
   getApproved,
