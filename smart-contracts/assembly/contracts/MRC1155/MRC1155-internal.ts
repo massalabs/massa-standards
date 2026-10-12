@@ -181,7 +181,15 @@ export function _update(
       assert(fromBalance >= value, MRC1155_INSUFFICIENT_BALANCE_ERROR);
 
       // @ts-ignore
-      Storage.set(fromBalanceKey, u256ToBytes(fromBalance - value));
+      const newFromBalance = fromBalance - value;
+      // free the entry when the balance drops to zero
+      if (newFromBalance == u256.Zero) {
+        if (Storage.has(fromBalanceKey)) {
+          Storage.del(fromBalanceKey);
+        }
+      } else {
+        Storage.set(fromBalanceKey, u256ToBytes(newFromBalance));
+      }
     }
 
     if (to != '') {
@@ -194,7 +202,10 @@ export function _update(
       // check if toBalance + value overflow
       assert(result >= toBalance, MRC1155_BALANCE_OVERFLOW_ERROR);
 
-      Storage.set(toBalanceKey, u256ToBytes(result));
+      // don't create an entry for a zero balance
+      if (result != u256.Zero) {
+        Storage.set(toBalanceKey, u256ToBytes(result));
+      }
     }
   }
 
