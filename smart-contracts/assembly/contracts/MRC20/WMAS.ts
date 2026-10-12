@@ -1,12 +1,14 @@
-import { Args, u256ToBytes } from '@massalabs/as-types';
+import { Args } from '@massalabs/as-types';
 import {
   Address,
   balance,
   Context,
+  generateEvent,
   transferCoins,
   transferRemaining,
 } from '@massalabs/massa-as-sdk';
-import { burn } from './burnable/burn';
+import { _burn, _decreaseTotalSupply } from './burnable/burn-internal';
+import { BURN_EVENT } from './burnable/burn';
 import { u256 } from 'as-bignum/assembly/integer/u256';
 import { _mint } from './mintable/mint-internal';
 import { computeMintStorageCost } from './MRC20-external';
@@ -48,7 +50,12 @@ export function withdraw(bs: StaticArray<u8>): void {
   const recipient = new Address(
     args.nextString().expect('recipient is missing'),
   );
-  burn(u256ToBytes(u256.fromU64(amount)));
+  // Use the non-reconciling internals: the exported `burn` calls
+  // transferRemaining itself, which would nest with the one below.
+  const burnAmount = u256.fromU64(amount);
+  _decreaseTotalSupply(burnAmount);
+  _burn(Context.caller(), burnAmount);
+  generateEvent(BURN_EVENT);
 
   // Burning the caller's full balance deletes their balance entry; the runtime
   // refunds that entry's storage deposit to this contract. transferRemaining
