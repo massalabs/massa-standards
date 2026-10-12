@@ -17,6 +17,8 @@ import {
   transferFrom,
   burn,
   ownerAddress,
+  version,
+  VERSION,
 } from '../MRC721';
 import {
   Args,
@@ -57,6 +59,10 @@ describe('Initialization', () => {
   });
   test('get owner', () => {
     expect(bytesToString(ownerAddress([]))).toBe(contractOwner);
+  });
+  test('get version', () => {
+    expect(version([])).toStrictEqual(VERSION);
+    expect(bytesToString(version([]))).toBe('0.1.0');
   });
 });
 

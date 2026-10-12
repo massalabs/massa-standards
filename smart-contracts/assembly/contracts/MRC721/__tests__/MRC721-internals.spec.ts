@@ -4,7 +4,7 @@ import {
   setDeployContext,
   Storage,
 } from '@massalabs/massa-as-sdk';
-import { stringToBytes, u256ToBytes } from '@massalabs/as-types';
+import { boolToByte, stringToBytes, u256ToBytes } from '@massalabs/as-types';
 
 import { u256 } from 'as-bignum/assembly';
 import {
@@ -22,6 +22,7 @@ import {
   _transferFrom,
   _update,
   ALLOWANCE_KEY_PREFIX,
+  OPERATOR_ALLOWANCE_KEY_PREFIX,
 } from '../MRC721-internals';
 
 const tokenAddress = 'AS12BqZEQ6sByhRLyEuf0YbQmcF2PsDdkNNG1akBJu9XcjZA1eT';
@@ -111,6 +112,35 @@ describe('Approval', () => {
 
   test('a missing token is not authorized', () => {
     expect(_isAuthorized(caller, tokenId)).toBe(false);
+  });
+
+  // A grant stored by `setApprovalForAll('')` before the fix shares its key
+  // with "the empty owner approved the caller for all".
+  test('a legacy empty-operator grant does not authorize a missing token', () => {
+    Storage.set(
+      OPERATOR_ALLOWANCE_KEY_PREFIX.concat(stringToBytes(caller)),
+      boolToByte(true),
+    );
+    expect(_isApprovedForAll(zeroAddress, caller)).toBe(true);
+    expect(_isAuthorized(caller, tokenId)).toBe(false);
+  });
+
+  throws('a legacy empty-operator grant cannot approve a missing token', () => {
+    Storage.set(
+      OPERATOR_ALLOWANCE_KEY_PREFIX.concat(stringToBytes(caller)),
+      boolToByte(true),
+    );
+    _approve(caller, tokenId);
+  });
+
+  throws('an allowance stored before mint cannot transfer the token', () => {
+    Storage.set(
+      ALLOWANCE_KEY_PREFIX.concat(u256ToBytes(tokenId)),
+      stringToBytes(approved),
+    );
+    _update(to, tokenId, zeroAddress);
+    switchUser(approved);
+    _transferFrom(to, approved, tokenId);
   });
 });
 

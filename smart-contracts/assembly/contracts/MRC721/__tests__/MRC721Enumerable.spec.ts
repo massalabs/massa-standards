@@ -27,6 +27,8 @@ import {
   totalSupply,
   transferFrom,
   mrc721Constructor,
+  version,
+  VERSION,
 } from '../enumerable/MRC721Enumerable';
 
 import { getOwnedTokens } from './helpers';
@@ -66,6 +68,9 @@ describe('NFT Enumerable Contract', () => {
     });
     it('should return correct contract owner', () => {
       expect(bytesToString(ownerAddress([]))).toBe(contractOwner);
+    });
+    it('should return the contract version', () => {
+      expect(version([])).toStrictEqual(VERSION);
     });
   });
 

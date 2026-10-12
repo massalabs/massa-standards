@@ -35,6 +35,8 @@ import { onlyOwner } from '../utils/ownership';
 import { Context, isDeployingContract } from '@massalabs/massa-as-sdk';
 import { _setOwner } from '../utils/ownership-internal';
 
+export const VERSION = stringToBytes('0.1.0');
+
 /**
  * @param name - the name of the NFT
  * @param symbol - the symbol of the NFT
@@ -53,6 +55,17 @@ export function name(): StaticArray<u8> {
 
 export function symbol(): StaticArray<u8> {
   return stringToBytes(_symbol());
+}
+
+/**
+ * Returns the version of this smart contract.
+ * This versioning is following the best practices defined in https://semver.org/.
+ *
+ * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
+ * @returns token version
+ */
+export function version(_: StaticArray<u8>): StaticArray<u8> {
+  return VERSION;
 }
 
 /**
