@@ -58,11 +58,7 @@ export function symbol(): StaticArray<u8> {
 }
 
 /**
- * Returns the version of this smart contract.
- * This versioning is following the best practices defined in https://semver.org/.
- *
- * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
- * @returns token version
+ * @returns the MRC721 implementation version
  */
 export function version(_: StaticArray<u8>): StaticArray<u8> {
   return VERSION;
