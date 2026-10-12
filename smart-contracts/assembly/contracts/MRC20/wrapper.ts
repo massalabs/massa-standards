@@ -56,7 +56,6 @@ export class MRC20Wrapper {
 
   /**
    * Returns the version of the smart contract.
-   * This versioning is following the best practices defined in https://semver.org/.
    *
    * @returns
    */

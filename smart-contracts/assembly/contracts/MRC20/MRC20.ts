@@ -50,9 +50,8 @@ export function mrc20Constructor(
 
 /**
  * Returns the version of this smart contract.
- * This versioning is following the best practices defined in https://semver.org/.
  *
- * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
+ * @param _ - unused
  * @returns token version
  */
 export function version(_: StaticArray<u8>): StaticArray<u8> {
@@ -66,7 +65,7 @@ export function version(_: StaticArray<u8>): StaticArray<u8> {
 /**
  * Returns the name of the token.
  *
- * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
+ * @param _ - unused
  * @returns token name.
  */
 export function name(_: StaticArray<u8>): StaticArray<u8> {
@@ -75,7 +74,7 @@ export function name(_: StaticArray<u8>): StaticArray<u8> {
 
 /** Returns the symbol of the token.
  *
- * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
+ * @param _ - unused
  * @returns token symbol.
  */
 export function symbol(_: StaticArray<u8>): StaticArray<u8> {
@@ -87,7 +86,7 @@ export function symbol(_: StaticArray<u8>): StaticArray<u8> {
  *
  * The number of tokens that were initially minted.
  *
- * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
+ * @param _ - unused
  * @returns u256
  */
 export function totalSupply(_: StaticArray<u8>): StaticArray<u8> {
@@ -98,7 +97,7 @@ export function totalSupply(_: StaticArray<u8>): StaticArray<u8> {
  * Returns the maximum number of digits being part of the fractional part
  * of the token when using a decimal representation.
  *
- * @param _ - unused see https://github.com/massalabs/massa-sc-std/issues/18
+ * @param _ - unused
  * @returns
  */
 export function decimals(_: StaticArray<u8>): StaticArray<u8> {
