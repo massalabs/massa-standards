@@ -1,4 +1,10 @@
-import { Context, Address, generateEvent } from '@massalabs/massa-as-sdk';
+import {
+  Context,
+  Address,
+  balance,
+  generateEvent,
+  transferRemaining,
+} from '@massalabs/massa-as-sdk';
 import { Args } from '@massalabs/as-types';
 import { _approve, _allowance } from '../MRC20-internals';
 import { _burn, _decreaseTotalSupply } from './burn-internal';
@@ -10,15 +16,23 @@ import { _burn, _decreaseTotalSupply } from './burn-internal';
  *
  */
 
-const BURN_EVENT = 'BURN_SUCCESS';
+export const BURN_EVENT = 'BURN_SUCCESS';
 
 /**
  * Burn tokens from the caller address
  *
  * @param binaryArgs - byte string with the following format:
  * - the amount of tokens to burn obn the caller address (u256).
+ *
+ * @remarks Burning a whole balance deletes its entry, and the runtime refunds
+ * that storage to this contract. Reconciles coins via {@link transferRemaining}
+ * so the refund goes back to the caller instead of staying locked here. It must
+ * be the outermost/only reconciliation: to compose, use `_burn` and
+ * `_decreaseTotalSupply` from `burn-internal` and reconcile once at your outer
+ * boundary.
  */
 export function burn(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   const args = new Args(binaryArgs);
   const amount = args
     .nextU256()
@@ -29,6 +43,8 @@ export function burn(binaryArgs: StaticArray<u8>): void {
   _burn(Context.caller(), amount);
 
   generateEvent(BURN_EVENT);
+
+  transferRemaining(initialBalance);
 }
 
 /**
@@ -38,8 +54,15 @@ export function burn(binaryArgs: StaticArray<u8>): void {
  * - the owner of the tokens to be burned (string).
  * - the amount of tokens to burn on the caller address (u256).
  *
+ * @remarks Burning a whole balance deletes its entry, and the runtime refunds
+ * that storage to this contract. Reconciles coins via {@link transferRemaining}
+ * so the refund goes back to the caller instead of staying locked here. It must
+ * be the outermost/only reconciliation: to compose, use `_burn` and
+ * `_decreaseTotalSupply` from `burn-internal` and reconcile once at your outer
+ * boundary.
  */
 export function burnFrom(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   const args = new Args(binaryArgs);
   const owner = new Address(
     args.nextString().expect('owner argument is missing or invalid'),
@@ -60,4 +83,6 @@ export function burnFrom(binaryArgs: StaticArray<u8>): void {
   _approve(owner, Context.caller(), spenderAllowance - amount);
 
   generateEvent(BURN_EVENT);
+
+  transferRemaining(initialBalance);
 }
