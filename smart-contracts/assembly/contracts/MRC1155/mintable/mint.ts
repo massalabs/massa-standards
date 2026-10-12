@@ -8,6 +8,7 @@
 
 import { _mint, _mintBatch } from '../MRC1155-internal';
 import { Args } from '@massalabs/as-types';
+import { balance, transferRemaining } from '@massalabs/massa-as-sdk';
 
 import { u256 } from 'as-bignum/assembly';
 import { onlyRole } from '../../utils/accessControl';
@@ -24,8 +25,13 @@ export const MINTER_ROLE = 'minter';
  * @param id - the id of the token to mint
  * @param value - the amount of tokens to mint
  * @param data - additional data to pass to the receiver
+ *
+ * @remarks Reconciles coins via {@link transferRemaining} so the caller pays
+ * for the storage created by minting instead of the contract; it must be the
+ * outermost/only reconciliation (compose via `_mint`).
  */
 export function mint(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   onlyRole(new Args().add(MINTER_ROLE).serialize());
   const args = new Args(binaryArgs);
   const to = args.nextString().expect('to argument is missing or invalid');
@@ -34,6 +40,8 @@ export function mint(binaryArgs: StaticArray<u8>): void {
   const data = args.nextBytes().expect('data argument is missing or invalid');
 
   _mint(to, id, value, data);
+
+  transferRemaining(initialBalance);
 }
 
 /**
@@ -46,8 +54,13 @@ export function mint(binaryArgs: StaticArray<u8>): void {
  * @param ids - the ids of the tokens to mint
  * @param values - the amounts of tokens to mint
  * @param data - additional data to pass to the receiver
+ *
+ * @remarks Reconciles coins via {@link transferRemaining} so the caller pays
+ * for the storage created by minting instead of the contract; it must be the
+ * outermost/only reconciliation (compose via `_mintBatch`).
  */
 export function mintBatch(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   onlyRole(new Args().add(MINTER_ROLE).serialize());
   const args = new Args(binaryArgs);
   const to = args.nextString().expect('to argument is missing or invalid');
@@ -60,4 +73,6 @@ export function mintBatch(binaryArgs: StaticArray<u8>): void {
   const data = args.nextBytes().expect('data argument is missing or invalid');
 
   _mintBatch(to, ids, values, data);
+
+  transferRemaining(initialBalance);
 }

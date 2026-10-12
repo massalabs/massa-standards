@@ -32,7 +32,12 @@ import {
   MRC1155_INVALID_ARRAY_LENGTH_ERROR,
 } from './MRC1155-internal';
 
-import { Context, isDeployingContract } from '@massalabs/massa-as-sdk';
+import {
+  balance,
+  Context,
+  isDeployingContract,
+  transferRemaining,
+} from '@massalabs/massa-as-sdk';
 
 import { u256 } from 'as-bignum/assembly';
 import { _setOwner } from '../utils/ownership-internal';
@@ -116,8 +121,16 @@ export function balanceOfBatch(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  *
  * @param operator - the operator to set the approval for
  * @param approved - the new approval status
+ *
+ * @remarks Reconciles coins via {@link transferRemaining} so the caller pays for
+ * any storage created (a new operator-approval entry) instead of the contract;
+ * without it, a token holding coins could be drained by approving a stream of
+ * fresh operators. It must be the outermost/only reconciliation: to compose,
+ * use `_setApprovalForAll` from `MRC1155-internal` and reconcile once at your
+ * outer boundary.
  */
 export function setApprovalForAll(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   const sender = Context.caller().toString();
   const args = new Args(binaryArgs);
   const operator = args
@@ -128,6 +141,8 @@ export function setApprovalForAll(binaryArgs: StaticArray<u8>): void {
     .expect('approved argument is missing or invalid');
 
   _setApprovalForAll(sender, operator, approved);
+
+  transferRemaining(initialBalance);
 }
 
 /**
@@ -163,8 +178,18 @@ export function isApprovedForAll(binaryArgs: StaticArray<u8>): StaticArray<u8> {
  * @param id - the id of the token to transfer
  * @param value - the amount of tokens to transfer
  * @param data - additional data to pass to the receiver
+ *
+ * @remarks Writing the recipient's balance entries may create new storage,
+ * whose cost is charged to this contract's own coins. We use
+ * {@link transferRemaining} so the caller pays for that storage instead (any
+ * excess coins are refunded). It must be the outermost/only reconciliation: to
+ * compose, use `_safeTransferFrom` from `MRC1155-internal` and reconcile once at
+ * your outer boundary. A receiver contract's `OnMRC1155Received` /
+ * `onMRC1155BatchReceived` hook is called with no coins, so it must not
+ * re-enter a reconciling entry point of this contract that creates storage.
  */
 export function safeTransferFrom(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   const sender = Context.caller().toString();
   const args = new Args(binaryArgs);
   const from = args.nextString().expect('from argument is missing or invalid');
@@ -178,6 +203,8 @@ export function safeTransferFrom(binaryArgs: StaticArray<u8>): void {
   );
 
   _safeTransferFrom(from, to, id, value, data);
+
+  transferRemaining(initialBalance);
 }
 
 /**
@@ -192,8 +219,18 @@ export function safeTransferFrom(binaryArgs: StaticArray<u8>): void {
  * @param ids - the ids of the tokens to transfer
  * @param values - the amounts of tokens to transfer
  * @param data - additional data to pass to the receiver
+ *
+ * @remarks Writing the recipient's balance entries may create new storage,
+ * whose cost is charged to this contract's own coins. We use
+ * {@link transferRemaining} so the caller pays for that storage instead (any
+ * excess coins are refunded). It must be the outermost/only reconciliation: to
+ * compose, use `_safeBatchTransferFrom` from `MRC1155-internal` and reconcile once at
+ * your outer boundary. A receiver contract's `OnMRC1155Received` /
+ * `onMRC1155BatchReceived` hook is called with no coins, so it must not
+ * re-enter a reconciling entry point of this contract that creates storage.
  */
 export function safeBatchTransferFrom(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   const sender = Context.caller().toString();
   const args = new Args(binaryArgs);
   const from = args.nextString().expect('from argument is missing or invalid');
@@ -211,4 +248,6 @@ export function safeBatchTransferFrom(binaryArgs: StaticArray<u8>): void {
   );
 
   _safeBatchTransferFrom(from, to, ids, values, data);
+
+  transferRemaining(initialBalance);
 }

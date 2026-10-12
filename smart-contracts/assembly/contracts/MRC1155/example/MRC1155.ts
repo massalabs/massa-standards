@@ -1,9 +1,10 @@
 import { Args, stringToBytes } from '@massalabs/as-types';
 import { u256 } from 'as-bignum/assembly';
 import { mrc1155Constructor } from '../MRC1155';
-import * as mint from '../mintable/mint';
+import { MINTER_ROLE } from '../mintable/mint';
+import { _mintBatch } from '../MRC1155-internal';
 import { Context } from '@massalabs/massa-as-sdk';
-import { grantRole } from '../../utils/accessControl';
+import { _grantRole } from '../../utils/accessControl-internal';
 
 export function constructor(binaryArgs: StaticArray<u8>): void {
   const args = new Args(binaryArgs);
@@ -17,20 +18,11 @@ export function constructor(binaryArgs: StaticArray<u8>): void {
 
   mrc1155Constructor(uri);
 
-  grantRole(
-    new Args()
-      .add(mint.MINTER_ROLE)
-      .add(Context.caller().toString())
-      .serialize(),
-  );
-  mint.mintBatch(
-    new Args()
-      .add(Context.caller().toString())
-      .add(ids)
-      .add(amounts)
-      .add(stringToBytes(''))
-      .serialize(),
-  );
+  // Use the non-reconciling internals: the exported grantRole/mintBatch each
+  // call transferRemaining, and nesting them here would misaccount coins.
+  const caller = Context.caller().toString();
+  _grantRole(MINTER_ROLE, caller);
+  _mintBatch(caller, ids, amounts, stringToBytes(''));
 }
 
 export * from '../burnable/burn';

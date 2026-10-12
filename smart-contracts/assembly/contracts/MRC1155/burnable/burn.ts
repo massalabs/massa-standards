@@ -12,7 +12,7 @@ import {
   _burnBatch,
   _isApprovedForAll,
 } from '../MRC1155-internal';
-import { Context } from '@massalabs/massa-as-sdk';
+import { balance, Context, transferRemaining } from '@massalabs/massa-as-sdk';
 
 import { u256 } from 'as-bignum/assembly';
 
@@ -25,8 +25,13 @@ import { u256 } from 'as-bignum/assembly';
  * @param account - the account to burn the tokens from
  * @param id - the id of the token to burn
  * @param value - the amount of tokens to burn
+ *
+ * @remarks Reconciles coins via {@link transferRemaining} so storage freed by
+ * burning is refunded to the caller instead of staying locked in the contract;
+ * it must be the outermost/only reconciliation (compose via `_burn`).
  */
 export function burn(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   const sender = Context.caller().toString();
   const args = new Args(binaryArgs);
   const account = args
@@ -40,6 +45,8 @@ export function burn(binaryArgs: StaticArray<u8>): void {
   );
 
   _burn(account, id, value);
+
+  transferRemaining(initialBalance);
 }
 
 /**
@@ -51,8 +58,13 @@ export function burn(binaryArgs: StaticArray<u8>): void {
  * @param account - the account to burn the tokens from
  * @param ids - the ids of the tokens to burn
  * @param values - the amounts of tokens to burn
+ *
+ * @remarks Reconciles coins via {@link transferRemaining} so storage freed by
+ * burning is refunded to the caller instead of staying locked in the contract;
+ * it must be the outermost/only reconciliation (compose via `_burnBatch`).
  */
 export function burnBatch(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   const sender = Context.caller().toString();
   const args = new Args(binaryArgs);
   const account = args
@@ -70,4 +82,6 @@ export function burnBatch(binaryArgs: StaticArray<u8>): void {
   );
 
   _burnBatch(account, ids, values);
+
+  transferRemaining(initialBalance);
 }
