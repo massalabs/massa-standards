@@ -27,6 +27,8 @@ import {
   Address,
   Context,
   isDeployingContract,
+  balance,
+  transferRemaining,
 } from '@massalabs/massa-as-sdk';
 import { Args, byteToBool } from '@massalabs/as-types';
 import { onlyOwner, setOwner, triggerError } from '../utils';
@@ -85,12 +87,17 @@ function dns1_ownerKey(address: Address): StaticArray<u8> {
  *
  * This function will trigger an error event if the name is already reserved.
  *
+ * The new record and owner-list entries are new storage. Coins are reconciled
+ * via {@link transferRemaining} so the caller pays for that storage instead of
+ * the DNS contract (any excess coins are refunded).
+ *
  * @param binaryArgs - Website name and its address in a binary format using Args.
  *
  * @example
  * setResolver(new Args().add("my-website").add(myWebSiteAddress)
  */
 export function dns1_setResolver(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
   const args = new Args(binaryArgs);
 
   const websiteName = args
@@ -142,6 +149,8 @@ export function dns1_setResolver(binaryArgs: StaticArray<u8>): void {
   generateEvent(
     `Website name ${websiteName} added to DNS at address ${websiteAddress}`,
   );
+
+  transferRemaining(initialBalance);
 }
 
 /**
@@ -325,8 +334,12 @@ function dns1_deleteFromOwnerList(websiteName: string): void {
   // Join the updated list array back into a string
   const newList = oldListArray.join(',');
 
-  // Update the owner's list with the updated list
-  Storage.set(ownerListKey, new Args().add(newList).serialize());
+  // Update the owner's list with the updated list, freeing it once empty
+  if (newList.length == 0) {
+    Storage.del(ownerListKey);
+  } else {
+    Storage.set(ownerListKey, new Args().add(newList).serialize());
+  }
 
   // Emit an event to indicate the website name has been deleted from the owner's list
   generateEvent(
@@ -350,6 +363,8 @@ export function dns1_getBlacklisted(): StaticArray<u8> {
  * @param binaryArgs - Website names in a binary format using Args.
  */
 export function dns1_addWebsitesToBlackList(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
+
   // Ensure that the caller is the contract owner
   onlyOwner();
 
@@ -383,6 +398,8 @@ export function dns1_addWebsitesToBlackList(binaryArgs: StaticArray<u8>): void {
 
   // Generate an event with the website names that were added to the blacklist
   generateEvent(`Domain names added to blacklist: ${websiteNames.join(', ')}`);
+
+  transferRemaining(initialBalance);
 }
 
 /**
@@ -405,20 +422,19 @@ export function dns1_isBlacklisted(
 }
 
 /**
- * Delete a single entry from the DNS based on the given website name.
+ * Deletes a single entry from the DNS without reconciling coins.
  *
- * @param binaryArgs - Website name in a binary format using Args.
+ * @param websiteName - The name of the website to delete.
  */
-export function dns1_deleteEntryFromDNS(binaryArgs: StaticArray<u8>): void {
-  const websiteName = new Args(binaryArgs).nextString().unwrap();
-
+function dns1_deleteEntry(websiteName: string): void {
   // Ensure that the caller is the owner of the website
   dns1_onlyWebsiteOwner(websiteName);
 
-  if (Storage.has(binaryArgs)) {
+  const key = new Args().add(websiteName).serialize();
+  if (Storage.has(key)) {
     // Check if the website name exists in the DNS and delete it if found
     dns1_deleteFromOwnerList(websiteName);
-    Storage.del(binaryArgs);
+    Storage.del(key);
 
     // Generate an event with the website name that was deleted from the DNS
     generateEvent(`Domain name deleted from DNS: ${websiteName}`);
@@ -428,11 +444,34 @@ export function dns1_deleteEntryFromDNS(binaryArgs: StaticArray<u8>): void {
 }
 
 /**
+ * Delete a single entry from the DNS based on the given website name.
+ *
+ * Deleting the record frees storage, and the runtime refunds it to the DNS
+ * contract. Coins are reconciled via {@link transferRemaining} so that refund
+ * goes back to the caller.
+ *
+ * @param binaryArgs - Website name in a binary format using Args.
+ */
+export function dns1_deleteEntryFromDNS(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
+  const websiteName = new Args(binaryArgs).nextString().unwrap();
+
+  dns1_deleteEntry(websiteName);
+
+  transferRemaining(initialBalance);
+}
+
+/**
  * Deletes entries from the DNS based on the given website names.
+ *
+ * Reconciles coins once via {@link transferRemaining}, refunding the freed
+ * storage to the caller.
  *
  * @param binaryArgs - Website names in a binary format using Args.
  */
 export function dns1_deleteEntriesFromDNS(binaryArgs: StaticArray<u8>): void {
+  const initialBalance = balance();
+
   // Extract the website names from binaryArgs and unwrap them into an array
   const websiteNamesToDelete = new Args(binaryArgs)
     .nextStringArray()
@@ -440,7 +479,8 @@ export function dns1_deleteEntriesFromDNS(binaryArgs: StaticArray<u8>): void {
 
   // Loop through the list of website names to delete and remove them from the DNS
   for (let i = 0; i < websiteNamesToDelete.length; i++) {
-    const websiteName = websiteNamesToDelete[i];
-    dns1_deleteEntryFromDNS(new Args().add(websiteName).serialize());
+    dns1_deleteEntry(websiteNamesToDelete[i]);
   }
+
+  transferRemaining(initialBalance);
 }
