@@ -62,7 +62,7 @@ describe('Initialization', () => {
   });
   test('get version', () => {
     expect(version([])).toStrictEqual(VERSION);
-    expect(bytesToString(version([]))).toBe('0.1.0');
+    expect(bytesToString(version([]))).toBe('0.2.0');
   });
 });
 
