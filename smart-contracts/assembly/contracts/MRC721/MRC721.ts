@@ -40,7 +40,7 @@ import {
 } from '@massalabs/massa-as-sdk';
 import { _setOwner } from '../utils/ownership-internal';
 
-export const VERSION = stringToBytes('0.1.0');
+export const VERSION = stringToBytes('0.2.0');
 
 /**
  * @param name - the name of the NFT
