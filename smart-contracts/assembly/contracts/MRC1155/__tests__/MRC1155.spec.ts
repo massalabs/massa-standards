@@ -7,6 +7,7 @@ import {
 import {
   Args,
   stringToBytes,
+  bytesToString,
   bytesToU256,
   u256ToBytes,
   fixedSizeArrayToBytes,
@@ -21,6 +22,8 @@ import {
   safeTransferFrom,
   setApprovalForAll,
   uri,
+  version,
+  VERSION,
 } from '../MRC1155';
 import { u256 } from 'as-bignum/assembly';
 import {
@@ -56,6 +59,10 @@ describe('Initialization', () => {
     expect(uri(new Args().add([u256.Zero]).serialize())).toStrictEqual(
       stringToBytes(TOKEN_URI),
     ));
+  test('get version', () => {
+    expect(version([])).toStrictEqual(VERSION);
+    expect(bytesToString(version([]))).toBe('0.1.0');
+  });
 });
 
 describe('BalanceOf', () => {
