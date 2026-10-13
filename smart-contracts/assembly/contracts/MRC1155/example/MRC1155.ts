@@ -31,6 +31,7 @@ export * from '../../utils/accessControl';
 export * from '../../utils/ownership';
 // export everything from the token module except the constructor
 export {
+  version,
   uri,
   balanceOf,
   balanceOfBatch,
