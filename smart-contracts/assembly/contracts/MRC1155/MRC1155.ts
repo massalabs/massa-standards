@@ -42,6 +42,8 @@ import {
 import { u256 } from 'as-bignum/assembly';
 import { _setOwner } from '../utils/ownership-internal';
 
+export const VERSION = stringToBytes('0.1.0');
+
 /**
  * Constructs a new Multi-NFT contract.
  *
@@ -53,6 +55,13 @@ export function mrc1155Constructor(uri: string): void {
   assert(isDeployingContract());
   _setOwner(Context.caller().toString());
   _constructor(uri);
+}
+
+/**
+ * @returns the MRC1155 implementation version
+ */
+export function version(_: StaticArray<u8>): StaticArray<u8> {
+  return VERSION;
 }
 
 /**
